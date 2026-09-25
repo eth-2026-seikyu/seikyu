@@ -432,6 +432,13 @@ export const invoiceMarketAbi = [
   {
     type: 'function',
     inputs: [],
+    name: 'OVERDUE_EXTENSION',
+    outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
     name: 'REGISTRAR',
     outputs: [
       { name: '', internalType: 'contract IInvoiceRegistrar', type: 'address' },
@@ -537,6 +544,13 @@ export const invoiceMarketAbi = [
     name: 'isVerified',
     outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
     stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'id', internalType: 'uint256', type: 'uint256' }],
+    name: 'markOverdue',
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -869,6 +883,20 @@ export const invoiceMarketAbi = [
     inputs: [
       { name: 'id', internalType: 'uint256', type: 'uint256', indexed: true },
       {
+        name: 'newExpiry',
+        internalType: 'uint64',
+        type: 'uint64',
+        indexed: false,
+      },
+    ],
+    name: 'InvoiceOverdue',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      { name: 'id', internalType: 'uint256', type: 'uint256', indexed: true },
+      {
         name: 'payer',
         internalType: 'address',
         type: 'address',
@@ -1012,6 +1040,7 @@ export const invoiceMarketAbi = [
   },
   { type: 'error', inputs: [], name: 'InvalidTerms' },
   { type: 'error', inputs: [], name: 'NameNotLive' },
+  { type: 'error', inputs: [], name: 'NameStillLive' },
   { type: 'error', inputs: [], name: 'NotIssuer' },
   { type: 'error', inputs: [], name: 'NotOperator' },
   {
@@ -1019,6 +1048,7 @@ export const invoiceMarketAbi = [
     inputs: [{ name: 'who', internalType: 'address', type: 'address' }],
     name: 'NotVerifiedInvestor',
   },
+  { type: 'error', inputs: [], name: 'NotYetDue' },
   {
     type: 'error',
     inputs: [{ name: 'boundTo', internalType: 'address', type: 'address' }],
@@ -1224,6 +1254,16 @@ export const invoiceRegistrarAbi = [
   },
   {
     type: 'function',
+    inputs: [
+      { name: 'invoiceId', internalType: 'uint256', type: 'uint256' },
+      { name: 'newExpiry', internalType: 'uint64', type: 'uint64' },
+    ],
+    name: 'reviveOverdue',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     inputs: [{ name: 'market_', internalType: 'address', type: 'address' }],
     name: 'setMarket',
     outputs: [],
@@ -1308,6 +1348,25 @@ export const invoiceRegistrarAbi = [
         indexed: true,
       },
       {
+        name: 'expiry',
+        internalType: 'uint64',
+        type: 'uint64',
+        indexed: false,
+      },
+    ],
+    name: 'InvoiceNameRevived',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'invoiceId',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: true,
+      },
+      {
         name: 'status',
         internalType: 'string',
         type: 'string',
@@ -1319,6 +1378,7 @@ export const invoiceRegistrarAbi = [
   { type: 'error', inputs: [], name: 'AlreadyRegistered' },
   { type: 'error', inputs: [], name: 'BadRecords' },
   { type: 'error', inputs: [], name: 'MarketAlreadySet' },
+  { type: 'error', inputs: [], name: 'NameStillLive' },
   { type: 'error', inputs: [], name: 'NotAdmin' },
   { type: 'error', inputs: [], name: 'NotMarket' },
   { type: 'error', inputs: [], name: 'UnknownInvoice' },
