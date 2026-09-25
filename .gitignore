@@ -20,3 +20,7 @@ spike/
 *.log
 .idea/
 .vscode/
+
+# per-lane foundry build dirs (parallel executors)
+contracts/out-*/
+contracts/cache-*/
