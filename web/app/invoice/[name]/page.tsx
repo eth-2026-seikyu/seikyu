@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { formatUnits, type Address } from "viem";
 import { AckBadge, SettlementBadge } from "@/components/StatusBadge";
 import { LiveCountdown } from "@/components/InvoiceCard";
+import InvoiceActions from "@/components/InvoiceActions";
 import { getInvoice, RECORD_KEYS } from "@/lib/invoices";
 
 function etherscanAddress(address: Address): string {
@@ -170,7 +171,9 @@ export default async function InvoiceDetailPage({
         </dl>
       </section>
 
-      <section id="actions" data-actions className="mt-8" />
+      <section id="actions" data-actions className="mt-8">
+        <InvoiceActions invoice={invoice} />
+      </section>
     </div>
   );
 }

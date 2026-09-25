@@ -1,4 +1,5 @@
 import InvoiceCard from "@/components/InvoiceCard";
+import FaucetButton from "@/components/FaucetButton";
 import type { DisplayState } from "@/lib/invoices";
 import { listInvoices } from "@/lib/invoices";
 
@@ -19,6 +20,9 @@ export default async function Home() {
       <p className="mt-2 text-sm opacity-70">
         Every invoice is an ENSv2 name that expires on its due date.
       </p>
+      <div className="mt-4">
+        <FaucetButton />
+      </div>
 
       {invoices.length === 0 ? (
         <p className="mt-10 rounded-xl border border-dashed border-black/[.08] p-8 text-center text-sm opacity-60 dark:border-white/[.145]">
