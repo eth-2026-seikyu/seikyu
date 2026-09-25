@@ -1,0 +1,22 @@
+# secrets
+.env
+.env.*
+!.env.example
+# node / next
+node_modules/
+.next/
+.vercel/
+*.tsbuildinfo
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/**/dry-run/
+# throwaway spikes (never committed; AC-14d requires they are deleted before submit)
+spike/
+# omc operational state
+.omc/
+# os / editor
+.DS_Store
+*.log
+.idea/
+.vscode/
