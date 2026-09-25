@@ -64,7 +64,7 @@ function renderState(
             type="button"
             onClick={primaryAction}
             disabled={ctx.busy || !ctx.holder}
-            className="mt-3 rounded-full bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
           >
             {primaryLabel}
           </button>
@@ -100,7 +100,7 @@ function renderState(
           <button
             type="button"
             onClick={primaryAction}
-            className="mt-2 rounded-full border border-black/[.08] px-3 py-1.5 text-xs font-medium dark:border-white/[.145]"
+            className="mt-2 inline-flex min-h-10 items-center justify-center rounded-full border border-black/[.08] px-4 py-1.5 text-xs font-medium dark:border-white/[.145]"
           >
             Retry
           </button>

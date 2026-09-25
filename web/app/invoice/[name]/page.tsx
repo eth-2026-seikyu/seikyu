@@ -66,27 +66,29 @@ export default async function InvoiceDetailPage({
         <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
           ENS records
         </h2>
-        <table className="mt-3 w-full border-collapse text-sm">
-          <tbody>
-            {RECORD_KEYS.map((key) => {
-              const value = records[key];
-              return (
-                <tr
-                  key={key}
-                  data-record={key}
-                  className="border-b border-black/[.08] last:border-0 dark:border-white/[.145]"
-                >
-                  <td className="py-2 pr-4 align-top font-mono text-xs opacity-60">
-                    {key}
-                  </td>
-                  <td className="py-2 font-mono text-xs break-all">
-                    {value === "" ? "—" : value}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[420px] border-collapse text-sm">
+            <tbody>
+              {RECORD_KEYS.map((key) => {
+                const value = records[key];
+                return (
+                  <tr
+                    key={key}
+                    data-record={key}
+                    className="border-b border-black/[.08] last:border-0 dark:border-white/[.145]"
+                  >
+                    <td className="py-2 pr-4 align-top font-mono text-xs opacity-60">
+                      {key}
+                    </td>
+                    <td className="py-2 font-mono text-xs break-all">
+                      {value === "" ? "—" : value}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
         <p className="mt-2 text-xs opacity-60">
           Resolver:{" "}
           <a
@@ -104,7 +106,7 @@ export default async function InvoiceDetailPage({
         <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
           Settlement
         </h2>
-        <dl className="mt-3 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
+        <dl className="mt-3 grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
           <div>
             <dt className="text-xs opacity-60">Issuer</dt>
             <dd>

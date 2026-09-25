@@ -31,12 +31,19 @@ type WorldVerifyButtonProps = {
  * grep-based acceptance check depends on the literal attribute text
  * appearing in source — a dynamically computed value wouldn't satisfy it).
  */
+const PRIMARY_BUTTON =
+  "inline-flex min-h-10 items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black";
+const RETRY_BUTTON =
+  "mt-2 inline-flex min-h-10 items-center justify-center rounded-full border border-black/[.08] px-4 py-1.5 text-xs font-medium dark:border-white/[.145]";
+const ERROR_TEXT = "text-sm text-red-600 dark:text-red-400";
+const MUTED_TEXT = "text-sm opacity-70";
+
 function renderState(state: WorldVerifyState, message: string, onAction: () => void) {
   switch (state) {
     case "idle":
       return (
         <div data-state="idle">
-          <button type="button" onClick={onAction}>
+          <button type="button" onClick={onAction} className={PRIMARY_BUTTON}>
             Verify with World ID
           </button>
         </div>
@@ -44,26 +51,26 @@ function renderState(state: WorldVerifyState, message: string, onAction: () => v
     case "open":
       return (
         <div data-state="open">
-          <p>{message}</p>
+          <p className={MUTED_TEXT}>{message}</p>
         </div>
       );
     case "verifying":
       return (
         <div data-state="verifying">
-          <p>{message}</p>
+          <p className={MUTED_TEXT}>{message}</p>
         </div>
       );
     case "verified":
       return (
         <div data-state="verified">
-          <p>{message}</p>
+          <p className="text-sm">{message}</p>
         </div>
       );
     case "cancelled":
       return (
         <div data-state="cancelled">
-          <p>{message}</p>
-          <button type="button" onClick={onAction}>
+          <p className={ERROR_TEXT}>{message}</p>
+          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
             Retry
           </button>
         </div>
@@ -71,8 +78,8 @@ function renderState(state: WorldVerifyState, message: string, onAction: () => v
     case "credential-unavailable":
       return (
         <div data-state="credential-unavailable">
-          <p>{message}</p>
-          <button type="button" onClick={onAction}>
+          <p className={ERROR_TEXT}>{message}</p>
+          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
             Retry
           </button>
         </div>
@@ -80,8 +87,8 @@ function renderState(state: WorldVerifyState, message: string, onAction: () => v
     case "credential-mismatch":
       return (
         <div data-state="credential-mismatch">
-          <p>{message}</p>
-          <button type="button" onClick={onAction}>
+          <p className={ERROR_TEXT}>{message}</p>
+          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
             Retry
           </button>
         </div>
@@ -89,8 +96,8 @@ function renderState(state: WorldVerifyState, message: string, onAction: () => v
     case "signal-mismatch":
       return (
         <div data-state="signal-mismatch">
-          <p>{message}</p>
-          <button type="button" onClick={onAction}>
+          <p className={ERROR_TEXT}>{message}</p>
+          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
             Retry
           </button>
         </div>
@@ -98,8 +105,8 @@ function renderState(state: WorldVerifyState, message: string, onAction: () => v
     case "nullifier-used":
       return (
         <div data-state="nullifier-used">
-          <p>{message}</p>
-          <button type="button" onClick={onAction}>
+          <p className={ERROR_TEXT}>{message}</p>
+          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
             Retry
           </button>
         </div>
@@ -107,8 +114,8 @@ function renderState(state: WorldVerifyState, message: string, onAction: () => v
     case "failed":
       return (
         <div data-state="failed">
-          <p>{message}</p>
-          <button type="button" onClick={onAction}>
+          <p className={ERROR_TEXT}>{message}</p>
+          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
             Retry
           </button>
         </div>

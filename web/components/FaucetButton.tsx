@@ -74,7 +74,7 @@ export default function FaucetButton() {
         onClick={handleMint}
         disabled={minting || !account}
         title={!account ? "Connect a wallet first" : undefined}
-        className="rounded-full border border-black/[.08] px-3 py-1.5 text-xs font-medium disabled:opacity-50 dark:border-white/[.145]"
+        className="inline-flex min-h-10 items-center justify-center rounded-full border border-black/[.08] px-4 py-1.5 text-xs font-medium disabled:opacity-50 dark:border-white/[.145]"
       >
         {minting ? "Minting…" : "Get 10,000 mUSDC"}
       </button>

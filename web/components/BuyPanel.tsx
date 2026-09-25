@@ -115,7 +115,7 @@ function renderState(
             type="button"
             onClick={ctx.needsApproval ? ctx.onApprove : ctx.onBuy}
             disabled={ctx.busy}
-            className="mt-3 rounded-full bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
           >
             {ctx.needsApproval ? "Approve mUSDC" : `Buy for ${ctx.priceLabel} mUSDC`}
           </button>

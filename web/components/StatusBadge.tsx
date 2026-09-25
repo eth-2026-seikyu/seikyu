@@ -51,7 +51,7 @@ export function SettlementBadge({
         Settlement (on-chain)
       </span>
       <span
-        className={`rounded-full px-2.5 py-1 text-xs font-medium ${SETTLEMENT_STYLES[state]}`}
+        className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${SETTLEMENT_STYLES[state]}`}
       >
         {state}
       </span>
@@ -75,7 +75,7 @@ export function AckBadge({
       <span className="text-[10px] font-medium uppercase tracking-wide text-black/50 dark:text-white/50">
         ENS ack
       </span>
-      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${meta.className}`}>
+      <span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${meta.className}`}>
         {meta.label}
       </span>
     </span>
