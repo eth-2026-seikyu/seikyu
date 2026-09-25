@@ -1,0 +1,72 @@
+# Demo script (3:00)
+
+One continuous take, screen recording + voiceover. Routes are on the live Vercel deployment
+unless noted. `$PARENT` = the registered parent label (see `contracts/deployments/sepolia.json`).
+
+## Timed table
+
+| Time | Screen / route | Action | What it proves | Prize bullet |
+|---|---|---|---|---|
+| 0:00–0:20 | Title slide / voiceover, no app on screen | State the problem: Japanese SMEs are stuck on 60–120 day payment terms, and paper promissory notes (約束手形) are being phased out. | Context: why a tradeable, expiring receivable matters | — |
+| 0:20–0:50 | `/issue` → `/invoice/inv-N.$PARENT` | SME fills the issue form and signs **one transaction**. Redirect lands on the invoice detail page: **8 ENS records** read live off the stored resolver, a countdown to `expiry = dueDate`, and links out to Etherscan and the ENS app. | One tx mints the ERC-721 receivable, deploys a per-invoice Permissioned Resolver, and registers `inv-<id>.$PARENT.eth` with `expiry = dueDate` | ENS — hierarchy (parent → per-invoice subname), expiring names, one resolver per invoice |
+| 0:50–1:25 | `/invoice/[name]` Buy panel | Investor clicks **Buy** → World ID widget opens → click **Cancel** (F1, `data-state="cancelled"`) → click **Retry** → complete **Passport** in the World ID Simulator → server verifies and emits `InvestorVerified` → click **Buy** again → the invoice's ENS `status` record flips to `funded`. | World ID gates real purchases; a cancelled verification is recoverable, not a dead end | World — Passport-verified purchase, `InvestorVerified` recorded on-chain |
+| 1:25–1:45 | Same Buy panel, second MetaMask wallet | The same person switches to a **second wallet** and tries to verify with the same Passport → server returns `409 NULLIFIER_ALREADY_USED`, UI shows `data-state="nullifier-used"` ("already linked to 0x…"); a direct on-chain `setVerified` call would revert `NullifierAlreadyUsed`. | One human maps to one wallet — enforced by an on-chain nullifier, not app-side trust | World — deterministic uniqueness (F3) |
+| 1:45–2:15 | `/accountant` | Debtor's accounts-payable wallet sets `ack=acknowledged` on the first invoice (succeeds) → clicks **"Try to edit amount"** → reverts `EACUnauthorizedAccountRoles` → switches to a second invoice and sets `ack=disputed` → back on that invoice, **Buy** is blocked (`data-state="ack-blocked"`, contract reverts `PurchaseBlockedByAck`). | Enhanced Access Control confines the debtor to one record; ENS state itself gates the market, not just app logic | ENS — EAC setter-role scoping (E6), ENS records as a purchase gate |
+| 2:15–2:40 | `/invoice/[name]` Pay panel | Debtor calls **Settle**: the current holder (the investor) receives the invoice's face value in mUSDC, the ERC-721 is burned, and the invoice's ENS name is **unregistered immediately**. | A tokenized receivable and its on-chain identity retire together the moment the underlying debt is paid | Curvegrid — programmable, self-settling RWA lifecycle |
+| 2:40–3:00 | `/` home + terminal (`check-ens.ts`) | The invoice seeded 10 minutes earlier, now past its due date and never bought, shows **"Expired-unsold"** on the homepage. Running `pnpm -C web exec tsx scripts/check-ens.ts <name>` prints `RESOLVES: false` while `records[status]=listed` still reads back. Close on: **"The name lives as long as the debt is current."** | Expiry is a first-class economic primitive, not a UI label — the name dies, the records don't | ENS — expiry as primitive, records survive expiry via the stored resolver (path R vs. path L) |
+
+Total: 3:00.
+
+## Talk track (read over each segment, ≤ 40 words, for a non-crypto judge)
+
+**0:00 — Problem.** "In Japan, small suppliers often wait two to four months to get paid on an invoice, while paper promissory notes are being phased out. Seikyu lets a supplier sell that unpaid invoice today, to a verified investor, for cash now."
+
+**0:20 — Issue.** "One signature turns an invoice into a tradeable asset. Behind the scenes we mint a token and register a unique web name for it — a name that automatically expires on the day the debt is due."
+
+**0:50 — Buy / World ID.** "Before anyone can buy this receivable, they prove with their passport that they're a real, unique person — so no one wallet-farms their way into three different investor identities."
+
+**1:25 — Second wallet.** "If that same person tries a second wallet, the system recognizes the same passport underneath and blocks it — one human maps to one investor identity, automatically."
+
+**1:45 — Accountant / EAC.** "The debtor's own accounting team confirms the invoice is real, but the system only lets them touch that one confirmation — they can't quietly change what they owe. The blockchain enforces that boundary."
+
+**2:15 — Settle.** "When the debtor pays, the investor is paid instantly, the token is destroyed, and the invoice's web name disappears — because the debt behind it no longer exists."
+
+**2:40 — Expiry / closing.** "If an invoice never finds a buyer and its due date passes, its name simply expires. On Seikyu, a name lives as long as the debt behind it is current — nothing more."
+
+---
+
+## Pre-recording checklist
+
+- [ ] `contracts/.env` and `web/.env.local` populated; `contracts/deployments/sepolia.json` has no `0x000…000` addresses left for `userRegistry`, `invoiceRegistrar`, `invoiceMarket`, `mockUsdc`
+- [ ] All demo wallets funded per plan §2.8: SME ≥ 0.2 ETH; operator, Investor A, Investor A2, debtor, debtor AP ≥ 0.05 ETH each on Sepolia; Investor A, Investor A2, and debtor hold mUSDC (from `Seed.s.sol`)
+- [ ] Run `pnpm -C web exec tsx scripts/e2e-sepolia.ts --seed` **exactly 12 minutes before recording starts**, so the `EXPIRY_DEMO` invoice (due now + 10 minutes) crosses its due date on cue for the 2:40 segment
+- [ ] World ID Simulator tab open and logged in at `https://simulator.worldcoin.org/id/0x18310f83`, ready on the Passport flow
+- [ ] MetaMask has **two investor wallets** (Investor A, Investor A2) added and unlocked on Sepolia, for the F3 second-wallet beat
+- [ ] A separate MetaMask wallet for the debtor accounts-payable role is added and ready to switch to for `/accountant`
+- [ ] Live Vercel URL loaded and hard-refreshed once immediately before recording, so `/` shows the freshly seeded invoices
+- [ ] Terminal font size large enough to read `check-ens.ts` output on camera; scrollback cleared
+- [ ] GitHub repo tab open and ready to flash on screen (AC-19 "repo visible")
+
+## Fallback
+
+- **If the World ID Simulator is flaky or Passport won't complete on camera**: cut to `forge test` evidence instead of a live verify —
+  ```
+  forge test --fork-url $SEPOLIA_RPC_URL --fork-block-number $FORK_BLOCK --match-test test_nameExpiredAtDueDate -vv
+  cast call $MARKET "isVerified(address)(bool)" $INVESTOR_A --rpc-url $SEPOLIA_RPC_URL
+  cast logs --from-block $(jq -r .deployBlock $DEP) --address $MARKET "InvestorVerified(address,bytes32)" --rpc-url $SEPOLIA_RPC_URL | grep -c transactionHash
+  ```
+  (`test_nameExpiredAtDueDate` lives in `contracts/test/InvoiceRegistrar.t.sol`; the two `cast` calls are the AC-11 happy-path checks — `isVerified` returning `true` and at least one `InvestorVerified` log.)
+- **If Sepolia is slow or a transaction hangs on camera**: don't wait it out live — cut to the pre-recorded transaction links captured from a prior `pnpm -C web exec tsx scripts/e2e-sepolia.ts --flow` run (`CREATE_TX`, `VERIFY_TX`, `BUY_TX`, `SETTLE_TX`), also listed in `docs/ENS_INTEGRATION.md`.
+
+## AC-19 checklist (manual video review)
+
+- [ ] Total runtime ≤ 3:00
+- [ ] Happy path shown: issue → buy → settle
+- [ ] F1 shown: cancel the World ID widget, then retry
+- [ ] F3 or F5 shown: second-wallet nullifier reuse, or a signal mismatch
+- [ ] EAC revert shown: `EACUnauthorizedAccountRoles` on "Try to edit amount"
+- [ ] `disputed` ack shown blocking Buy
+- [ ] Name unregistered after settle shown (via `check-ens.ts` or the detail page)
+- [ ] "Expired-unsold" state shown on `/`
+- [ ] Live URL visible on screen
+- [ ] GitHub repo visible on screen
