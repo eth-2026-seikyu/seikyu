@@ -23,11 +23,29 @@ function rpcTransport() {
   return SEPOLIA_RPC_URL ? fallback([http(SEPOLIA_RPC_URL), http()]) : fallback([http()]);
 }
 
-/** Read-only Sepolia client, used to read `nullifierOwner` before issuing a tx. */
-export const publicClient = createPublicClient({
-  chain: sepolia,
-  transport: rpcTransport(),
-});
+let cachedPublicClient: ReturnType<typeof createPublicClient> | undefined;
+
+/**
+ * Lazily builds the read-only Sepolia client, used to read `nullifierOwner`
+ * before issuing a tx. Must stay lazy (memoized on first call, not a
+ * module-level const): `next build` imports every route module while
+ * "Collecting page data" (NODE_ENV=production at that point), and importing
+ * this file must never call `serverEnv()` as a side effect — `serverEnv()`
+ * throws if a dev-only `LOCAL_MARKET_ADDRESS` happens to be set in
+ * `.env.local` while NODE_ENV=production, which broke `next build` when
+ * this was a top-level `const` calling `rpcTransport()` (which calls
+ * `serverEnv()`) at import time.
+ */
+export function publicClient() {
+  if (cachedPublicClient) {
+    return cachedPublicClient;
+  }
+  cachedPublicClient = createPublicClient({
+    chain: sepolia,
+    transport: rpcTransport(),
+  });
+  return cachedPublicClient;
+}
 
 let cachedWallet: ReturnType<typeof createWalletClient> | undefined;
 

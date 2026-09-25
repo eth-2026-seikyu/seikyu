@@ -139,7 +139,7 @@ export async function POST(request: Request) {
     return fail(500, "OPERATOR_TX_FAILED");
   }
 
-  const boundTo = (await publicClient.readContract({
+  const boundTo = (await publicClient().readContract({
     address: market,
     abi: marketAbi,
     functionName: "nullifierOwner",
