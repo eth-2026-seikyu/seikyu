@@ -76,12 +76,7 @@ export function isConfigured(): boolean {
  * Fixtures are opt-in only — set `NEXT_PUBLIC_USE_FIXTURES=1` to preview the
  * UI without a wallet or deployed contracts. Never enabled implicitly by a
  * missing deployment; see `listInvoices`/`getInvoice` in `@/lib/invoices`.
- *
- * Named `useFixtures` per plan, but it's a plain env-check helper, not a
- * React hook — callers outside a component/hook need an inline
- * `// eslint-disable-next-line react-hooks/rules-of-hooks` (the `use*` name
- * otherwise trips that lint rule).
  */
-export function useFixtures(): boolean {
+export function fixturesEnabled(): boolean {
   return process.env.NEXT_PUBLIC_USE_FIXTURES === "1";
 }

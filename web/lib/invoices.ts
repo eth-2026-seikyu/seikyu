@@ -3,7 +3,7 @@
 // import only from this module.
 import { createPublicClient, fallback, http, type Address } from "viem";
 import { sepolia } from "viem/chains";
-import { getAddresses, useFixtures } from "@/lib/addresses";
+import { fixturesEnabled, getAddresses } from "@/lib/addresses";
 import { publicEnv } from "@/lib/env";
 import { idFromLabel, readRecords } from "@/lib/ens";
 import { invoiceMarketAbi, invoiceRegistrarAbi } from "@/lib/generated";
@@ -182,13 +182,11 @@ async function loadInvoiceFromChain(
 }
 
 /**
- * All invoices — fixtures (only when `useFixtures()`) or live chain data.
+ * All invoices — fixtures (only when `fixturesEnabled()`) or live chain data.
  * Never falls back to fixtures implicitly: an unconfigured app returns `[]`.
  */
 export async function listInvoices(): Promise<InvoiceView[]> {
-  // useFixtures() is a plain env-check helper (named per plan), not a hook.
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  if (useFixtures()) return FIXTURE_INVOICES;
+  if (fixturesEnabled()) return FIXTURE_INVOICES;
 
   const { market, registrar } = getAddresses();
   if (!market || !registrar) return [];
@@ -212,9 +210,7 @@ export async function listInvoices(): Promise<InvoiceView[]> {
  * fixtures/unconfigured rules as `listInvoices`.
  */
 export async function getInvoice(name: string): Promise<InvoiceView | null> {
-  // useFixtures() is a plain env-check helper (named per plan), not a hook.
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  if (useFixtures()) {
+  if (fixturesEnabled()) {
     return FIXTURE_INVOICES.find((invoice) => invoice.name === name) ?? null;
   }
 
