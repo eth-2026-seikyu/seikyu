@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "wagmi:generate": "wagmi generate",
+    "sync:deployments": "node scripts/sync-deployments.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.103.2",
