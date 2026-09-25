@@ -69,8 +69,8 @@ export default function InvoiceCard({ invoice }: { invoice: InvoiceView }) {
   const { name, records, market, live, displayState, ackView } = invoice;
   const dueDateSeconds = BigInt(records.dueDate);
   const discountPct =
-    market.faceValue > 0n
-      ? Number(((market.faceValue - market.price) * 10_000n) / market.faceValue) / 100
+    market.faceValue > BigInt(0)
+      ? Number(((market.faceValue - market.price) * BigInt(10_000)) / market.faceValue) / 100
       : 0;
 
   return (
