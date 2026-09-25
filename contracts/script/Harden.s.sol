@@ -26,6 +26,8 @@ contract Harden is Script {
         );
 
         uint256 held = registry.roles(0, deployer);
+        console2.log("deployer                   :", deployer);
+        console2.log("roles(0, deployer) before  :", held);
         if (held == 0) {
             console2.log("deployer holds no root roles; nothing to revoke");
             return;
@@ -34,9 +36,10 @@ contract Harden is Script {
         vm.broadcast(pk);
         registry.revokeRootRoles(held, deployer);
 
-        require(registry.roles(0, deployer) == 0, "Harden: deployer still holds root roles");
+        uint256 remaining = registry.roles(0, deployer);
+        console2.log("roles(0, deployer) after   :", remaining);
+        require(remaining == 0, "Harden: deployer still holds root roles");
         require(registry.hasRootRoles(RegistryRoles.REGISTRAR_ROOT, registrar), "Harden: registrar lost REGISTRAR_ROOT");
-        console2.log("revoked root roles from deployer:", held);
     }
 
     /// @dev Defaults to deployments/sepolia.json, which is only allowed on Sepolia so fork runs never overwrite it.

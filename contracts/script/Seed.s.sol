@@ -38,12 +38,19 @@ contract Seed is Script {
         usdc.mint(debtor, USDC_GRANT);
         vm.stopBroadcast();
 
-        console2.log("seeded ETH to 6 actors and 100,000 mUSDC to investorA, investorA2, debtor");
+        console2.log("minted 100,000 mUSDC to investorA, investorA2, debtor");
+        console2.log("mockUsdc        :", address(usdc));
     }
 
+    /// @dev Skips accounts that already hold `amount`, so a re-run does not send ETH twice.
     function _sendEth(address to, uint256 amount) internal {
+        if (to.balance >= amount) {
+            console2.log("skip ETH, already funded:", to);
+            return;
+        }
         (bool ok,) = payable(to).call{value: amount}("");
         require(ok, "Seed: ETH transfer failed");
+        console2.log("sent ETH (wei)  :", to, amount);
     }
 
     /// @dev Defaults to deployments/sepolia.json, which is only allowed on Sepolia so fork runs never overwrite it.
