@@ -3,8 +3,10 @@
 // import only from this module.
 import { createPublicClient, fallback, http, type Address } from "viem";
 import { sepolia } from "viem/chains";
+import { getAddresses, useFixtures } from "@/lib/addresses";
 import { publicEnv } from "@/lib/env";
 import { idFromLabel, readRecords } from "@/lib/ens";
+import { invoiceMarketAbi, invoiceRegistrarAbi } from "@/lib/generated";
 import { FIXTURE_INVOICES } from "@/lib/__fixtures__/invoices";
 
 export const RECORD_KEYS = [
@@ -87,32 +89,6 @@ export function displayStateOf(
 // Data sources
 ////////////////////////////////////////////////////////////////////////////
 
-const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
-
-function envAddress(name: string): Address | null {
-  const value = process.env[name];
-  return value && ADDRESS_RE.test(value) ? (value as Address) : null;
-}
-
-/**
- * For now, addresses come straight from env (`NEXT_PUBLIC_INVOICE_MARKET` /
- * `NEXT_PUBLIC_INVOICE_REGISTRAR`) — A5/B5 will swap this for the generated
- * per-chain addresses in `@/lib/deployments` once the contracts are deployed.
- */
-function invoiceMarketAddress(): Address | null {
-  return envAddress("NEXT_PUBLIC_INVOICE_MARKET");
-}
-
-function invoiceRegistrarAddress(): Address | null {
-  return envAddress("NEXT_PUBLIC_INVOICE_REGISTRAR");
-}
-
-/** Fixtures until the real contracts are deployed and wired up, or when forced via env. */
-function fixturesEnabled(): boolean {
-  if (process.env.NEXT_PUBLIC_USE_FIXTURES === "1") return true;
-  return !invoiceMarketAddress() || !invoiceRegistrarAddress();
-}
-
 const chainClient = createPublicClient({
   chain: sepolia,
   transport: fallback([
@@ -123,84 +99,10 @@ const chainClient = createPublicClient({
   ]),
 });
 
-// Minimal hand-written ABIs — the InvoiceRegistrar/InvoiceMarket contracts
-// aren't deployed yet, so there's no generated ABI to import. A5/B5 will
-// replace these with `@/lib/deployments` once they exist.
-const registrarAbi = [
-  {
-    type: "function",
-    name: "nameOf",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "string" }],
-  },
-  {
-    type: "function",
-    name: "resolverOf",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "address" }],
-  },
-  {
-    type: "function",
-    name: "isLive",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "bool" }],
-  },
-  {
-    type: "function",
-    name: "recordsOf",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "string[8]" }],
-  },
-  {
-    type: "function",
-    name: "labelOf",
-    stateMutability: "pure",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "string" }],
-  },
-] as const;
-
-const marketAbi = [
-  {
-    type: "function",
-    name: "invoiceCount",
-    stateMutability: "view",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256" }],
-  },
-  {
-    type: "function",
-    name: "invoices",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [
-      { name: "issuer", type: "address" },
-      { name: "debtor", type: "address" },
-      { name: "faceValue", type: "uint128" },
-      { name: "price", type: "uint128" },
-      { name: "dueDate", type: "uint64" },
-      { name: "state", type: "uint8" },
-    ],
-  },
-  {
-    type: "function",
-    name: "ownerOf",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "address" }],
-  },
-  {
-    type: "function",
-    name: "isVerified",
-    stateMutability: "view",
-    inputs: [{ name: "account", type: "address" }],
-    outputs: [{ name: "", type: "bool" }],
-  },
-] as const;
+// ABIs come from `@/lib/generated` (wagmi cli) — see `@/lib/addresses` for
+// where the market/registrar addresses themselves come from.
+const registrarAbi = invoiceRegistrarAbi;
+const marketAbi = invoiceMarketAbi;
 
 /** `InvoiceMarket.State`: 0 None, 1 Listed, 2 Funded, 3 Paid, 4 Cancelled. */
 const MARKET_STATE_BY_INDEX: readonly (MarketState | null)[] = [
@@ -279,13 +181,17 @@ async function loadInvoiceFromChain(
   };
 }
 
-/** All invoices — fixtures or live chain data, per `fixturesEnabled()`. */
+/**
+ * All invoices — fixtures (only when `useFixtures()`) or live chain data.
+ * Never falls back to fixtures implicitly: an unconfigured app returns `[]`.
+ */
 export async function listInvoices(): Promise<InvoiceView[]> {
-  if (fixturesEnabled()) return FIXTURE_INVOICES;
+  // useFixtures() is a plain env-check helper (named per plan), not a hook.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  if (useFixtures()) return FIXTURE_INVOICES;
 
-  const market = invoiceMarketAddress();
-  const registrar = invoiceRegistrarAddress();
-  if (!market || !registrar) return FIXTURE_INVOICES;
+  const { market, registrar } = getAddresses();
+  if (!market || !registrar) return [];
 
   const count = await chainClient.readContract({
     address: market,
@@ -301,14 +207,18 @@ export async function listInvoices(): Promise<InvoiceView[]> {
   return loaded.filter((invoice): invoice is InvoiceView => invoice !== null);
 }
 
-/** One invoice by its full ENS name, e.g. `inv-7.seikyu.eth`. */
+/**
+ * One invoice by its full ENS name, e.g. `inv-7.seikyu.eth`. Same
+ * fixtures/unconfigured rules as `listInvoices`.
+ */
 export async function getInvoice(name: string): Promise<InvoiceView | null> {
-  if (fixturesEnabled()) {
+  // useFixtures() is a plain env-check helper (named per plan), not a hook.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  if (useFixtures()) {
     return FIXTURE_INVOICES.find((invoice) => invoice.name === name) ?? null;
   }
 
-  const market = invoiceMarketAddress();
-  const registrar = invoiceRegistrarAddress();
+  const { market, registrar } = getAddresses();
   if (!market || !registrar) return null;
 
   let id: bigint;

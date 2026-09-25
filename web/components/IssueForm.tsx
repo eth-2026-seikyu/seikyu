@@ -13,7 +13,8 @@ import {
   type Address,
 } from "viem";
 import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { invoiceMarketAbi } from "@/lib/abi/invoiceMarket";
+import { getAddresses } from "@/lib/addresses";
+import { invoiceMarketAbi } from "@/lib/generated";
 
 /** Mirrors `InvoiceMarket.MIN_TENOR` (see contracts/src/InvoiceMarket.sol). */
 const MIN_TENOR_SECONDS = 60;
@@ -31,27 +32,6 @@ const DUE_PRESET_LABELS: Record<Exclude<DuePreset, "custom">, string> = {
   "30d": "+30 days",
   "10m": "+10 minutes (demo expiry)",
 };
-
-const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
-
-/**
- * Same convention as `web/lib/invoices.ts`'s `envAddress` — a small helper
- * around `NEXT_PUBLIC_INVOICE_MARKET`. Written with a literal
- * `process.env.NEXT_PUBLIC_*` access (not the dynamic bracket lookup
- * `invoices.ts` uses) because this file is a client component: Next.js only
- * inlines `NEXT_PUBLIC_*` vars into the browser bundle when the property
- * access is statically analyzable. A5/B5 will swap this for
- * `@/lib/deployments` once the contracts are deployed.
- */
-function invoiceMarketAddress(): Address | null {
-  const value = process.env.NEXT_PUBLIC_INVOICE_MARKET;
-  return value && ADDRESS_RE.test(value) ? (value as Address) : null;
-}
-
-/** Falls back to a visible placeholder until the parent name is configured. */
-function parentName(): string {
-  return process.env.NEXT_PUBLIC_PARENT_NAME || "<parent>.eth";
-}
 
 function formatDueDate(seconds: number): string {
   return new Date(seconds * 1000).toLocaleString(undefined, {
@@ -87,7 +67,7 @@ type UiState = "idle" | "pending" | "confirming" | "success" | "error";
 export function IssueForm() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
-  const marketAddress = invoiceMarketAddress();
+  const { market: marketAddress, parentName } = getAddresses();
 
   const [debtor, setDebtor] = useState("");
   const [accountant, setAccountant] = useState("");
@@ -121,7 +101,8 @@ export function IssueForm() {
     query: { enabled: marketAddress !== null },
   });
   const nextId = invoiceCount !== undefined ? invoiceCount + 1n : null;
-  const previewName = nextId !== null ? `inv-${nextId.toString()}.${parentName()}` : null;
+  const previewName =
+    nextId !== null ? `inv-${nextId.toString()}.${parentName ?? "<parent>.eth"}` : null;
 
   const dueDateSeconds = useMemo((): bigint | null => {
     if (duePreset !== "custom") {

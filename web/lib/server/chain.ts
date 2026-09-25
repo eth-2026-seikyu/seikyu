@@ -16,6 +16,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
+import { getAddresses } from "@/lib/addresses";
 import { serverEnv } from "@/lib/env";
 
 function rpcTransport() {
@@ -79,14 +80,19 @@ export function operatorWallet() {
 
 /**
  * The invoice market address to write World ID verification results to.
- * Dev-only override for now via `LOCAL_MARKET_ADDRESS` — C2 replaces this
- * with the generated per-chain deployment address once the real
- * InvoiceMarket contract exists.
+ * `LOCAL_MARKET_ADDRESS` (server-only, never `production`, see `@/lib/env`)
+ * takes priority as a dev-only override for anvil testing; otherwise this
+ * resolves to `@/lib/addresses`' single source of truth for the market
+ * address (the synced Sepolia deployment, or its own env override).
  */
 export function marketAddress(): Address {
   const { LOCAL_MARKET_ADDRESS } = serverEnv();
   if (LOCAL_MARKET_ADDRESS) {
     return LOCAL_MARKET_ADDRESS as Address;
+  }
+  const { market } = getAddresses();
+  if (market) {
+    return market;
   }
   throw new Error("market not configured yet");
 }

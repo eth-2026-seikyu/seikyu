@@ -27,6 +27,7 @@ import {
 import { sepolia } from "viem/chains";
 import { namehash, packetToBytes } from "viem/ens";
 import { publicEnv } from "@/lib/env";
+import { iPermissionedResolverAbi, invoiceRegistrarAbi } from "@/lib/generated";
 import { RECORD_KEYS, type InvoiceRecords } from "@/lib/invoices";
 
 /** DNS-encode an ENS name (e.g. `inv-7.seikyu.eth`) for `resolve(bytes,bytes)`. */
@@ -60,9 +61,17 @@ export const ensPublicClient = createPublicClient({
   ]),
 });
 
-// Minimal hand-written ABIs — only what path R/L need. Sourced from
-// contracts/lib/contracts-v2/contracts/deployments/sepolia/{PermissionedResolverImpl,UserRegistryImpl}.json
-// (tag sepolia-deployment-2026-09-15) and our own InvoiceRegistrar.
+// `resolve`/`multicall` (real contract calls, on the PermissionedResolver)
+// and `recordsOf`/`isLive` (on the InvoiceRegistrar) come from `@/lib/generated`
+// (wagmi cli) now that both contracts are generated. `text` stays hand-written
+// below: it's never called as a top-level contract function here — it's only
+// used to encode/decode the *inner* calls of the `resolve()` read-multicall
+// payload, i.e. it's the standard `ITextResolver` profile-call shape, not a
+// function this repo's contracts declare in their own ABI.
+const resolveAbi = iPermissionedResolverAbi;
+const multicallAbi = iPermissionedResolverAbi;
+const registrarRecordsAbi = invoiceRegistrarAbi;
+const registrarIsLiveAbi = invoiceRegistrarAbi;
 
 /** `ITextResolver.text` — encoded as the inner calls of a resolver read-multicall. */
 const textAbi = [
@@ -75,53 +84,6 @@ const textAbi = [
       { name: "key", type: "string" },
     ],
     outputs: [{ name: "", type: "string" }],
-  },
-] as const;
-
-/** `IMulticallable.multicall` — same selector `resolve()` recognizes for read-batching. */
-const multicallAbi = [
-  {
-    type: "function",
-    name: "multicall",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "calls", type: "bytes[]" }],
-    outputs: [{ name: "results", type: "bytes[]" }],
-  },
-] as const;
-
-/** `IExtendedResolver.resolve` (ENSIP-10), implemented by `AbstractRecordResolver`. */
-const resolveAbi = [
-  {
-    type: "function",
-    name: "resolve",
-    stateMutability: "view",
-    inputs: [
-      { name: "name", type: "bytes" },
-      { name: "data", type: "bytes" },
-    ],
-    outputs: [{ name: "", type: "bytes" }],
-  },
-] as const;
-
-/** Registrar mirror of the 8 records, keyed by `RECORD_KEYS` order — the path-R fallback. */
-const registrarRecordsAbi = [
-  {
-    type: "function",
-    name: "recordsOf",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "string[8]" }],
-  },
-] as const;
-
-/** Registrar's own liveness check — path L. */
-const registrarIsLiveAbi = [
-  {
-    type: "function",
-    name: "isLive",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "bool" }],
   },
 ] as const;
 

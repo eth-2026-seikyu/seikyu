@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { formatUnits, zeroAddress, type Hex } from "viem";
 import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
-import { erc20Abi, mockUsdcAddress } from "@/lib/abi/erc20";
+import { getAddresses } from "@/lib/addresses";
+import { mockUsdcAbi } from "@/lib/generated";
 
 /** 10,000 mUSDC at 6 decimals — well under MockUSDC's 1,000,000e6 per-call cap. */
 const MINT_AMOUNT = 10_000_000_000n;
@@ -21,14 +22,14 @@ function formatMoney(raw: bigint): string {
  * before a wallet connects) so it can nudge people toward connecting.
  */
 export default function FaucetButton() {
-  const mockUsdc = mockUsdcAddress();
+  const { mockUsdc } = getAddresses();
   const { address: account } = useAccount();
   const [hash, setHash] = useState<Hex | undefined>();
   const [minting, setMinting] = useState(false);
 
   const { data: balance, refetch } = useReadContract({
     address: mockUsdc ?? undefined,
-    abi: erc20Abi,
+    abi: mockUsdcAbi,
     functionName: "balanceOf",
     args: [account ?? zeroAddress],
     query: { enabled: Boolean(mockUsdc) && Boolean(account) },
@@ -53,7 +54,7 @@ export default function FaucetButton() {
     try {
       const txHash = await writeContractAsync({
         address: mockUsdc,
-        abi: erc20Abi,
+        abi: mockUsdcAbi,
         functionName: "mint",
         args: [account, MINT_AMOUNT],
       });

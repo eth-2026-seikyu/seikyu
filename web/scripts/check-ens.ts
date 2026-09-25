@@ -9,7 +9,10 @@
  *     Full path: resolves the id from the name's label (`inv-<id>`), reads
  *     the registrar for the resolver, reads records via path R, and reports
  *     liveness (path L) + ENS registry status.
- *     Requires env: NEXT_PUBLIC_INVOICE_REGISTRAR, NEXT_PUBLIC_USER_REGISTRY.
+ *     Registrar/user-registry addresses come from `@/lib/addresses` (the
+ *     synced Sepolia deployment once deployed, else
+ *     NEXT_PUBLIC_INVOICE_REGISTRAR / NEXT_PUBLIC_USER_REGISTRY for local
+ *     anvil testing — see that module's doc comment).
  *     Optional env: NEXT_PUBLIC_UNIVERSAL_RESOLVER_V2 (used for the RESOLVES
  *     check instead of the registrar's own `isLive`, when set).
  *
@@ -26,8 +29,10 @@
  */
 import { type Address, encodeFunctionData, keccak256, stringToHex } from "viem";
 import { namehash } from "viem/ens";
-import { RECORD_KEYS } from "@/lib/invoices";
+import { getAddresses } from "@/lib/addresses";
 import { dnsEncode, ensPublicClient, idFromLabel, readRecords } from "@/lib/ens";
+import { iUserRegistryAbi, invoiceRegistrarAbi } from "@/lib/generated";
+import { RECORD_KEYS } from "@/lib/invoices";
 
 function usageAndExit(message: string): never {
   console.error(`error: ${message}`);
@@ -40,12 +45,11 @@ function usageAndExit(message: string): never {
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 
-function requireAddressEnv(name: string): Address {
-  const value = process.env[name];
-  if (!value || !ADDRESS_RE.test(value)) {
-    usageAndExit(`env ${name} is not set to a valid 0x-address`);
+function requireAddress(value: Address | null, hint: string): Address {
+  if (!value) {
+    usageAndExit(hint);
   }
-  return value as Address;
+  return value;
 }
 
 function optionalAddressEnv(name: string): Address | null {
@@ -59,30 +63,12 @@ function printRecords(records: Record<string, string>) {
   }
 }
 
-// Minimal ABIs — same sources as web/lib/ens.ts and web/lib/invoices.ts.
-const registrarAbi = [
-  {
-    type: "function",
-    name: "resolverOf",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "address" }],
-  },
-  {
-    type: "function",
-    name: "nameOf",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "string" }],
-  },
-  {
-    type: "function",
-    name: "isLive",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [{ name: "", type: "bool" }],
-  },
-] as const;
+// `registrarAbi`/`userRegistryAbi` come from `@/lib/generated` (wagmi cli).
+// `universalResolverAbi`/`textAbi` stay hand-written below — the Universal
+// Resolver isn't one of this repo's contracts, and `text` is only used to
+// encode/decode an ENS profile-call payload (see web/lib/ens.ts).
+const registrarAbi = invoiceRegistrarAbi;
+const userRegistryAbi = iUserRegistryAbi;
 
 const universalResolverAbi = [
   {
@@ -114,27 +100,6 @@ const textAbi = [
 ] as const;
 
 // `IPermissionedRegistry.Status`: 0 AVAILABLE, 1 RESERVED, 2 REGISTERED.
-const userRegistryAbi = [
-  {
-    type: "function",
-    name: "getState",
-    stateMutability: "view",
-    inputs: [{ name: "anyId", type: "uint256" }],
-    outputs: [
-      {
-        name: "state",
-        type: "tuple",
-        components: [
-          { name: "status", type: "uint8" },
-          { name: "expiry", type: "uint64" },
-          { name: "latestOwner", type: "address" },
-          { name: "tokenId", type: "uint256" },
-          { name: "resource", type: "uint256" },
-        ],
-      },
-    ],
-  },
-] as const;
 const LIVE_STATES = ["AVAILABLE", "RESERVED", "REGISTERED"] as const;
 
 async function resolverOnlyMode(resolver: Address, name: string) {
@@ -150,8 +115,15 @@ async function fullMode(name: string) {
     usageAndExit(err instanceof Error ? err.message : String(err));
   }
 
-  const registrar = requireAddressEnv("NEXT_PUBLIC_INVOICE_REGISTRAR");
-  const userRegistry = requireAddressEnv("NEXT_PUBLIC_USER_REGISTRY");
+  const addresses = getAddresses();
+  const registrar = requireAddress(
+    addresses.registrar,
+    "no invoice registrar address — deploy (@/lib/deployments) or set NEXT_PUBLIC_INVOICE_REGISTRAR",
+  );
+  const userRegistry = requireAddress(
+    addresses.userRegistry,
+    "no user registry address — deploy (@/lib/deployments) or set NEXT_PUBLIC_USER_REGISTRY",
+  );
   const universalResolver = optionalAddressEnv("NEXT_PUBLIC_UNIVERSAL_RESOLVER_V2");
 
   const resolver = await ensPublicClient.readContract({

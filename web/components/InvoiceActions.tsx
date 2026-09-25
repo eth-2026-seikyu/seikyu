@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Hex } from "viem";
 import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { getAddresses } from "@/lib/addresses";
+import { invoiceMarketAbi } from "@/lib/generated";
 import type { InvoiceView } from "@/lib/invoices";
-import { marketActionsAbi, marketAddress } from "@/lib/abi/marketActions";
 import BuyPanel from "./BuyPanel";
 import PayPanel from "./PayPanel";
 
@@ -14,7 +15,7 @@ type CancelState = "idle" | "cancelling" | "cancelled" | "error";
 /** Small "Cancel invoice" control shown to the issuer of an Open invoice. */
 function CancelInvoiceButton({ id }: { id: bigint }) {
   const router = useRouter();
-  const market = marketAddress();
+  const { market } = getAddresses();
   const [state, setState] = useState<CancelState>("idle");
   const [hash, setHash] = useState<Hex | undefined>();
   const { writeContractAsync } = useWriteContract();
@@ -35,7 +36,7 @@ function CancelInvoiceButton({ id }: { id: bigint }) {
     try {
       const txHash = await writeContractAsync({
         address: market,
-        abi: marketActionsAbi,
+        abi: invoiceMarketAbi,
         functionName: "cancel",
         args: [id],
       });

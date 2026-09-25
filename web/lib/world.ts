@@ -3,6 +3,7 @@ import type { Preset } from "@worldcoin/idkit";
 import { hashSignal } from "@worldcoin/idkit-core/hashing";
 import { toHex, type Address, type Hex } from "viem";
 import type { PublicEnv, WorldPreset } from "@/lib/env";
+import { invoiceMarketAbi } from "@/lib/generated";
 
 /**
  * World ID integration helpers shared by the /api/world/* routes and
@@ -116,48 +117,13 @@ export function normalizeNullifier(input: string | bigint): Hex {
   return toHex(BigInt(input), { size: 32 });
 }
 
-/** Minimal ABI for the invoice market's World ID verification surface.
- * Hand-written for now (mock + AC-10 testing); C2 will swap this for the
- * generated ABI once the real InvoiceMarket contract lands. */
-export const marketAbi = [
-  {
-    type: "function",
-    name: "setVerified",
-    inputs: [
-      { name: "investor", type: "address" },
-      { name: "nullifier", type: "bytes32" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "isVerified",
-    inputs: [{ name: "investor", type: "address" }],
-    outputs: [{ name: "", type: "bool" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "nullifierOwner",
-    inputs: [{ name: "nullifier", type: "bytes32" }],
-    outputs: [{ name: "", type: "address" }],
-    stateMutability: "view",
-  },
-  {
-    type: "error",
-    name: "NullifierAlreadyUsed",
-    inputs: [{ name: "boundTo", type: "address" }],
-  },
-  {
-    type: "event",
-    name: "InvestorVerified",
-    inputs: [
-      { name: "investor", type: "address", indexed: true },
-      { name: "nullifier", type: "bytes32", indexed: true },
-    ],
-  },
-] as const;
+/**
+ * ABI for the invoice market's World ID verification surface —
+ * `setVerified`/`isVerified`/`nullifierOwner`, `NullifierAlreadyUsed`, and
+ * `InvestorVerified` all live on the generated `invoiceMarketAbi` now that
+ * the real InvoiceMarket contract exists.
+ */
+export const marketAbi = invoiceMarketAbi;
 
 /** Error `code` values returned by the /api/world/* routes' JSON bodies. */
 export type WorldErrorCode =

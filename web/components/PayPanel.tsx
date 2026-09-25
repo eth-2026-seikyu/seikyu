@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatUnits, zeroAddress, type Address, type Hex } from "viem";
 import { useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { getAddresses } from "@/lib/addresses";
+import { invoiceMarketAbi, mockUsdcAbi } from "@/lib/generated";
 import type { InvoiceView } from "@/lib/invoices";
-import { erc20Abi, mockUsdcAddress } from "@/lib/abi/erc20";
-import { marketActionsAbi, marketAddress } from "@/lib/abi/marketActions";
 
 type PayState = "idle" | "approving" | "settling" | "settled" | "error";
 
@@ -117,8 +117,7 @@ export default function PayPanel({
   account: Address | undefined;
 }) {
   const router = useRouter();
-  const market = marketAddress();
-  const mockUsdc = mockUsdcAddress();
+  const { market, mockUsdc } = getAddresses();
   const holder = invoice.market.holder;
 
   const [state, setState] = useState<PayState>("idle");
@@ -127,7 +126,7 @@ export default function PayPanel({
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: mockUsdc ?? undefined,
-    abi: erc20Abi,
+    abi: mockUsdcAbi,
     functionName: "allowance",
     args: [account ?? zeroAddress, market ?? zeroAddress],
     query: { enabled: Boolean(mockUsdc) && Boolean(market) && Boolean(account) },
@@ -160,7 +159,7 @@ export default function PayPanel({
     try {
       const txHash = await writeContractAsync({
         address: mockUsdc,
-        abi: erc20Abi,
+        abi: mockUsdcAbi,
         functionName: "approve",
         args: [market, invoice.market.faceValue],
       });
@@ -178,7 +177,7 @@ export default function PayPanel({
     try {
       const txHash = await writeContractAsync({
         address: market,
-        abi: marketActionsAbi,
+        abi: invoiceMarketAbi,
         functionName: "settle",
         args: [invoice.id],
       });
