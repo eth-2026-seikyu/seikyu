@@ -9,13 +9,20 @@ import {ITextResolver} from "./interfaces/ens/ITextResolver.sol";
 import {IUserRegistry} from "./interfaces/ens/IUserRegistry.sol";
 import {IVerifiableFactory} from "./interfaces/ens/IVerifiableFactory.sol";
 
+/// @notice Extension to the frozen `IInvoiceRegistrar`: revives the expired name of an unpaid invoice.
+interface IInvoiceRegistrarOverdue {
+    event InvoiceNameRevived(uint256 indexed invoiceId, uint64 expiry);
+
+    function reviveOverdue(uint256 invoiceId, uint64 newExpiry) external; // onlyMarket: renew, then status = "overdue"
+}
+
 /// @notice Issues `inv-<id>.<parent>.eth` on our ENSv2 UserRegistry for every invoice, with
 /// `expiry = dueDate`, so the name lives only as long as the debt is current. Each invoice gets
 /// its own PermissionedResolver: this contract holds root `ROLE_SET_TEXT` (+ admin, never
 /// `ROLE_UPGRADE`) and the debtor's accountant is granted `ROLE_SET_TEXT` on the `ack` key only.
 /// Records are always read through the stored resolver (path R), because the registry stops
 /// returning it once the name expires or is unregistered.
-contract InvoiceRegistrar is IInvoiceRegistrar {
+contract InvoiceRegistrar is IInvoiceRegistrar, IInvoiceRegistrarOverdue {
     uint256 constant RESOLVER_ROOT_ROLES = ResolverRoles.ROLE_SET_TEXT | ResolverRoles.ROLE_SET_TEXT_ADMIN;
 
     IUserRegistry public immutable REGISTRY;
@@ -35,6 +42,7 @@ contract InvoiceRegistrar is IInvoiceRegistrar {
     error AlreadyRegistered();
     error UnknownInvoice();
     error BadRecords();
+    error NameStillLive();
 
     modifier onlyMarket() {
         if (msg.sender != market) revert NotMarket();
@@ -101,6 +109,17 @@ contract InvoiceRegistrar is IInvoiceRegistrar {
         bool live = isLive(invoiceId);
         if (live) REGISTRY.unregister(_labelId(invoiceId));
         emit InvoiceNameClosed(invoiceId, finalStatus, live);
+    }
+
+    /// @dev `renew` on an expired name restores it with the same owner and roles (it cannot
+    /// reduce expiry), and the resolver storage was never touched, so only `status` changes.
+    function reviveOverdue(uint256 invoiceId, uint64 newExpiry) external onlyMarket {
+        address resolver = _resolverOrRevert(invoiceId);
+        if (isLive(invoiceId)) revert NameStillLive();
+        REGISTRY.renew(_labelId(invoiceId), newExpiry);
+        IPermissionedResolver(resolver).setText(dnsNameOf(invoiceId), "status", "overdue");
+        emit InvoiceNameRevived(invoiceId, newExpiry);
+        emit InvoiceStatusSet(invoiceId, "overdue");
     }
 
     /// @dev Path L.

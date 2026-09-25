@@ -9,6 +9,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {IInvoiceRegistrar} from "./interfaces/IInvoiceRegistrar.sol";
+import {IInvoiceRegistrarOverdue} from "./InvoiceRegistrar.sol";
 
 /// @notice ERC-721 receivable market. Each invoice is minted to escrow
 /// (this contract) at creation, sold once to a verified investor at a
@@ -43,6 +44,7 @@ contract InvoiceMarket is ERC721("Seikyu Receivable", "SKR"), Ownable, Pausable 
     IInvoiceRegistrar public immutable REGISTRAR;
     uint256 public immutable MAX_OPEN_POSITIONS;
     uint64 public constant MIN_TENOR = 60;
+    uint64 public constant OVERDUE_EXTENSION = 30 days;
 
     address public operator;
     uint256 public invoiceCount;
@@ -66,6 +68,7 @@ contract InvoiceMarket is ERC721("Seikyu Receivable", "SKR"), Ownable, Pausable 
     event InvoiceFunded(uint256 indexed id, address indexed investor, uint128 price);
     event InvoiceSettled(uint256 indexed id, address indexed payer, address indexed holder, uint128 faceValue);
     event InvoiceCancelled(uint256 indexed id);
+    event InvoiceOverdue(uint256 indexed id, uint64 newExpiry);
 
     error NotOperator();
     error NotIssuer();
@@ -77,6 +80,8 @@ contract InvoiceMarket is ERC721("Seikyu Receivable", "SKR"), Ownable, Pausable 
     error DueDatePassed();
     error NameNotLive();
     error PurchaseBlockedByAck(string ack);
+    error NotYetDue();
+    error NameStillLive();
 
     modifier onlyOperator() {
         if (msg.sender != operator) revert NotOperator();
@@ -211,6 +216,20 @@ contract InvoiceMarket is ERC721("Seikyu Receivable", "SKR"), Ownable, Pausable 
         REGISTRAR.closeInvoice(id, "cancelled");
 
         emit InvoiceCancelled(id);
+    }
+
+    /// @notice Anyone may flag a funded invoice that is past due and unpaid: its expired ENS name
+    /// is revived for `OVERDUE_EXTENSION` with `status = overdue`. `settle()` still works after.
+    function markOverdue(uint256 id) external {
+        Invoice storage inv = invoices[id];
+        if (inv.state != State.Funded) revert InvalidState(inv.state);
+        if (block.timestamp < inv.dueDate) revert NotYetDue();
+        if (REGISTRAR.isLive(id)) revert NameStillLive();
+
+        uint64 newExpiry = uint64(block.timestamp + OVERDUE_EXTENSION);
+        IInvoiceRegistrarOverdue(address(REGISTRAR)).reviveOverdue(id, newExpiry);
+
+        emit InvoiceOverdue(id, newExpiry);
     }
 
     function _update(address to, uint256 tokenId, address auth) internal override returns (address) {
