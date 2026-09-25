@@ -12,7 +12,13 @@ import {
   zeroAddress,
   type Address,
 } from "viem";
-import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import {
+  useAccount,
+  useBytecode,
+  useReadContract,
+  useWaitForTransactionReceipt,
+  useWriteContract,
+} from "wagmi";
 import { getAddresses } from "@/lib/addresses";
 import { invoiceMarketAbi } from "@/lib/generated";
 
@@ -68,6 +74,16 @@ export function IssueForm() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const { market: marketAddress, parentName } = getAddresses();
+
+  // EIP-7702 guard: the registrar mints the invoice name as an ERC-1155 to
+  // the issuer, which reverts (ERC1155InvalidReceiver) for an account that
+  // has code — including a MetaMask smart account or an anvil default key
+  // delegated via 7702. Non-empty bytecode means "has code".
+  const { data: issuerBytecode } = useBytecode({
+    address,
+    query: { enabled: Boolean(address) },
+  });
+  const issuerIsContract = Boolean(issuerBytecode) && issuerBytecode !== "0x";
 
   const [debtor, setDebtor] = useState("");
   const [accountant, setAccountant] = useState("");
@@ -239,6 +255,16 @@ export function IssueForm() {
           The invoice market is currently paused.
         </p>
       )}
+      {isConnected && issuerIsContract && (
+        <div
+          data-state="issuer-is-contract"
+          className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300"
+        >
+          This account has smart-account (EIP-7702) code. The ENS registry mints the invoice
+          name as an ERC-1155 to the issuer, which reverts for accounts with code
+          (ERC1155InvalidReceiver). Use a plain EOA to issue.
+        </div>
+      )}
 
       <label className="flex flex-col gap-1 text-sm">
         <span className="font-medium">Debtor address (取引先)</span>
@@ -363,8 +389,14 @@ export function IssueForm() {
 
       <button
         type="submit"
-        disabled={!isConnected || isSubmitting || isConfirming || isPaused === true}
-        className="self-start rounded-full bg-black px-5 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
+        disabled={
+          !isConnected ||
+          isSubmitting ||
+          isConfirming ||
+          isPaused === true ||
+          issuerIsContract
+        }
+        className="inline-flex min-h-10 items-center justify-center self-start rounded-full bg-black px-5 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
       >
         {isSubmitting
           ? "Confirm in wallet…"
