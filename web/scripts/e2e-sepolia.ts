@@ -11,8 +11,11 @@
  *
  * Config:
  *   Addresses come from NEXT_PUBLIC_INVOICE_MARKET / NEXT_PUBLIC_INVOICE_REGISTRAR /
- *   NEXT_PUBLIC_MOCK_USDC / NEXT_PUBLIC_USER_REGISTRY, unless `@/lib/deployments`
- *   exists on disk at run time (A5/B5 land it later), which takes priority.
+ *   NEXT_PUBLIC_MOCK_USDC / NEXT_PUBLIC_USER_REGISTRY, unless `web/lib/deployments.ts`
+ *   (A5's `sepoliaDeployments`) has a real, non-zero address for that contract,
+ *   which then takes priority. `deployBlock`/`parentName` from the same module
+ *   seed the InvestorVerified log scan's default lower bound and the printed
+ *   invoice name, respectively, when available.
  *   RPC from SEPOLIA_RPC_URL (default: public Sepolia RPC). Chain id is
  *   detected from the RPC itself, so this also runs unmodified against a
  *   plain `anvil` node for local rehearsal.
@@ -82,36 +85,57 @@ function envVar(name: string): string | undefined {
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 const PK_RE = /^0x[a-fA-F0-9]{64}$/;
+const ZERO_ADDRESS: Address = "0x0000000000000000000000000000000000000000";
 
 type DeploymentAddresses = Partial<{
   invoiceMarket: Address;
   invoiceRegistrar: Address;
   mockUsdc: Address;
   userRegistry: Address;
+  deployBlock: bigint;
+  parentName: string;
 }>;
 
 /**
- * A5/B5 will later add `web/lib/deployments.ts` with generated per-chain
- * addresses. Load it if (and only if) it exists on disk — checked with a
- * plain filesystem path (not the `@/` alias) so this works whether or not
- * tsx's alias resolution covers dynamic imports, and so `tsc --noEmit`
- * never has to resolve a module that may not exist yet.
+ * `web/lib/deployments.ts` (A5) exports `sepoliaDeployments` — a typed view
+ * over `deployments.sepolia.json` with the app-owned addresses set to
+ * `ZERO_ADDRESS` pre-deploy. Load it if (and only if) it exists on disk —
+ * checked with a plain filesystem path (not the `@/` alias) so this works
+ * whether or not tsx's alias resolution covers dynamic imports, and so
+ * `tsc --noEmit` never has to resolve a module that may not exist yet.
  */
 async function loadDeployments(): Promise<DeploymentAddresses> {
   const abs = resolve(__dirname, "..", "lib", "deployments.ts");
   if (!existsSync(abs)) return {};
   try {
     const mod = (await import(pathToFileURL(abs).href)) as Record<string, unknown>;
-    const candidate = (mod.default ?? mod.deployments ?? mod) as Record<string, unknown>;
-    const pick = (camel: string, envName: string): Address | undefined => {
-      const value = (candidate[camel] ?? candidate[envName]) as unknown;
-      return typeof value === "string" && ADDRESS_RE.test(value) ? (value as Address) : undefined;
+    const deployments = mod.sepoliaDeployments as Record<string, unknown> | undefined;
+    if (!deployments) return {};
+
+    // Pre-deploy, A5's app-owned addresses are the zero address — treat that
+    // the same as "not configured" so env vars still win until a real
+    // deployment lands.
+    const pickAddr = (key: string): Address | undefined => {
+      const value = deployments[key];
+      return typeof value === "string" && ADDRESS_RE.test(value) && value !== ZERO_ADDRESS
+        ? (value as Address)
+        : undefined;
     };
+
+    const deployBlockRaw = deployments.deployBlock;
+    const parentNameRaw = deployments.parentName;
+
     return {
-      invoiceMarket: pick("invoiceMarket", "NEXT_PUBLIC_INVOICE_MARKET"),
-      invoiceRegistrar: pick("invoiceRegistrar", "NEXT_PUBLIC_INVOICE_REGISTRAR"),
-      mockUsdc: pick("mockUsdc", "NEXT_PUBLIC_MOCK_USDC"),
-      userRegistry: pick("userRegistry", "NEXT_PUBLIC_USER_REGISTRY"),
+      invoiceMarket: pickAddr("invoiceMarket"),
+      invoiceRegistrar: pickAddr("invoiceRegistrar"),
+      mockUsdc: pickAddr("mockUsdc"),
+      userRegistry: pickAddr("userRegistry"),
+      deployBlock:
+        typeof deployBlockRaw === "number" && deployBlockRaw > 0
+          ? BigInt(deployBlockRaw)
+          : undefined,
+      parentName:
+        typeof parentNameRaw === "string" && parentNameRaw !== "" ? parentNameRaw : undefined,
     };
   } catch {
     return {};
@@ -157,6 +181,8 @@ let MARKET: Address | undefined;
 let REGISTRAR: Address | undefined;
 let MOCK_USDC: Address | undefined;
 let USER_REGISTRY: Address | undefined;
+let DEPLOY_BLOCK: bigint | undefined;
+let PARENT_NAME: string | undefined;
 let chain: Chain;
 let publicClient: ReturnType<typeof createPublicClient>;
 
@@ -179,6 +205,8 @@ async function init(): Promise<void> {
   REGISTRAR = pickAddress(deployments.invoiceRegistrar, "NEXT_PUBLIC_INVOICE_REGISTRAR");
   MOCK_USDC = pickAddress(deployments.mockUsdc, "NEXT_PUBLIC_MOCK_USDC");
   USER_REGISTRY = pickAddress(deployments.userRegistry, "NEXT_PUBLIC_USER_REGISTRY");
+  DEPLOY_BLOCK = deployments.deployBlock;
+  PARENT_NAME = deployments.parentName;
 
   chain = await detectChain(RPC_URL);
   publicClient = createPublicClient({ chain, transport: http(RPC_URL) });
@@ -301,9 +329,11 @@ async function findVerifyTx(investor: Address): Promise<{ hash: Hex; nullifier: 
   const fromBlockEnv = envVar("E2E_FROM_BLOCK");
   const fromBlock = fromBlockEnv
     ? BigInt(fromBlockEnv)
-    : latestBlock > 50_000n
-      ? latestBlock - 50_000n
-      : 0n;
+    : DEPLOY_BLOCK !== undefined
+      ? DEPLOY_BLOCK
+      : latestBlock > 50_000n
+        ? latestBlock - 50_000n
+        : 0n;
 
   const events = await publicClient.getContractEvents({
     address: MARKET!,
@@ -346,18 +376,27 @@ async function printStatus(id: bigint): Promise<void> {
   });
   console.log(`records[status]=${records[STATUS_KEY_INDEX]}`);
 
+  let label: string | undefined;
+  async function getLabel(): Promise<string> {
+    label ??= await publicClient.readContract({
+      address: REGISTRAR!,
+      abi: registrarAbi,
+      functionName: "labelOf",
+      args: [id],
+    });
+    return label;
+  }
+
+  if (PARENT_NAME) {
+    console.log(`NAME=${await getLabel()}.${PARENT_NAME}`);
+  }
+
   if (!USER_REGISTRY) {
     console.log("LIVE_STATE=N/A (no user registry)");
     return;
   }
 
-  const label = await publicClient.readContract({
-    address: REGISTRAR!,
-    abi: registrarAbi,
-    functionName: "labelOf",
-    args: [id],
-  });
-  const anyId = BigInt(keccak256(toBytes(label)));
+  const anyId = BigInt(keccak256(toBytes(await getLabel())));
   const state = await publicClient.readContract({
     address: USER_REGISTRY,
     abi: userRegistryAbi,
