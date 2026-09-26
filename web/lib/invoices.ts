@@ -3,11 +3,10 @@
 // import only from this module.
 import { createPublicClient, fallback, http, type Address } from "viem";
 import { sepolia } from "viem/chains";
-import { fixturesEnabled, getAddresses } from "@/lib/addresses";
+import { getAddresses } from "@/lib/addresses";
 import { publicEnv } from "@/lib/env";
 import { idFromLabel, readRecords } from "@/lib/ens";
 import { invoiceMarketAbi, invoiceRegistrarAbi } from "@/lib/generated";
-import { FIXTURE_INVOICES } from "@/lib/__fixtures__/invoices";
 
 export const RECORD_KEYS = [
   "amount",
@@ -181,13 +180,8 @@ async function loadInvoiceFromChain(
   };
 }
 
-/**
- * All invoices — fixtures (only when `fixturesEnabled()`) or live chain data.
- * Never falls back to fixtures implicitly: an unconfigured app returns `[]`.
- */
+/** All invoices, read live from chain. An unconfigured app returns `[]`. */
 export async function listInvoices(): Promise<InvoiceView[]> {
-  if (fixturesEnabled()) return FIXTURE_INVOICES;
-
   const { market, registrar } = getAddresses();
   if (!market || !registrar) return [];
 
@@ -198,8 +192,8 @@ export async function listInvoices(): Promise<InvoiceView[]> {
     args: [],
   });
 
-  // Token ids are assumed 1-based (ERC721-style), matching the fixtures'
-  // `tokenId` records. A0/B5: flag here if the deployed contract starts at 0.
+  // Token ids are assumed 1-based (ERC721-style, InvoiceMarket.createInvoice
+  // increments before minting). Flag here if that ever changes.
   const ids = Array.from({ length: Number(count) }, (_, i) => BigInt(i + 1));
   const loaded = await Promise.all(ids.map((id) => loadInvoiceFromChain(id, market, registrar)));
   return loaded.filter((invoice): invoice is InvoiceView => invoice !== null);
@@ -207,13 +201,9 @@ export async function listInvoices(): Promise<InvoiceView[]> {
 
 /**
  * One invoice by its full ENS name, e.g. `inv-7.seikyu.eth`. Same
- * fixtures/unconfigured rules as `listInvoices`.
+ * unconfigured rule as `listInvoices`.
  */
 export async function getInvoice(name: string): Promise<InvoiceView | null> {
-  if (fixturesEnabled()) {
-    return FIXTURE_INVOICES.find((invoice) => invoice.name === name) ?? null;
-  }
-
   const { market, registrar } = getAddresses();
   if (!market || !registrar) return null;
 

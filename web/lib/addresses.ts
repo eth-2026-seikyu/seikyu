@@ -71,12 +71,3 @@ export function isConfigured(): boolean {
   const { market, registrar } = getAddresses();
   return market !== null && registrar !== null;
 }
-
-/**
- * Fixtures are opt-in only — set `NEXT_PUBLIC_USE_FIXTURES=1` to preview the
- * UI without a wallet or deployed contracts. Never enabled implicitly by a
- * missing deployment; see `listInvoices`/`getInvoice` in `@/lib/invoices`.
- */
-export function fixturesEnabled(): boolean {
-  return process.env.NEXT_PUBLIC_USE_FIXTURES === "1";
-}
