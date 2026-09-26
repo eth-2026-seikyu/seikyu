@@ -240,8 +240,7 @@ export function AckEditor({ initialName }: { initialName?: string }) {
         data-state="unavailable"
         className="mt-6 rounded-xl border border-dashed border-black/[.08] p-6 text-sm opacity-70 dark:border-white/[.145]"
       >
-        Registrar not deployed yet — set{" "}
-        <code className="font-mono">NEXT_PUBLIC_INVOICE_REGISTRAR</code> to enable this page.
+        The app isn&apos;t configured for this network yet.
       </div>
     );
   }
@@ -252,7 +251,7 @@ export function AckEditor({ initialName }: { initialName?: string }) {
         Connected wallet:{" "}
         <span className="font-mono">{isConnected && address ? address : "not connected"}</span>
         <br />
-        Only the debtor&apos;s AP wallet named at issuance can write{" "}
+        Only the debtor&apos;s accountant wallet named when the invoice was issued can write{" "}
         <code className="font-mono">ack</code>. Connect it using the button in the header.
       </p>
 
@@ -419,7 +418,7 @@ export function AckEditor({ initialName }: { initialName?: string }) {
                     >
                       <span className="font-mono">{key}</span>:{" "}
                       {denied
-                        ? `reverted with ${result.errorName} — this wallet's EAC role is scoped to "ack" only.`
+                        ? `Blocked as designed: reverted with ${result.errorName} — this wallet's EAC role is scoped to "ack" only.`
                         : result.message}
                       {result.txHash && (
                         <>

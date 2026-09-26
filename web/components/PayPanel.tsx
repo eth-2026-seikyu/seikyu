@@ -2,27 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatUnits, zeroAddress, type Address, type Hex } from "viem";
+import { zeroAddress, type Address, type Hex } from "viem";
 import { useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { getAddresses } from "@/lib/addresses";
+import { TERMS } from "@/lib/copy";
+import { formatMoney, shortAddress } from "@/lib/format";
 import { invoiceMarketAbi, mockUsdcAbi } from "@/lib/generated";
 import type { InvoiceView } from "@/lib/invoices";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 
 type PayState = "idle" | "approving" | "settling" | "settled" | "error";
-
-/** Records/market amounts are stored as integers with 6 decimals (like USDC). */
-function formatMoney(raw: bigint): string {
-  const formatted = formatUnits(raw, 6);
-  const [whole, frac = "0"] = formatted.split(".");
-  const withCommas = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `${withCommas}.${frac.slice(0, 2).padEnd(2, "0")}`;
-}
-
-function shortAddress(address: Address): string {
-  return `${address.slice(0, 6)}…${address.slice(-4)}`;
-}
 
 function etherscanAddress(address: Address): string {
   return `https://sepolia.etherscan.io/address/${address}`;
@@ -48,7 +38,8 @@ function renderState(
       return (
         <div data-state="idle">
           <p className="text-sm">
-            Face value {ctx.faceValueLabel} mUSDC — held by{" "}
+            Face value {ctx.faceValueLabel} {TERMS.testUsdc} — goes straight to the current
+            owner{" "}
             {ctx.holder ? (
               <a
                 href={etherscanAddress(ctx.holder)}
@@ -62,11 +53,16 @@ function renderState(
               <span className="opacity-60">unknown</span>
             )}
           </p>
+          <p className="mt-2 text-sm opacity-70">
+            {ctx.needsApproval
+              ? `Step 1 of 2 — allow Seikyu to move ${ctx.faceValueLabel} ${TERMS.testUsdc}`
+              : `Step 2 of 2 — pay ${ctx.faceValueLabel} ${TERMS.testUsdc} to the current owner; this closes the invoice`}
+          </p>
           <Button onClick={primaryAction} disabled={ctx.busy || !ctx.holder} className="mt-3">
             {primaryLabel}
           </Button>
           <p className="mt-2 text-xs opacity-60">
-            Settling burns the receivable and unregisters the ENS name.
+            Paying closes the invoice and retires its ENS name.
           </p>
         </div>
       );
@@ -185,7 +181,7 @@ export default function PayPanel({
     return (
       <Card className="border-dashed">
         <p data-state="idle" className="text-sm opacity-70">
-          Connect a wallet to settle this receivable.
+          Connect the debtor company&apos;s wallet to pay.
         </p>
       </Card>
     );

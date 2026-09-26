@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   BaseError,
   ContractFunctionRevertedError,
-  formatUnits,
   isAddress,
   parseEventLogs,
   parseUnits,
@@ -20,6 +19,8 @@ import {
   useWriteContract,
 } from "wagmi";
 import { getAddresses } from "@/lib/addresses";
+import { TERMS } from "@/lib/copy";
+import { formatMoney } from "@/lib/format";
 import { invoiceMarketAbi } from "@/lib/generated";
 import { Button } from "./ui/Button";
 
@@ -37,7 +38,7 @@ const DUE_PRESET_SECONDS: Record<Exclude<DuePreset, "custom">, number> = {
 const DUE_PRESET_LABELS: Record<Exclude<DuePreset, "custom">, string> = {
   "7d": "+7 days",
   "30d": "+30 days",
-  "10m": "+10 minutes (demo expiry)",
+  "10m": "+10 minutes (quick demo)",
 };
 
 function formatDueDate(seconds: number): string {
@@ -76,10 +77,10 @@ export function IssueForm() {
   const { address, isConnected } = useAccount();
   const { market: marketAddress, parentName } = getAddresses();
 
-  // EIP-7702 guard: the registrar mints the invoice name as an ERC-1155 to
-  // the issuer, which reverts (ERC1155InvalidReceiver) for an account that
-  // has code — including a MetaMask smart account or an anvil default key
-  // delegated via 7702. Non-empty bytecode means "has code".
+  // Smart-account guard: the registrar mint reverts for an account that has
+  // code — including a MetaMask smart account or an anvil default key
+  // delegated via a code-setting authorization. Non-empty bytecode means
+  // "has code".
   const { data: issuerBytecode } = useBytecode({
     address,
     query: { enabled: Boolean(address) },
@@ -238,8 +239,7 @@ export function IssueForm() {
         data-state="unavailable"
         className="mt-6 rounded-xl border border-dashed border-black/[.08] p-6 text-sm opacity-70 dark:border-white/[.145]"
       >
-        Market not deployed yet — set <code className="font-mono">NEXT_PUBLIC_INVOICE_MARKET</code>{" "}
-        to enable issuing invoices.
+        The app isn&apos;t configured for this network yet.
       </div>
     );
   }
@@ -261,14 +261,12 @@ export function IssueForm() {
           data-state="issuer-is-contract"
           className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-300"
         >
-          This account has smart-account (EIP-7702) code. The ENS registry mints the invoice
-          name as an ERC-1155 to the issuer, which reverts for accounts with code
-          (ERC1155InvalidReceiver). Use a plain EOA to issue.
+          Smart-account wallets can&apos;t list invoices — please use a regular wallet address.
         </div>
       )}
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Debtor address (取引先)</span>
+        <span className="font-medium">Debtor address (Debtor company)</span>
         <input
           type="text"
           value={debtor}
@@ -279,7 +277,7 @@ export function IssueForm() {
       </label>
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Debtor accounts-payable address (取引先経理)</span>
+        <span className="font-medium">Debtor accounts-payable address (Debtor&apos;s accountant)</span>
         <input
           type="text"
           value={accountant}
@@ -288,12 +286,12 @@ export function IssueForm() {
           className="rounded-lg border border-black/[.08] px-3 py-2 font-mono text-sm dark:border-white/[.145] dark:bg-transparent"
         />
         <span className="text-xs opacity-60">
-          This wallet may only set the <code className="font-mono">ack</code> record.
+          The wallet that may confirm or dispute this invoice on the debtor&apos;s behalf.
         </span>
       </label>
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Face value (mUSDC)</span>
+        <span className="font-medium">Face value ({TERMS.testUsdc})</span>
         <input
           type="text"
           inputMode="decimal"
@@ -317,8 +315,8 @@ export function IssueForm() {
         />
         {priceWei !== null && faceValueWei !== null && (
           <span className="text-xs opacity-60">
-            Investor pays {formatUnits(priceWei, 6)} mUSDC now for {formatUnits(faceValueWei, 6)}{" "}
-            mUSDC at maturity.
+            Investor pays {formatMoney(priceWei)} {TERMS.testUsdc} now for{" "}
+            {formatMoney(faceValueWei)} {TERMS.testUsdc} at maturity.
           </span>
         )}
       </label>

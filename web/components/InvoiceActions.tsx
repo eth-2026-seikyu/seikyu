@@ -184,9 +184,10 @@ export default function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
               className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
             >
               <p>
-                Overdue — the ENS name was revived (status overdue)
-                {invoice.ensExpiry ? ` until ${formatDate(invoice.ensExpiry)}` : ""}; the debtor
-                can still settle.
+                Past due — the debtor company can still pay.
+                {invoice.ensExpiry
+                  ? ` This invoice stays active until ${formatDate(invoice.ensExpiry)}.`
+                  : ""}
               </p>
             </div>
           ) : (
@@ -195,9 +196,8 @@ export default function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
               className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
             >
               <p>
-                Past due — the ENS name has expired; anyone can call{" "}
-                <code className="font-mono">markOverdue()</code> to revive it with{" "}
-                <code className="font-mono">status=overdue</code>.
+                Past due — the debtor company can still pay. Mark overdue keeps the invoice&apos;s
+                ENS name alive for 30 more days while payment is chased.
               </p>
               <MarkOverdueButton id={invoice.id} />
             </div>
@@ -211,13 +211,12 @@ export default function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
           data-state="expired-unsold"
           className="rounded-xl border border-dashed border-black/[.08] p-4 text-sm opacity-70 dark:border-white/[.145]"
         >
-          Not sold before the due date — the ENS name stopped resolving; records remain
-          readable through the invoice&apos;s resolver.
+          Not sold in time — nobody bought this invoice before its due date.
         </div>
       );
     case "Paid":
       return <Explanation text="This receivable has been settled in full." />;
     case "Cancelled":
-      return <Explanation text="The issuer cancelled this invoice before it was sold." />;
+      return <Explanation text="Withdrawn by the supplier." />;
   }
 }

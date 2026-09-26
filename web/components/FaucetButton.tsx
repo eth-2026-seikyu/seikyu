@@ -66,19 +66,22 @@ export default function FaucetButton() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3 text-sm">
-      {account && balance !== undefined && (
-        <span className="opacity-70">Balance: {formatMoney(balance)} mUSDC</span>
-      )}
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={handleMint}
-        disabled={minting || !account}
-        title={!account ? "Connect a wallet first" : undefined}
-      >
-        {minting ? "Minting…" : "Get 10,000 mUSDC"}
-      </Button>
+    <div className="flex flex-col gap-1">
+      <p className="text-xs opacity-60">Free test money — test USDC has no real value</p>
+      <div className="flex flex-wrap items-center gap-3 text-sm">
+        {account && balance !== undefined && (
+          <span className="opacity-70">Balance: {formatMoney(balance)} mUSDC</span>
+        )}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleMint}
+          disabled={minting || !account}
+          title={!account ? "Connect a wallet first" : undefined}
+        >
+          {minting ? "Minting…" : "Get 10,000 mUSDC"}
+        </Button>
+      </div>
     </div>
   );
 }

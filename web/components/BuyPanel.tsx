@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import {
   BaseError,
   ContractFunctionRevertedError,
-  formatUnits,
   zeroAddress,
   type Address,
   type Hex,
 } from "viem";
 import { useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { getAddresses } from "@/lib/addresses";
+import { TERMS } from "@/lib/copy";
+import { formatMoney } from "@/lib/format";
 import { invoiceMarketAbi, mockUsdcAbi } from "@/lib/generated";
 import type { InvoiceView } from "@/lib/invoices";
 import { Button } from "./ui/Button";
@@ -30,33 +31,6 @@ type BuyState =
   | "ack-blocked"
   | "due-passed"
   | "paused";
-
-/**
- * User-facing name for the World ID credential the market is currently
- * configured to require, keyed off `NEXT_PUBLIC_WORLD_PRESET` (see
- * `web/lib/env.ts#worldPresetSchema` — default "passport"). Read literally
- * so Next.js can inline it into the client bundle; kept local to this
- * component rather than added to `@/lib/world` (owned by C1).
- */
-const CREDENTIAL_LABEL: Record<string, string> = {
-  passport: "World ID Passport (document-level uniqueness)",
-  proofOfHuman: "World ID Proof of Human (Orb-backed uniqueness)",
-  orbLegacy: "World ID Proof of Human (Orb-backed uniqueness)",
-  selfieCheck: "World ID Selfie Check",
-};
-
-function credentialLabel(): string {
-  const preset = process.env.NEXT_PUBLIC_WORLD_PRESET;
-  return (preset && CREDENTIAL_LABEL[preset]) || CREDENTIAL_LABEL.passport;
-}
-
-/** Records/market amounts are stored as integers with 6 decimals (like USDC). */
-function formatMoney(raw: bigint): string {
-  const formatted = formatUnits(raw, 6);
-  const [whole, frac = "0"] = formatted.split(".");
-  const withCommas = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `${withCommas}.${frac.slice(0, 2).padEnd(2, "0")}`;
-}
 
 /** Decodes a `buy()`/`approve()` revert into one of the named error states. */
 function decodeBuyError(err: unknown): { state: BuyState; ack?: string } {
@@ -103,6 +77,7 @@ function renderState(
     onVerify: () => void;
     needsApproval: boolean;
     priceLabel: string;
+    faceLabel: string;
     discountPct: number;
     ackText: string;
     busy: boolean;
@@ -115,7 +90,7 @@ function renderState(
       if (!ctx.account) {
         return (
           <div data-state="idle">
-            <p className="text-sm opacity-70">Connect a wallet to buy this receivable.</p>
+            <p className="text-sm opacity-70">Connect a wallet to buy this invoice.</p>
           </div>
         );
       }
@@ -129,8 +104,13 @@ function renderState(
       return (
         <div data-state="idle">
           <p className="text-sm">
-            Price {ctx.priceLabel} mUSDC{" "}
+            {TERMS.price} {ctx.priceLabel} {TERMS.testUsdc}{" "}
             <span className="opacity-60">({ctx.discountPct.toFixed(1)}% discount)</span>
+          </p>
+          <p className="mt-2 text-sm opacity-70">
+            {ctx.needsApproval
+              ? `Step 1 of 2 — allow Seikyu to move ${ctx.priceLabel} ${TERMS.testUsdc} from your wallet`
+              : `Step 2 of 2 — pay ${ctx.priceLabel} ${TERMS.testUsdc} to the supplier now; you'll receive ${ctx.faceLabel} when the debtor pays`}
           </p>
           <Button
             onClick={ctx.needsApproval ? ctx.onApprove : ctx.onBuy}
@@ -164,8 +144,8 @@ function renderState(
       return (
         <div data-state="not-verified">
           <p className="text-sm opacity-80">
-            Buying a receivable requires a {credentialLabel()} proof (one wallet per person, max
-            3 open positions).
+            One-time one-person check (World ID) — proves you&apos;re a real person; you do it
+            once, at your first purchase.
           </p>
           <div className="mt-3">
             {ctx.account && (
@@ -178,7 +158,7 @@ function renderState(
       return (
         <div data-state="position-cap">
           <p className="text-sm text-red-600 dark:text-red-400">
-            You already hold the maximum of 3 open positions.
+            You already own 3 open invoices — the maximum per person.
           </p>
         </div>
       );
@@ -186,7 +166,7 @@ function renderState(
       return (
         <div data-state="name-not-live">
           <p className="text-sm text-amber-700 dark:text-amber-400">
-            This invoice&apos;s ENS name is no longer live, so it can&apos;t be bought.
+            This invoice is no longer for sale (its ENS name expired).
           </p>
         </div>
       );
@@ -194,8 +174,7 @@ function renderState(
       return (
         <div data-state="ack-blocked">
           <p className="text-sm text-red-600 dark:text-red-400">
-            The debtor marked this invoice &ldquo;{ctx.ackText}&rdquo; — purchases are blocked
-            until it is re-acknowledged.
+            The debtor disputed this invoice, so it can&apos;t be bought.
           </p>
         </div>
       );
@@ -356,6 +335,7 @@ export default function BuyPanel({
         onVerify: () => refetchVerified(),
         needsApproval,
         priceLabel: formatMoney(invoice.market.price),
+        faceLabel: formatMoney(invoice.market.faceValue),
         discountPct,
         ackText: ackMessage ?? invoice.records.ack,
         busy,
