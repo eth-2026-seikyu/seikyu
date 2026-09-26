@@ -433,15 +433,28 @@ World ID ให้รหัสประจำตัวแบบไม่ระ�
 
 ### 6.6 เลยกำหนดแต่ยังไม่จ่าย (Overdue และปุ่ม Mark overdue)
 
-ถ้า invoice ถูกซื้อแล้ว (`Funded`) แต่ลูกหนี้ยังไม่จ่ายเมื่อเลยวันครบกำหนด ชื่อ ENS จะหมดอายุตามปกติ และป้ายสถานะจะเป็น `Overdue`
-กล่องสีเหลืองจะขึ้นว่า "Past due — the ENS name has expired; anyone can call markOverdue() to revive it with status=overdue."
+ถ้า invoice ถูกซื้อแล้ว (`Funded`) แต่ลูกหนี้ยังไม่จ่ายเมื่อเลยวันครบกำหนด ชื่อ ENS จะหมดอายุตามปกติ และสถานะจะกลายเป็น `Overdue`
+ตัวอย่างคือ `inv-7.seikyu.eth` (1,000 mUSDC ถูกนักลงทุน A ซื้อแล้ว และเลยกำหนดโดยยังไม่มีการจ่าย)
 
-1. กดปุ่ม **Mark overdue** (ใครกดก็ได้) แล้วกด Confirm ใน MetaMask — ปุ่มเปลี่ยนเป็น `Marking…` แล้วเป็น `Marked overdue`
-2. ผลคือชื่อ ENS ถูกต่ออายุอีก 30 วันพร้อม record `status = overdue` เพื่อให้คนภายนอกเห็นบน ENS ว่า invoice นี้ค้างชำระ
-3. ลูกหนี้ยังจ่ายได้ตามบทที่ 5 ตามปกติ — กล่องชำระเงินยังอยู่ใต้กล่องสีเหลือง
+1. ป้าย **SETTLEMENT (ON-CHAIN)** เป็น `Overdue`
+2. "Name live on ENS: no — expired" — ชื่อหมดอายุตามวันครบกำหนด
+3. record `status` ยังเป็น `funded` — คนที่ดูบน ENS จากภายนอกจะยังไม่รู้ว่า invoice นี้ค้างชำระ
 
-ส่วนนี้ไม่มีภาพประกอบ เพราะต้องรอให้ invoice ที่ถูกซื้อแล้วเลยกำหนดจริง ซึ่งไม่เกิดขึ้นระหว่างการถ่ายคู่มือ
-(ข้อความและชื่อปุ่มข้างต้นคัดลอกจากหน้าจอของแอป)
+![invoice ที่เลยกำหนด](manual/screenshots/06-12-overdue-before.png)
+
+*ภาพที่ 33 — inv-7.seikyu.eth เลยกำหนดแล้ว ก่อนกด Mark overdue*
+
+4. กล่องสีเหลืองขึ้นว่า "Past due — the ENS name has expired; anyone can call markOverdue() to revive it with status=overdue."
+   ด้านล่างยังมีกล่องชำระเงินตามบทที่ 5 — ลูกหนี้ยังจ่ายได้ตามปกติ
+5. กดปุ่ม **Mark overdue** (ใครกดก็ได้ ไม่จำเป็นต้องเป็นผู้ถือ invoice) แล้วกด Confirm ใน MetaMask — ปุ่มเปลี่ยนเป็น `Marking…` แล้วเป็น `Marked overdue`
+
+![กล่อง Overdue และปุ่ม Mark overdue](manual/screenshots/06-13-overdue-actions-before.png)
+
+*ภาพที่ 34 — กล่อง Overdue พร้อมปุ่ม Mark overdue และกล่องชำระเงิน*
+
+> **อายุใหม่ของชื่อ** `markOverdue()` ต่ออายุชื่อ ENS ออกไปอีก **30 วันนับจากเวลาที่กด** (ค่าคงที่ `OVERDUE_EXTENSION` ในสัญญา InvoiceMarket)
+> ไม่ใช่นับจากวันครบกำหนดเดิม และเขียน `status = overdue` เพื่อให้คนภายนอกเห็นบน ENS ว่า invoice นี้ค้างชำระ
+> ถ้าลูกหนี้ชำระ (บทที่ 5) หลังจากนั้น ระบบจะถอนชื่อ ENS ทันทีเหมือนกรณีปกติ และ `status` จะเป็น `paid`
 
 ---
 
@@ -507,13 +520,13 @@ wallet ตัวอย่างที่ใช้ในคู่มือ
 
 ![Settings ของ Simulator](manual/screenshots/06-02-sim-settings.png)
 
-*ภาพที่ 33 — หน้า Settings ของ World ID Simulator*
+*ภาพที่ 35 — หน้า Settings ของ World ID Simulator*
 
 3. กดเลือก identity ที่ต้องการ (ในภาพคือ Identity #1) — Simulator จะกลับไปหน้าแรกพร้อม identity ใหม่ จากนั้นเริ่มบทที่ 2 ใหม่ตั้งแต่ข้อ 1
 
 ![รายการ identity ทดสอบ](manual/screenshots/06-03-sim-identities.png)
 
-*ภาพที่ 34 — เลือก identity ทดสอบ*
+*ภาพที่ 36 — เลือก identity ทดสอบ*
 
 **Staging window คืออะไร**
 ช่วงทดสอบ (staging) World ID จะรับหลักฐานจาก Simulator ก็ต่อเมื่อเจ้าของแอปเปิด "staging verification window" ไว้ใน World Developer Portal
