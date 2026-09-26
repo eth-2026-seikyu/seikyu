@@ -58,7 +58,7 @@
       "card": "C0",
       "lane": "C",
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "title": "World ID spike: credential decision (CP0) + U-7 signal-hash rule",
       "description": "Throwaway app in spike/world/ with IDKitRequestWidget + passport() preset + rp-context route (signRequest). Test in World Simulator with staging app; forward to /api/v4/verify/{rp_id}. Record T_start/T_first_success, identifier value, v4 signal hashing rule (U-7), one successful result for fixtures. Fallback ladder: passport → proofOfHuman → orbLegacy → selfieCheck (disclosed).",
       "acceptanceCriteria": [
@@ -66,7 +66,7 @@
         "POST https://developer.world.org/api/v4/verify/{rp_id} returned HTTP 200 with environment == staging for the chosen preset (or ladder fallback documented with reason)",
         "Blocked items (H1 credentials) reported precisely to team lead if verification could not run"
       ],
-      "notes": "C0 spike built + U-7 resolved (local branch: signal_hash on responses[i]); live verification BLOCKED on H1 credentials; spike server localhost:3101"
+      "notes": "DONE: spike-world.md has preset decision, T_start/T_first_success (108s), identifier, U-7 rule, real result JSON; live verify returned 200 (passport tx 0xffdf…3975; PoH/v3 tx 0xde35…a38c) after staging window; blockers reported and resolved"
     },
     {
       "id": "US-004",
@@ -309,7 +309,7 @@
         "AC-15: curl -s $DEMO_URL | grep -oE 'inv-[0-9]+\\.' | sort -u | wc -l → ≥ 1",
         "AC-7 on live: check-ens.ts inv-1.$PARENT → 8 records, RESOLVES: true, LIVE_STATE: REGISTERED"
       ],
-      "notes": "Phase 2 cleanup DONE (B5 3086756): fixtures+spikes removed, build/lint 0, / and /invoice/inv-1 render from Sepolia (lead verified AC-14 a/b/c=0, d CLEAN). PUSH + Vercel + AC-15 PAUSED by user (repo name pending)"
+      "notes": "Repo https://github.com/eth-2026-seikyu/seikyu exists (user session), pushed; VISIBILITY PRIVATE → must be PUBLIC for AC-18; Vercel (H5) not yet → AC-15 pending; cleanup+build done"
     },
     {
       "id": "US-017",
@@ -355,7 +355,7 @@
       "card": "C3",
       "lane": "C",
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "dependsOn": [
         "US-010",
         "US-003"
@@ -368,7 +368,7 @@
         "AC-17c: grep 'exactly as long as the debt' in README/docs → 0",
         "README contains numbered items: one-sentence summary; MultiBaas usage or 'Not used — why'; Team + social handles (placeholder until H6); Setup & testing with commands from §6; MultiBaas experience or N/A"
       ],
-      "notes": "Drafted by C3 (4ffe81f, eb27ae3, ba3af15): AC-17a/b/c pass (lead verified); Curvegrid items 1–5 present; FILL markers remain: README FILL-ADDR×5/H5/H6/VIDEO, ENS_INTEGRATION FILL-TX×13, DEBRIEF FILL-H1 → passes after deploy + E2E + H6"
+      "notes": "DONE: README Curvegrid items 1–5 filled incl. team (6e6f25d by user session); ENS_INTEGRATION all FILL-TX filled (ae6db96); WORLD_ID_DEBRIEF complete; AC-17 a/b/c pass (V2). Only FILL-H5 (demo URL) + FILL-VIDEO remain (US-016/US-021)"
     },
     {
       "id": "US-020",
@@ -442,7 +442,7 @@
         "AC-14a/b/c/d: 0, 0, 0, CLEAN",
         "AC-18: gh repo view $GH_REPO visibility → PUBLIC; LICENSE_OK"
       ],
-      "notes": "AC-8 captured live 17:14 JST: inv-2.seikyu.eth after due (1790405804): RESOLVES false, LIVE_STATE AVAILABLE, getState.status=0, registry getResolver=0x0, records[status]=listed still readable via stored resolver. AC-13/14 verified 15:55. AC-18 pending repo."
+      "notes": "V2 PASS 19/22; AC-18 currently FAILS (repo PRIVATE); AC-15 pending Vercel; AC-19 video manual"
     },
     {
       "id": "US-024",
@@ -460,7 +460,7 @@
         "If C6 not done: README items 2/5 say 'evaluated, not used, because …'",
         "AC-19 (manual): video ≤ 3:00 per DEMO_SCRIPT checklist"
       ],
-      "notes": "A6 DONE (f3b95ec): markOverdue/reviveOverdue + Overdue.t.sol 4/4; full suite 46/46 (lead re-ran). C6 MultiBaas: not used (README says so). C5 video: human."
+      "notes": "A6 DONE (46/46) + markOverdue LIVE on inv-7 (tx 0x87e44abb349f6825cee73ce6e43d2d2a0aad017b90ab64a9c20f2b8b20e410b8; revived with status overdue, expiry 1793010720 = +30d). C6 MultiBaas: not used (README states). C5 video: PENDING (human)."
     }
   ]
 }

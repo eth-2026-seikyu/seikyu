@@ -1,18 +1,18 @@
 {
   "active": true,
-  "iteration": 4,
+  "iteration": 5,
   "max_iterations": 100,
-  "current_phase": "CP7: Harden (A4) + UI nits (B6) + doc fills (C3); then V2. User-gated: repo/Vercel, team info, video, submit",
+  "current_phase": "agent work complete; awaiting user: repo PUBLIC (AC-18), Vercel URL (AC-15/FILL-H5), video (AC-19/FILL-VIDEO), submit",
   "plan_path": "/Users/ikhalas/Documents/side-projects/eth-2026/.omc/plans/invoice-rwa-tokyo2026.md",
   "prd_path": "/Users/ikhalas/Documents/side-projects/eth-2026/.omc/state/sessions/d808efe5-001b-4ff7-9e68-da96b33804e6/prd.json",
-  "prd_passed": "17/24",
-  "world_demo_recipe": "preset proofOfHuman + Simulator 'Legacy v3 proof' + identities #0/#2/#3 (#1→investor A, #4(v4)→0x2aaA…)",
+  "prd_passed": "20/24",
+  "repo": "https://github.com/eth-2026-seikyu/seikyu (PRIVATE)",
   "staging_window_expires": "2026-09-27T08:26Z",
   "critic_for_completion": "architect",
   "_meta": {
     "mode": "ralph",
     "sessionId": "d808efe5-001b-4ff7-9e68-da96b33804e6",
-    "updatedAt": "2026-09-26T10:04:40.743Z",
+    "updatedAt": "2026-09-26T10:42:17.074Z",
     "updatedBy": "state_write_tool"
   }
 }
