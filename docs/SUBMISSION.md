@@ -57,7 +57,7 @@ Track: **Building from Scratch**. Submission type: **Top 10 Finalist & Partner P
 
 **Ease of use.** 6/10.
 
-**Feedback.** `/api/v4/verify` ignores the signal; say so in the docs. The staging token is only available via the Developer Portal MCP endpoint and expires in 24 hours. In the Simulator's default mode all test identities share one nullifier; only "Legacy v3 proof" gives distinct ones, and it reports `identifier: "orb"`, not `proof_of_human`. See docs/WORLD_ID_DEBRIEF.md.
+**Feedback.** `/api/v4/verify` ignores the signal; say so in the docs. The staging token is only available via the Developer Portal MCP endpoint and expires in 24 hours. In the Simulator's default mode all test identities share one nullifier; only "Legacy v3 proof" gives distinct ones, and it reports `identifier: "orb"`, not `proof_of_human`.
 
 ### ENS — $10,000
 
@@ -67,11 +67,11 @@ Track: **Building from Scratch**. Submission type: **Top 10 Finalist & Partner P
 
 **Ease of use.** 5/10.
 
-**Feedback.** `contracts-v2` main differs from the Sepolia deployment; document the `sepolia-deployment-2026-09-15` tag as the entry point. Setter roles are scoped by key, not name, so per-name isolation needs a resolver per name. No `text()` getter on the deployed resolver. After expiry `unregister` reverts but `renew` revives the name with storage intact; undocumented. See docs/ENS_INTEGRATION.md.
+**Feedback.** `contracts-v2` main differs from the Sepolia deployment; document the `sepolia-deployment-2026-09-15` tag as the entry point. Setter roles are scoped by key, not name, so per-name isolation needs a resolver per name. No `text()` getter on the deployed resolver. After expiry `unregister` reverts but `renew` revives the name with storage intact; undocumented.
 
 ### Curvegrid — $3,000
 
-**Reason.** One ERC-721 per invoice: minted on listing, transferable only to verified investors with a per-person cap in `_update`, burned in the same transaction that pays the owner and retires the ENS name. Live on Sepolia, 46 fork tests. MultiBaas was evaluated and cut for time; the README says so.
+**Reason.** One ERC-721 per invoice: minted on listing, transferable only to verified investors with a per-person cap in `_update`, burned in the same transaction that pays the owner and retires the ENS name. Live on Sepolia, 46 fork tests. MultiBaas was evaluated and cut for time.
 
 **Proof.** https://github.com/eth-2026-seikyu/seikyu/blob/323d4f8c41a9/contracts/src/InvoiceMarket.sol#L196-L204 (transfer controls: https://github.com/eth-2026-seikyu/seikyu/blob/323d4f8c41a9/contracts/src/InvoiceMarket.sol#L235)
 
