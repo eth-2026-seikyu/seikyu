@@ -1,0 +1,17 @@
+{
+  "invoice": "inv-3.seikyu.eth",
+  "createTx": "0xb5195264ea0f584d8719cf3f6dd9739d626966f51286aaeba8274cc460e5aac7",
+  "issuer": "0x0df1770bB1b839E9aF883FcBD2C90ae27181385f",
+  "verifyError": {
+    "status": 409,
+    "body": {
+      "code": "NULLIFIER_ALREADY_USED",
+      "boundTo": "0x2aaA638A1b01D0F4632824F31cC8c81505E4259A"
+    }
+  },
+  "invoice2": "inv-4.seikyu.eth",
+  "createTx2": "0x9f6997c1bd22c8d07d8803b4eb95145495cf6471a747ed2eb1492dc0c4d4c0c8",
+  "disputeTx": "0x2f470b242bf22a6b151a670f3d20b932135198ed8b8d480a7f98bebfbd869068",
+  "cancelTx": "0xb1c8d9fd0c6d9e7115f920ccc70d86f3315f92d52c211175822d4d13b8d2a1b1",
+  "ackTx": "0x7e68a92bde64eb7a50d09c4c447492be289de476d952bf0a3b6e80cad6bce791"
+}
