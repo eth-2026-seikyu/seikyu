@@ -34,8 +34,11 @@ export default async function InvoiceDetailPage({
   const invoice = await getInvoice(decodeURIComponent(rawName));
   if (!invoice) notFound();
 
-  const { name, records, market, resolver, live, displayState, ackView } = invoice;
+  const { name, records, market, resolver, live, displayState, ackView, ensExpiry } = invoice;
   const dueDateSeconds = BigInt(records.dueDate);
+  // `ensExpiry` reflects a `markOverdue` revival past the original due date;
+  // fall back to `dueDate` when it isn't available.
+  const countdownTarget = ensExpiry ?? dueDateSeconds;
   const ensAppUrl = `https://sepolia.app.ens.domains/${name}`;
 
   // Before a sale, `ownerOf(id)` is the market contract itself (it
@@ -70,7 +73,7 @@ export default async function InvoiceDetailPage({
 
       <p className="mt-3 text-sm opacity-70">
         Name live on ENS: {live ? "yes" : "no"} —{" "}
-        <LiveCountdown dueDateSeconds={dueDateSeconds} live={live} />
+        <LiveCountdown dueDateSeconds={countdownTarget} live={live} />
       </p>
 
       <section className="mt-8">

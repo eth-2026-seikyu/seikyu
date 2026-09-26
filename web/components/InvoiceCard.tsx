@@ -66,8 +66,9 @@ export function LiveCountdown({
 }
 
 export default function InvoiceCard({ invoice }: { invoice: InvoiceView }) {
-  const { name, records, market, live, displayState, ackView } = invoice;
+  const { name, records, market, live, displayState, ackView, ensExpiry } = invoice;
   const dueDateSeconds = BigInt(records.dueDate);
+  const countdownTarget = ensExpiry ?? dueDateSeconds;
   const discountPct =
     market.faceValue > BigInt(0)
       ? Number(((market.faceValue - market.price) * BigInt(10_000)) / market.faceValue) / 100
@@ -86,7 +87,7 @@ export default function InvoiceCard({ invoice }: { invoice: InvoiceView }) {
         >
           {name}
         </Link>
-        <LiveCountdown dueDateSeconds={dueDateSeconds} live={live} />
+        <LiveCountdown dueDateSeconds={countdownTarget} live={live} />
       </div>
 
       <div className="text-lg font-semibold">

@@ -12,6 +12,14 @@ import PayPanel from "./PayPanel";
 
 const BUTTON_TAP_TARGET = "min-h-10 inline-flex items-center justify-center";
 
+function formatDate(unixSeconds: bigint): string {
+  return new Date(Number(unixSeconds) * 1000).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 type CancelState = "idle" | "cancelling" | "cancelled" | "error";
 
 /** Small "Cancel invoice" control shown to the issuer of an Open invoice. */
@@ -173,17 +181,30 @@ export default function InvoiceActions({ invoice }: { invoice: InvoiceView }) {
     case "Overdue":
       return (
         <div className="flex flex-col gap-4">
-          <div
-            data-state="overdue"
-            className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
-          >
-            <p>
-              Past due — the ENS name has expired; anyone can call{" "}
-              <code className="font-mono">markOverdue()</code> to revive it with{" "}
-              <code className="font-mono">status=overdue</code>.
-            </p>
-            <MarkOverdueButton id={invoice.id} />
-          </div>
+          {invoice.live ? (
+            <div
+              data-state="overdue"
+              className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+            >
+              <p>
+                Overdue — the ENS name was revived (status overdue)
+                {invoice.ensExpiry ? ` until ${formatDate(invoice.ensExpiry)}` : ""}; the debtor
+                can still settle.
+              </p>
+            </div>
+          ) : (
+            <div
+              data-state="overdue"
+              className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200"
+            >
+              <p>
+                Past due — the ENS name has expired; anyone can call{" "}
+                <code className="font-mono">markOverdue()</code> to revive it with{" "}
+                <code className="font-mono">status=overdue</code>.
+              </p>
+              <MarkOverdueButton id={invoice.id} />
+            </div>
+          )}
           <PayPanel invoice={invoice} account={connectedAccount} />
         </div>
       );

@@ -1,12 +1,12 @@
 // Frozen shared types for the Seikyu web app (plan §2.7). Lane B1 adds the
 // data functions (`listInvoices`, `getInvoice`) below these types; other lanes
 // import only from this module.
-import { createPublicClient, fallback, http, type Address } from "viem";
+import { createPublicClient, fallback, http, keccak256, toHex, type Address } from "viem";
 import { sepolia } from "viem/chains";
 import { getAddresses } from "@/lib/addresses";
 import { publicEnv } from "@/lib/env";
 import { idFromLabel, readRecords } from "@/lib/ens";
-import { invoiceMarketAbi, invoiceRegistrarAbi } from "@/lib/generated";
+import { invoiceMarketAbi, invoiceRegistrarAbi, iUserRegistryAbi } from "@/lib/generated";
 
 export const RECORD_KEYS = [
   "amount",
@@ -61,6 +61,13 @@ export interface InvoiceView {
   overdue: boolean;
   displayState: DisplayState;
   ackView: AckView;
+  /**
+   * The name's actual current ENS expiry from `UserRegistry.getState` —
+   * distinct from `records.dueDate` once `markOverdue`/`reviveOverdue` has
+   * extended it past the original due date. `null` when `userRegistry`
+   * isn't configured or the read fails; UI should fall back to `dueDate`.
+   */
+  ensExpiry: bigint | null;
 }
 
 /** Map the raw `ack` text record to what the UI shows; unknown values block purchase. */
@@ -102,6 +109,7 @@ const chainClient = createPublicClient({
 // where the market/registrar addresses themselves come from.
 const registrarAbi = invoiceRegistrarAbi;
 const marketAbi = invoiceMarketAbi;
+const userRegistryAbi = iUserRegistryAbi;
 
 /** `InvoiceMarket.State`: 0 None, 1 Listed, 2 Funded, 3 Paid, 4 Cancelled. */
 const MARKET_STATE_BY_INDEX: readonly (MarketState | null)[] = [
@@ -117,6 +125,7 @@ async function loadInvoiceFromChain(
   id: bigint,
   market: Address,
   registrar: Address,
+  userRegistry: Address | null,
 ): Promise<InvoiceView | null> {
   const [[issuer, debtor, faceValue, price, dueDate, stateIndex], name, resolver, live] =
     await Promise.all([
@@ -162,6 +171,22 @@ async function loadInvoiceFromChain(
     readRecords(resolver, name),
   ]);
 
+  // UserRegistry.getState's expiry can be later than `records.dueDate` once
+  // `markOverdue`/`reviveOverdue` has revived a lapsed name — read it
+  // separately (needs the label to compute `uint256(keccak256(label))`)
+  // rather than trusting the original due date for display.
+  const ensExpiry: bigint | null = userRegistry
+    ? await chainClient
+        .readContract({
+          address: userRegistry,
+          abi: userRegistryAbi,
+          functionName: "getState",
+          args: [BigInt(keccak256(toHex(label)))],
+        })
+        .then((state) => state.expiry)
+        .catch(() => null)
+    : null;
+
   const now = BigInt(Math.floor(Date.now() / 1000));
   const displayState = displayStateOf(state, dueDate, now);
   const overdue = state === "Funded" && now >= dueDate;
@@ -177,12 +202,13 @@ async function loadInvoiceFromChain(
     overdue,
     displayState,
     ackView: ackViewOf(records.ack),
+    ensExpiry,
   };
 }
 
 /** All invoices, read live from chain. An unconfigured app returns `[]`. */
 export async function listInvoices(): Promise<InvoiceView[]> {
-  const { market, registrar } = getAddresses();
+  const { market, registrar, userRegistry } = getAddresses();
   if (!market || !registrar) return [];
 
   const count = await chainClient.readContract({
@@ -195,7 +221,9 @@ export async function listInvoices(): Promise<InvoiceView[]> {
   // Token ids are assumed 1-based (ERC721-style, InvoiceMarket.createInvoice
   // increments before minting). Flag here if that ever changes.
   const ids = Array.from({ length: Number(count) }, (_, i) => BigInt(i + 1));
-  const loaded = await Promise.all(ids.map((id) => loadInvoiceFromChain(id, market, registrar)));
+  const loaded = await Promise.all(
+    ids.map((id) => loadInvoiceFromChain(id, market, registrar, userRegistry)),
+  );
   return loaded.filter((invoice): invoice is InvoiceView => invoice !== null);
 }
 
@@ -204,7 +232,7 @@ export async function listInvoices(): Promise<InvoiceView[]> {
  * unconfigured rule as `listInvoices`.
  */
 export async function getInvoice(name: string): Promise<InvoiceView | null> {
-  const { market, registrar } = getAddresses();
+  const { market, registrar, userRegistry } = getAddresses();
   if (!market || !registrar) return null;
 
   let id: bigint;
@@ -214,5 +242,5 @@ export async function getInvoice(name: string): Promise<InvoiceView | null> {
     return null;
   }
 
-  return loadInvoiceFromChain(id, market, registrar);
+  return loadInvoiceFromChain(id, market, registrar, userRegistry);
 }
