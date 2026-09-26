@@ -13,7 +13,7 @@ unless noted. `$PARENT` = the registered parent label (see `contracts/deployment
 | 1:25–1:45 | Same Buy panel, second MetaMask wallet | The same person switches to a **second wallet** and tries to verify with the same World ID identity → server returns `409 NULLIFIER_ALREADY_USED`, UI shows `data-state="nullifier-used"` ("already linked to 0x…"); a direct on-chain `setVerified` call would revert `NullifierAlreadyUsed`. | One human maps to one wallet — enforced by an on-chain nullifier, not app-side trust | World — deterministic uniqueness (F3) |
 | 1:45–2:15 | `/accountant` | Debtor's accounts-payable wallet sets `ack=acknowledged` on the first invoice (succeeds) → clicks **"Try to edit amount"** → reverts `EACUnauthorizedAccountRoles` → switches to a second invoice and sets `ack=disputed` → back on that invoice, **Buy** is blocked (`data-state="ack-blocked"`, contract reverts `PurchaseBlockedByAck`). | Enhanced Access Control confines the debtor to one record; ENS state itself gates the market, not just app logic | ENS — EAC setter-role scoping (E6), ENS records as a purchase gate |
 | 2:15–2:40 | `/invoice/[name]` Pay panel | Debtor calls **Settle**: the current holder (the investor) receives the invoice's face value in mUSDC, the ERC-721 is burned, and the invoice's ENS name is **unregistered immediately**. | A tokenized receivable and its on-chain identity retire together the moment the underlying debt is paid | Curvegrid — programmable, self-settling RWA lifecycle |
-| 2:40–3:00 | `/` home + terminal (`check-ens.ts`) | The invoice seeded 10 minutes earlier, now past its due date and never bought, shows **"Expired-unsold"** on the homepage. Running `pnpm -C web exec tsx scripts/check-ens.ts <name>` prints `RESOLVES: false` while `records[status]=listed` still reads back. Close on: **"The name lives as long as the debt is current."** | Expiry is a first-class economic primitive, not a UI label — the name dies, the records don't | ENS — expiry as primitive, records survive expiry via the stored resolver (path R vs. path L) |
+| 2:40–3:00 | `/` home + terminal (`check-ens.ts`) | The invoice seeded 10 minutes earlier, now past its due date and never bought, shows **"Not sold in time"** on the homepage (the plain-language label for the `Expired-unsold` state, under the "Needs attention" section). Running `pnpm -C web exec tsx scripts/check-ens.ts <name>` prints `RESOLVES: false` while `records[status]=listed` still reads back. Close on: **"The name lives as long as the debt is current."** | Expiry is a first-class economic primitive, not a UI label — the name dies, the records don't | ENS — expiry as primitive, records survive expiry via the stored resolver (path R vs. path L) |
 
 Total: 3:00.
 
@@ -69,6 +69,6 @@ Total: 3:00.
 - [ ] EAC revert shown: `EACUnauthorizedAccountRoles` on "Try to edit amount"
 - [ ] `disputed` ack shown blocking Buy
 - [ ] Name unregistered after settle shown (via `check-ens.ts` or the detail page)
-- [ ] "Expired-unsold" state shown on `/`
+- [ ] "Not sold in time" (`Expired-unsold` state) shown on `/`
 - [ ] Live URL visible on screen
 - [ ] GitHub repo visible on screen
