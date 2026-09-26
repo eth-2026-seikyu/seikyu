@@ -20,11 +20,11 @@ Three requirements the credential has to satisfy:
 |---|---|---|---|---|---|
 | Device | ✗ | ✗ | ✓ | lowest | not enough — no uniqueness at all |
 | Selfie Check | ✓ | ✗ — returns a probabilistic "Sybil score", not a deterministic identity match | ✓ | low | fails R2: two accounts is a real possibility, giving 2× the cap |
-| **Passport (NFC, ICAO 9303)** | ✓ | ✓ — one physical document, one identity[^sim-passport] | ✓ | medium (needs an NFC-chip passport) | **chosen for production** — least friction credential that still clears R2 |
-| Proof of Human (Orb) | ✓ | ✓ (biometric) | ✓ | high (requires visiting an Orb) | fallback only — over-assured for this pilot's needs; **used for this demo, see below** |
+| **Passport (NFC, ICAO 9303)** | ✓ | ✓ — one physical document, one identity[^sim-v4] | ✓ | medium (needs an NFC-chip passport) | **chosen for production** — least friction credential that still clears R2 |
+| Proof of Human (Orb) | ✓ | ✓ (biometric)[^sim-v4] | ✓ | high (requires visiting an Orb) | fallback only — over-assured for this pilot's needs; **used for this demo, see below** |
 | identityCheck({attributes}) | ✓ | ✓ | ✗ — discloses whichever attributes are requested | medium | rejected — no rule in this pilot needs any disclosed attribute |
 
-[^sim-passport]: True of a real, physical passport. World's **staging Simulator's mock Passport credential is a single shared document across all five test identities** (confirmed live, see below), so on staging exactly one wallet, ever, can complete Passport verification per `(rp_id, action)` — a tooling limitation of the test environment, not a property of Passport itself.
+[^sim-v4]: True of the real credential. World's **staging Simulator's default "World ID 4.0" mode is backed by a single shared staging signer** — every one of its five selectable test identities, under *either* Passport or Proof of Human, produces the identical nullifier `0x28318508…85ab` (confirmed live). Only the Simulator's **"Legacy v3 proof" toggle** produces a distinct, identity-specific nullifier (confirmed live: identity #0 → `0x20b66c56…60d8`, identity #1 → `0x274a…c29b`). This is a tooling limitation of the staging test environment, not a property of Passport or Proof of Human themselves — see Debrief.
 
 **Accepted residual risk**: someone holding two valid passports can verify twice and get a 2×
 cap (6 open positions instead of 3). This is a bounded, known gap, not an unknown one.
@@ -39,20 +39,27 @@ as a silent downgrade of the security claim.
 and verified end-to-end against this deployment's staging app via the World ID Simulator on
 2026-09-26 ([`InvestorVerified` tx](https://eth-sepolia.blockscout.com/tx/0xffdf3910f2e55373ac6a084bab8575a593c0467050bb3a026f3b1cc11ef3b975),
 wallet `0x2aaA…259A`) — the code path for `passport` genuinely works. But testing further revealed
-the Simulator issues the **same** mock Passport document to every test identity: identities #4, #1,
-and a freshly created #5 all produced the identical nullifier
-`0x28318508ef4f584f142db492a5a8a2d1af223ccf4b6edd08183d4c09583c85ab` when verified with `passport`.
-That means on staging, only the *one* wallet that got there first can ever complete Passport
-verification for this app's action — every other wallet collides with F3 by construction, not
-because of anything wrong in our nullifier handling. Recording a demo that needs multiple distinct
-investors therefore required taking the plan's own fallback-ladder step:
-**`NEXT_PUBLIC_WORLD_PRESET=proofOfHuman`** on the demo deployment (identifier `proof_of_human`,
-the Simulator's "Human" card), under which each Simulator test identity *does* produce its own
-distinct nullifier. Per the plan, this is honestly **over-assured because of tooling** — production
-intent remains Passport (document-level uniqueness, lower friction than Orb); the demo credential
-change is a Simulator limitation, not a reassessment of R1–R3. <!-- FILL-TX: proofOfHuman
-InvestorVerified tx for the demo deployment (exec-manual to report) -->. See "Time to first
-success" below for the timeline and "Friction" for how this was discovered.
+the Simulator's default **"World ID 4.0"** mode is backed by a single shared staging signer:
+identities #4, #1, and a freshly created #5 all produced the identical nullifier
+`0x28318508ef4f584f142db492a5a8a2d1af223ccf4b6edd08183d4c09583c85ab` when verified with `passport`
+— and switching the preset to `proofOfHuman` *while staying in v4 mode* changed nothing; it's the
+same shared signer regardless of credential. That means on staging, only the *one* wallet that got
+there first can ever complete v4 verification for this app's action, under either credential —
+every other wallet collides with F3 by construction, not because of anything wrong in our nullifier
+handling. Recording a demo that needs multiple distinct investors required going one rung further
+down the plan's own fallback ladder than expected: **`NEXT_PUBLIC_WORLD_PRESET=proofOfHuman`**
+*combined with* toggling the Simulator itself to **"Legacy v3 proof"** mode (the "Human" card,
+legacy identifier `orb` — see "Verification architecture" and Friction). Under that combination,
+each Simulator test identity genuinely does produce its own distinct nullifier: Investor A
+`0x601344DFBEd3Cc685CF49190f39c18B1b570C131` verified live on identity #1 with
+[`InvestorVerified` tx `0xde353f1a…a38c`](https://eth-sepolia.blockscout.com/tx/0xde353f1a30fdf850010d72aadb34a5c194bee5128ad1e39e17803e392400a38c)
+(block 11785389), nullifier `0x274a1ab1106a0b40586c316c6d2a17a7700c99bd367b770f18e01d506a06c29b` —
+distinct from the shared v4 nullifier above, and distinct from identity #0's
+`0x20b66c56…60d8`. Per the plan, using Proof of Human at all here is honestly
+**over-assured because of tooling** — production intent remains Passport (document-level
+uniqueness, lower friction than Orb); the demo credential change, and the extra Legacy-v3 toggle, are Simulator
+limitations, not a reassessment of R1–R3. See "Time to first success" below for the timeline and
+"Friction" for how this was discovered.
 
 ## Verification architecture
 
@@ -61,7 +68,7 @@ runs 8 steps in order:
 
 1. **Body validation** — zod schema requires `investor` (a `0x`-address) and `result` — `web/app/api/world/verify/route.ts:17-20,27-39`. Malformed input returns `400 INVALID_BODY`.
 2. **Action check** — `result.action` must equal `NEXT_PUBLIC_WORLD_ACTION` (`buy-receivable`) — `web/app/api/world/verify/route.ts:41-44`.
-3. **Identifier match** — `responses[0].identifier` must equal the identifier the configured preset produces (`passport`→`"passport"`, `proofOfHuman`/`orbLegacy`→`"proof_of_human"`, `selfieCheck`→`"selfie"`); this stops a client from silently downgrading to a weaker credential than the server expects — `web/app/api/world/verify/route.ts:52-56`, `web/lib/world.ts:116-126`. Confirmed live: the real proof below carries `"identifier": "passport"`.
+3. **Identifier match** — `responses[0].identifier` must be one of the identifiers the configured preset accepts (`passport`→`"passport"`; `proofOfHuman`/`orbLegacy`→`"proof_of_human"` **or** `"orb"`, since a legacy v3 fallback proof carries `"orb"` for the same Orb-backed credential a v4 response calls `"proof_of_human"` — confirmed live via the Simulator's "Legacy v3 proof" mode, see Credential choice; `selfieCheck`→`"selfie"`); this stops a client from silently downgrading to a weaker credential than the server expects — `web/app/api/world/verify/route.ts:53-58`, `web/lib/world.ts:113-148` (`expectedIdentifiers`). Confirmed live for both accepted values: the passport tx below carries `"identifier": "passport"`; the Legacy-v3 Proof of Human tx carries `"identifier": "orb"`.
 4. **Signal binding (local check)** — the server hashes `investor` itself with idkit-core's own `hashSignal` (never re-implemented) and compares it, case-insensitively, against `responses[0].signal_hash` from the client's proof; a missing or mismatched hash fails closed — `web/app/api/world/verify/route.ts:58-80`, `web/lib/world.ts:137-139`. Confirmed live (see "Time to first success"): `hashSignal(investorAddress)` matched `responses[0].signal_hash` exactly, byte for byte.
 5. **Forward to World** — the *entire* result is POSTed as-is to `https://developer.world.org/api/v4/verify/{WORLD_RP_ID}`. Staging/sandbox proofs (not production) additionally require an `x-staging-verification-token` header — obtained once, out of band, per app (see Friction) — or World rejects them outright; the route checks `stagingVerificationToken()` up front and fails with a clearer `503 STAGING_TOKEN_MISSING` rather than surfacing World's own error. A non-2xx response from World is mapped to `422 VERIFICATION_FAILED`, a network error or 5xx to `502 WORLD_API_UNAVAILABLE` — `web/app/api/world/verify/route.ts:88-114`, `web/lib/world.ts:95-111`.
 6. **Environment check** — the response's `environment` must equal `worldEnvironment()` (`web/lib/world.ts:90-93`, read from `NEXT_PUBLIC_WORLD_ENVIRONMENT`) — the *same* value passed as the `environment` prop on the widget (`web/components/WorldVerifyButton.tsx:242`), so client and server can't drift apart — or `409 ENV_MISMATCH` — `web/app/api/world/verify/route.ts:130-136`.
@@ -77,20 +84,24 @@ runs 8 steps in order:
 | F1 | User cancels the widget | `onOpenChange(false)` fires while still in the `open` state (before `onSuccess`/`onError`) — `web/components/WorldVerifyButton.tsx:145-158` | n/a (client-only) | `cancelled` |
 | F2 | Credential unavailable or a mismatched credential is returned | IDKit error `credential_unavailable`, or server `422 CREDENTIAL_MISMATCH` (step 3) / `422 VERIFICATION_FAILED` (step 5) | `422 CREDENTIAL_MISMATCH` / `422 VERIFICATION_FAILED` | `credential-unavailable` / `credential-mismatch` |
 | F3 | Same person tries a second wallet | Operator tx reverts `NullifierAlreadyUsed(boundTo)` on-chain; server pre-checks the same condition (step 7) | `409 NULLIFIER_ALREADY_USED` (server) / `NullifierAlreadyUsed` (on-chain) | `nullifier-used` |
+| F3, confirmed on-chain | Operator calls `setVerified(investorA2, 0x274a…c29b)` — the same nullifier Investor A already holds | `estimateGas` reverts before broadcast (simulated revert via `cast send`, no tx exists) | `NullifierAlreadyUsed(0x6013…C131)`, selector `0x183d4b06` | `nullifier-used` |
 | F4 | `buy()` called directly from an unverified wallet (bypassing the UI) | `InvoiceMarket.buy` checks `isVerified[msg.sender]` before anything else — `contracts/src/InvoiceMarket.sol:175` | revert `NotVerifiedInvestor(address)` | n/a — no UI path produces this; only a direct contract call |
 | F5 | A proof for wallet A is submitted with `investor = B` | Local signal check (step 4) — the hash of `B` never matches the `signal_hash` bound to `A`'s proof | `422 SIGNAL_MISMATCH` | `signal-mismatch` |
 
-**Nullifier semantics, corrected after live testing**: the nullifier is a function of
-`(rp_id, action, the credential's underlying identity/document)` — not simply "per test identity,"
-which an earlier pass here assumed. For **Proof of Human**, that underlying identity is the
-World-verified personhood behind each Simulator test identity, so switching test identities
-(Settings → "Switch test identity") genuinely does yield a distinct nullifier — confirmed for
-identities #1/#2/#3/#5. For **Passport**, the underlying identity is the physical document itself,
-and the Simulator issues **one single shared mock document to all five test identities** (see
-Credential choice above) — so switching identities changes nothing about the nullifier when using
-`passport`. Either way, generating a second proof bound to the *same* underlying identity/document
-for a different `investor` wallet reproduces F3 exactly (`409 NULLIFIER_ALREADY_USED`) — that part
-is the one-person-one-wallet rule working as designed, not a bug in our nullifier handling.
+**Nullifier semantics, corrected twice after live testing**: the nullifier is a function of
+`(rp_id, action, the credential's underlying identity/document)` in principle, but the Simulator's
+**mode** determines whether that underlying identity actually varies with the "test identity"
+picker at all. In the Simulator's default **"World ID 4.0"** mode, every one of the five test
+identities is backed by the *same* single staging signer, for *either* Passport or Proof of Human
+— so all of them produce the identical nullifier `0x28318508…85ab` (confirmed live; an earlier pass
+here incorrectly assumed Proof of Human alone was exempt from this). Only the Simulator's
+**"Legacy v3 proof"** toggle produces a genuinely distinct, identity-specific nullifier per test
+identity — confirmed live: identity #0 → `0x20b66c56…60d8`, identity #1 → `0x274a1ab1…06a06c29b`
+(Investor A's real verification, see "Credential choice"). Either way, generating a second proof
+bound to the *same* underlying signer/identity for a different `investor` wallet reproduces F3
+exactly (`409 NULLIFIER_ALREADY_USED`) — that part is the one-person-one-wallet rule working as
+designed, not a bug in our nullifier handling; it's only the Simulator's default mode that makes
+every "person" the same person.
 
 **Stale proofs fail, as they should**: replaying a previously captured proof (rather than generating a fresh one) gets rejected by World with `verification_failed: execution reverted` — `rp_context`'s `nonce`/TTL make each proof single-use and time-bounded. A proof has to be fresh per request; nothing in our own code needs to enforce this separately.
 
@@ -122,29 +133,33 @@ set, and the widget's verify button was correctly disabled with `NEXT_PUBLIC_WOR
 That first success, however, turned out not to generalize: a second attempt to bind a *different*
 wallet to a *different* Simulator test identity, still on `passport`, produced the exact same
 nullifier as the first — which took further testing (a third, freshly created test identity, to
-rule out a two-identity coincidence) to pin down as the Simulator sharing one mock Passport document
-across all five identities, not a bug on our side. That investigation cost real time on top of the
-108 seconds above, and is why the recorded demo runs on `proofOfHuman` instead — see "Credential
+rule out a two-identity coincidence) to pin down as the Simulator's default "World ID 4.0" mode
+sharing one signer across every identity, not a bug on our side. Switching the *preset* to
+`proofOfHuman` while staying in v4 mode didn't fix it either — same shared nullifier again — until
+also toggling the Simulator itself to **"Legacy v3 proof"** mode finally produced per-identity
+nullifiers (and a previously-unaccepted `"orb"` identifier the route needed a small fix to allow;
+`9dbbeba`). That two-layer investigation cost real time on top of the 108 seconds above, and is why
+the recorded demo runs on `proofOfHuman` + Legacy v3 instead of plain `passport` — see "Credential
 choice" and "Friction".
 
 ### Friction
 
 - **`403 environment_not_allowed` on `/api/v4/verify` until a portal-side toggle is flipped.** A correctly-generated, correctly-signaled staging proof was rejected outright: `{"code":"environment_not_allowed","detail":"Staging verification is not open for this app. Open a staging window with the set_world_id_staging_verification tool, or omit \`environment\` (or set it to \`production\`) to verify production proofs."}`. This is not documented anywhere in the request/response schema for `/api/v4/verify` — a new app's staging verification has to be explicitly opened in the Developer Portal before any simulator-generated proof will pass, and the only pointer to how is the error message itself naming an internal-sounding `set_world_id_staging_verification` tool. This cost real time figuring out that the *proof* was fine and the *rejection* was an app-configuration gate, not a bug in our signal check or request shape.
   **Resolution**: the Developer Portal exposes an MCP server at `https://developer.world.org/api/mcp`, authenticated with a Bearer team API key (`api_…`, from Team settings → API Keys — not something we'd have guessed from the REST docs). Its `set_world_id_staging_verification({ app_id, enabled: true })` tool returns a one-time `staging_verification_token`, valid 24 hours, that the *server* must then send back to World as the `x-staging-verification-token` header on every `/api/v4/verify` call for staging/sandbox proofs (production proofs don't need it at all). We wired this in as `stagingVerificationToken()` (`web/lib/world.ts:95-111`), read from `WORLD_STAGING_VERIFICATION_TOKEN`, with a `503 STAGING_TOKEN_MISSING` if it's unset — see "Verification architecture" step 5.
-- **The Simulator's shared Passport document blocks multi-user demos.** Every one of the five Simulator test identities produces the *identical* nullifier when verified with `passport` (see "Credential choice"), because the mock Passport credential is a single document, not five distinct ones. A product whose demo needs more than one investor wallet to complete Passport verification simply cannot on staging — the second wallet always hits `409 NULLIFIER_ALREADY_USED`, indistinguishable from a real F3 event until you've dug into why. We only found this by deliberately testing a third identity after the second collided, to rule out coincidence.
+- **The Simulator's default v4 mode collapses all identities to one nullifier.** Every one of the five Simulator test identities produces the *identical* nullifier under **either** `passport` or `proofOfHuman` when the Simulator is left in its default "World ID 4.0" mode (see "Credential choice") — it's backed by one shared staging signer, not five distinct test personas. A demo that needs more than one investor wallet to complete verification simply cannot, on staging, in v4 mode — the second wallet always hits `409 NULLIFIER_ALREADY_USED`, indistinguishable from a real F3 event until you've dug into why. We only found this by deliberately testing a third identity after the second collided, to rule out coincidence, and then confirmed switching *presets* alone (still in v4 mode) didn't help either. The actual fix was the Simulator's separate **"Legacy v3 proof"** toggle, which does produce per-identity nullifiers.
 - **`signRequest()`'s camelCase output vs the widget's snake_case input.** `@worldcoin/idkit-core/signing`'s `signRequest({ signingKeyHex, action })` returns `{ sig, nonce, createdAt, expiresAt }`, but `IDKitRequestWidget`'s `rp_context` prop wants `{ rp_id, nonce, created_at, expires_at, signature }` — and `rp_id` isn't even in the signer's output, it's just the `WORLD_RP_ID` env var. Missing this remap produces a silent `invalid_rp_signature` with no hint that it's a field-naming problem. We had to write the remap explicitly (`web/app/api/world/rp-context/route.ts:24-35`).
 - **The `passport()` preset's own documentation is effectively "coming soon".** The public docs prose doesn't enumerate the preset factories or their options; the only reliable source was reading `@worldcoin/idkit/dist/index.d.ts` and `@worldcoin/idkit-core/dist/index.d.ts` directly.
 - **Simulator readiness for v4 Passport is unconfirmed from docs alone.** `simulator.worldcoin.org` states outright that "this simulator will change with the adoption of World ID 4.0" — there's no way to know from documentation whether a Passport request actually completes there; it needs a live run to find out, and the test identity we found had no pre-configured credentials.
 - **`/api/v4/verify` does not check the signal itself.** Its documented request/response schema has no signal parameter and no signal-mismatch error code — signal verification is entirely the relying party's own responsibility (see the improvement below).
-- **`orbLegacy`'s response identifier is `"proof_of_human"`, not `"orb"`.** An earlier pass assumed `"orb"` based on a summary of World's public docs page; the actual installed SDK's type comments (and an independent spike) both confirm the legacy Orb v3 response and the v4 `proofOfHuman` response share the identifier `"proof_of_human"` — Orb is the verification *method*, `proof_of_human` is the credential *type* it issues.
+- **The Orb-backed credential's `identifier` value flip-flopped three times before live testing settled it.** First guess (from a public docs summary): `"orb"`. Then the installed SDK's own `.d.ts` type comments, cross-checked with an independent spike, said the legacy v3 Orb response and the v4 `proofOfHuman` response share `"proof_of_human"` — so we shipped that. Then a real Legacy-v3 proof captured from the Simulator (`InvestorVerified` tx `0xde353f1a…a38c`) came back with `identifier: "orb"` after all, contradicting the `.d.ts` comments we'd trusted. We now accept **both** `"proof_of_human"` (v4) and `"orb"` (legacy v3) for the `proofOfHuman`/`orbLegacy` presets (`expectedIdentifiers`, `web/lib/world.ts:113-148`, fixed in `9dbbeba`). Static analysis of a vendored `.d.ts` file was not sufficient here — only a live captured proof settled which string World's backend actually emits.
 - **Docs prose vs. shipped SDK types disagree often enough that we stopped trusting the prose.** Every non-trivial fact in this integration (`signal_hash` location, identifier values, error codes, widget prop names) was ultimately confirmed by reading the published `.d.ts` files under `node_modules`, not by reading docs.world.org.
 
 ### Missing capability / docs
 
 - World's own `/api/v4/verify` has no way to express "and also check this signal server-side" or to return a distinct error code when a signal doesn't match — every RP has to reimplement the local hash-and-compare check correctly, with no help from the API if they get it wrong.
 - No canonical, versioned reference table of `identifier` values per preset (passport/proofOfHuman/orbLegacy/selfieCheck/mnc/identityCheck) exists in the public docs — we had to derive it from `.d.ts` doc comments and `issuer_schema_id` cross-checks, then independently confirm it via a spike.
-- **Nowhere does World document that the staging Simulator's Passport credential is a single shared mock document across all test identities.** The Simulator's own UI gives no hint of this — it presents five separate "test identities" that look independent. A team building a multi-user demo against Passport on staging has no way to learn this short of hitting the collision and tracing it down manually, as we did.
-- No documented guarantee (or even a clear statement either way) of Passport support in the public simulator for v4 — a developer building against Passport today can't tell from docs alone whether their staging tests will actually complete. **Now confirmed live**: it works, no fallback needed.
+- **Nowhere does World document that the staging Simulator's default "World ID 4.0" mode shares one signer across all five test identities, for either credential.** The Simulator's own UI gives no hint of this — it presents five separate "test identities" that look independent, and a "World ID 4.0" vs. "Legacy v3 proof" toggle whose functional difference (identity-specific nullifiers only in the legacy mode) is nowhere explained. A team building a multi-user demo on staging has no way to learn this short of hitting the collision and tracing it down manually, as we did.
+- No documented guarantee (or even a clear statement either way) of Passport support in the public simulator for v4 — a developer building against Passport today can't tell from docs alone whether their staging tests will actually complete. **Now confirmed live**: a single Passport verification works end-to-end (see the passport `InvestorVerified` tx), but — contrary to what an earlier pass here hoped — that alone does not mean a multi-wallet demo works on `passport`; see the Friction items above.
 - The Developer Portal's "staging verification window" gate for `/api/v4/verify` isn't documented anywhere we could find before hitting it — see the Friction item above.
 - **The Developer Portal's MCP server and its `set_world_id_staging_verification` tool aren't in the public docs page for the portal at all.** We only found them because the `environment_not_allowed` error message happened to name the tool by its exact function name; nothing on docs.world.org describes the MCP endpoint, its auth (a team-scoped Bearer API key, distinct from the app's `WORLD_RP_SIGNING_KEY`), its available tools, or the `staging_verification_token` → `x-staging-verification-token` handshake it produces. A developer who doesn't read error messages character-by-character has no path to discovering this exists.
 - **`responses[i].proof` is an array of decimal-string big integers, not `0x`-hex strings**, despite `@worldcoin/idkit-core`'s own `.d.ts` comment describing them as "(hex strings)". A real captured proof: `["13586708970665106381745288208973107748208932217529228854957135199212447396569", ...]` — five plain base-10 numbers. `nullifier` and `signal_hash`, by contrast, genuinely are `0x`-prefixed hex, each 33 bytes (66 hex chars) rather than the 32 you'd expect from a plain field element. Anything downstream that consumes `proof` (e.g. a Solidity verifier call) needs to treat each element as an arbitrary-precision integer literal, not assume a `0x` prefix — the type declaration is simply wrong on this point.
