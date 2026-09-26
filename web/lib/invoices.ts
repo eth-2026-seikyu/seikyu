@@ -95,14 +95,55 @@ export function displayStateOf(
 // Data sources
 ////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Built-in Sepolia RPC fallback endpoints, used when neither
+ * `NEXT_PUBLIC_SEPOLIA_RPC_URL` nor `NEXT_PUBLIC_SEPOLIA_RPC_URLS` narrows the
+ * list. Deliberately never falls through to viem's chain-default RPC
+ * (`https://11155111.rpc.thirdweb.com`) — that public-good endpoint
+ * rate-limits (HTTP 429) under a handful of concurrent `eth_call`s, which is
+ * what took the home page down under parallel visitors (card R1).
+ */
+const DEFAULT_SEPOLIA_RPC_URLS = [
+  "https://ethereum-sepolia-rpc.publicnode.com",
+  "https://sepolia.gateway.tenderly.co",
+  "https://rpc.sepolia.ethpandaops.io",
+];
+
+/**
+ * Ordered, deduped RPC URL list: `NEXT_PUBLIC_SEPOLIA_RPC_URL` first (if
+ * set), then either a custom comma-separated override
+ * (`NEXT_PUBLIC_SEPOLIA_RPC_URLS`) or `DEFAULT_SEPOLIA_RPC_URLS`.
+ */
+function sepoliaRpcUrls(): string[] {
+  const rest = process.env.NEXT_PUBLIC_SEPOLIA_RPC_URLS
+    ? process.env.NEXT_PUBLIC_SEPOLIA_RPC_URLS.split(",")
+        .map((url) => url.trim())
+        .filter(Boolean)
+    : DEFAULT_SEPOLIA_RPC_URLS;
+  const all = publicEnv.NEXT_PUBLIC_SEPOLIA_RPC_URL
+    ? [publicEnv.NEXT_PUBLIC_SEPOLIA_RPC_URL, ...rest]
+    : rest;
+  return Array.from(new Set(all));
+}
+
 const chainClient = createPublicClient({
   chain: sepolia,
-  transport: fallback([
-    ...(publicEnv.NEXT_PUBLIC_SEPOLIA_RPC_URL
-      ? [http(publicEnv.NEXT_PUBLIC_SEPOLIA_RPC_URL)]
-      : []),
-    http(),
-  ]),
+  // Collapses the concurrent `readContract` calls in `loadInvoiceFromChain`'s
+  // `Promise.all` groups into Multicall3 calls (sepolia's chain config
+  // carries `contracts.multicall3`) instead of one `eth_call` per read.
+  batch: { multicall: true },
+  // NOTE: transport-level `batch: true` (JSON-RPC batching, i.e. POSTing an
+  // array of requests) was tried and reverted — verified against the live
+  // dev server that `rpc.sepolia.org` 404s on an array-wrapped body
+  // (Apache rejects it outright), and other public endpoints in this list
+  // silently fail it too, which broke the fallback chain end-to-end. The
+  // client-level `batch.multicall` above already delivers the real
+  // reduction in RPC calls via a single ordinary `eth_call`, so per-URL
+  // JSON-RPC batching isn't needed and isn't safe here.
+  transport: fallback(
+    sepoliaRpcUrls().map((url) => http(url, { timeout: 10_000 })),
+    { rank: false, retryCount: 2, retryDelay: 150 },
+  ),
 });
 
 // ABIs come from `@/lib/generated` (wagmi cli) — see `@/lib/addresses` for

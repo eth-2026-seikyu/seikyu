@@ -50,15 +50,47 @@ export function idFromLabel(name: string): bigint {
   return BigInt(match[1]);
 }
 
+/**
+ * Built-in Sepolia RPC fallback endpoints — see the matching comment in
+ * `lib/invoices.ts` for why viem's chain-default RPC (thirdweb) is never
+ * included: it rate-limits (HTTP 429) under light concurrent load (R1).
+ */
+const DEFAULT_SEPOLIA_RPC_URLS = [
+  "https://ethereum-sepolia-rpc.publicnode.com",
+  "https://sepolia.gateway.tenderly.co",
+  "https://rpc.sepolia.ethpandaops.io",
+];
+
+/**
+ * Ordered, deduped RPC URL list: `NEXT_PUBLIC_SEPOLIA_RPC_URL` first (if
+ * set), then either a custom comma-separated override
+ * (`NEXT_PUBLIC_SEPOLIA_RPC_URLS`) or `DEFAULT_SEPOLIA_RPC_URLS`.
+ */
+function sepoliaRpcUrls(): string[] {
+  const rest = process.env.NEXT_PUBLIC_SEPOLIA_RPC_URLS
+    ? process.env.NEXT_PUBLIC_SEPOLIA_RPC_URLS.split(",")
+        .map((url) => url.trim())
+        .filter(Boolean)
+    : DEFAULT_SEPOLIA_RPC_URLS;
+  const all = publicEnv.NEXT_PUBLIC_SEPOLIA_RPC_URL
+    ? [publicEnv.NEXT_PUBLIC_SEPOLIA_RPC_URL, ...rest]
+    : rest;
+  return Array.from(new Set(all));
+}
+
 /** Shared read-only Sepolia client for resolver/registrar reads in this module. */
 export const ensPublicClient = createPublicClient({
   chain: sepolia,
-  transport: fallback([
-    ...(publicEnv.NEXT_PUBLIC_SEPOLIA_RPC_URL
-      ? [http(publicEnv.NEXT_PUBLIC_SEPOLIA_RPC_URL)]
-      : []),
-    http(),
-  ]),
+  // Same rationale as `lib/invoices.ts`'s `chainClient`: batch concurrent
+  // reads into Multicall3 calls rather than one `eth_call` each. No
+  // transport-level `batch: true` — see the comment in `lib/invoices.ts`;
+  // several fallback endpoints reject JSON-RPC-batched (array) request
+  // bodies outright.
+  batch: { multicall: true },
+  transport: fallback(
+    sepoliaRpcUrls().map((url) => http(url, { timeout: 10_000 })),
+    { rank: false, retryCount: 2, retryDelay: 150 },
+  ),
 });
 
 // `resolve`/`multicall` (real contract calls, on the PermissionedResolver)
