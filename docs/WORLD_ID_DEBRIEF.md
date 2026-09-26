@@ -55,7 +55,10 @@ each Simulator test identity genuinely does produce its own distinct nullifier: 
 [`InvestorVerified` tx `0xde353f1a…a38c`](https://eth-sepolia.blockscout.com/tx/0xde353f1a30fdf850010d72aadb34a5c194bee5128ad1e39e17803e392400a38c)
 (block 11785389), nullifier `0x274a1ab1106a0b40586c316c6d2a17a7700c99bd367b770f18e01d506a06c29b` —
 distinct from the shared v4 nullifier above, and distinct from identity #0's
-`0x20b66c56…60d8`. Per the plan, using Proof of Human at all here is honestly
+`0x20b66c56…60d8` — which in turn was bound to Investor A2
+`0xC91913F3eCDef9D30816C5D2d424142f3ABfD9c8` in the production-domain smoke test on
+https://seikyu.xyz ([`InvestorVerified` tx `0x6f07891d…111e`](https://eth-sepolia.blockscout.com/tx/0x6f07891d47ee7374c5ea1933ed7a82f0c5621ce848d10b32c54b96e943f6111e),
+block 11785856, `/api/world/verify` → 200 on Vercel). Per the plan, using Proof of Human at all here is honestly
 **over-assured because of tooling** — production intent remains Passport (document-level
 uniqueness, lower friction than Orb); the demo credential change, and the extra Legacy-v3 toggle, are Simulator
 limitations, not a reassessment of R1–R3. See "Time to first success" below for the timeline and
