@@ -1,0 +1,12 @@
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\n  \"rp_id\": \"rp_26da7441b98d1a38\",\n  \"staging_verification_expires_at\": \"2026-09-27T08:26:23.302+00:00\",\n  \"staging_verification_token\": \"sk_[REDACTED]\",\n  \"message\": \"Send this token as the x-staging-verification-token header on /api/v4/verify calls that carry staging or sandbox proofs. It is shown once, works until the timestamp above, and is not needed for production verification. Opening another window replaces it.\"\n}"
+      }
+    ]
+  }
+}

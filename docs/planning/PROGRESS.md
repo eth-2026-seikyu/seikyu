@@ -1,0 +1,75 @@
+# Seikyu — ralph progress log
+Plan: .omc/plans/invoice-rwa-tokyo2026.md (v2.2 final, Critic APPROVE)
+PRD: .omc/state/sessions/d808efe5-001b-4ff7-9e68-da96b33804e6/prd.json
+Baseline: T+0 = 2026-09-26 04:40 JST
+
+## Iteration 1 (T+0)
+- Bootstrap: git init on main, .gitignore (+ spike/ and .omc/ ignored), MIT LICENSE, first commit by team lead (integrator).
+- Wave 1 spawned in parallel: A0 (opus) contracts toolchain/pins/interfaces/go-no-go; B0 (sonnet) web scaffold; C0 (sonnet) World spike in spike/world/.
+- Human blockers surfaced to user: H1 (World Developer Portal app), H2 (WalletConnect id), H3 (Sepolia ETH + RPC + Etherscan + wallet addresses), H4 (public GitHub repo).
+- Public Sepolia RPC allowed for read/fork until H3 provides a paid RPC.
+
+## Learnings / patterns
+- ENSv2 source of truth: ONLY tag sepolia-deployment-2026-09-15 (f2f0a05e) deployments/sepolia/*.json. `main` has a different PermissionedResolver API.
+- PermissionedResolver on tag: setText(bytes dnsName,string,string); grantSetterRoles(bytes setter,address); NO text() getter → read via resolve(bytes,bytes) (+multicall). Setter scope = keccak256(key) only.
+- After expiry registry getResolver/ownerOf return 0; read records via STORED resolver address.
+
+## T+0:20 — C0 (World spike) complete except live verification (blocked on H1)
+- U-7 CLOSED: signal_hash is on responses[i]; rule = idkit-core hashSignal (keccak256 >> 8, 32 bytes); 0x-prefixed strings hashed as raw bytes. /api/v4/verify does NOT check signal → server compares locally (branch: local).
+- rp-context gotcha: signRequest() → camelCase {sig,nonce,createdAt,expiresAt}; widget needs snake_case {rp_id,nonce,created_at,expires_at,signature}; rp_id from env.
+- Exports: IDKitRequestWidget + presets from '@worldcoin/idkit'. orbLegacy identifier = "proof_of_human" (no "orb").
+- CP0 decision: passport (allow_legacy_proofs=false), fallback proofOfHuman → orbLegacy. Simulator Passport support unverified until H1.
+- Spike dev server: http://localhost:3101 (port 3100 taken by unrelated Docker). Findings forwarded to C1.
+- B0 scaffold committed at ~T+0:10 → C1 spawned.
+- T+0:15 US-002 (B0) PASSES. Types frozen by lead in web/lib/invoices.ts (2cd03fb). B1 + B2 spawned (T+0:15, 1h15m ahead of schedule).
+- Git protocol tightened after index race: every lane commits with explicit pathspec `git commit -m msg -- <paths>`.
+- H2 (WalletConnect) no longer needed (RainbowKit dropped).
+- T+0:35 CP1 GO (A0, commit 50ed66d): per-invoice resolver via factory works on Sepolia fork; gas 694,332 (deployProxy+init 154,853 / 7×setText 383,240 / grantSetterRoles 55,708 / register 100,531); ~0.0008 ETH per invoice at ~1 gwei. PARITY OK (26). Labels seikyu/seikyu-rwa/invoicerwa available; MIN_COMMITMENT_AGE 60s; 1y price 8,000,021 ENS-mUSDC. RPC: publicnode (drpc 400, rpc.sepolia.org 404). US-001 PASSES.
+- Source facts: setText stores under namehash(dnsName); grantSetterRoles ignores name arg (setter (bytes,string) → key scope); resolve(name, multicall) uses namehash(name) and returns revert bytes per failed sub-call; initialize calls[] skip role checks but grantSetterRoles cannot be inside initialize.
+- Spawned A2 (InvoiceRegistrar, opus) + A1 (UserRegistry/parent scripts + Deploy/Seed/Harden drafts, opus). A1 rehearses on anvil fork; real broadcast waits for H3 keys.
+- Lead fix: web/tsconfig target ES2020 (3cb2158) for bigint literals.
+- T+0:30 US-004 (A3) PASSES 22/22 (lead re-ran). B1 data layer committed (d41734b). MockInvoiceMarket.sol belongs to C1 (already informed). Spawning C1b + B3 early (lane C/B-alpha slack).
+- T+0:40 US-008 (B2) PASSES (lead verified with fixtures). B2 found eager serverEnv() in C1's lib/server/chain.ts breaking next build when .env.local has LOCAL_MARKET_ADDRESS → C1 told to make it lazy. B2b spawned. A2 committed b6eae29 (report pending).
+- T+0:32 US-005 (A2) PASSES 14/14 fork (lead re-ran). DOC NOTE for C3: on live deployment issuer safeTransferFrom reverts `TransferUnsafeUntilRegistryIsEmancipated()` (registrar holds root ROLE_UNREGISTER → registry never emancipated); TransferDisallowed only after revoking UNREGISTER. registerInvoice gas 754,746.
+- C1 done (9ca9c03): AC-10 matrix OK; identifiers passport→"passport", proofOfHuman/orbLegacy→"proof_of_human", selfieCheck→"selfie"; hashSignal case-insensitive for 0x input. Fixtures pending H1. chain.ts made lazy.
+- Spawned A4 (Integration 4 tests + Deploy/Seed/Harden + live deploy when keys arrive) and A5 (wagmi generate + deployments sync).
+- T+0:35 A1 done (4615458, 93cb556): E2/E1 scripts + Deploy/Seed/Harden drafts, all rehearsed on anvil fork (AC-6 OK on fork). Live E2/E1 BLOCKED on H3 (DEPLOYER_PRIVATE_KEY, SEPOLIA_RPC_URL in contracts/.env); A1 polls .env every 2 min (60 min). Scripts refuse to write sepolia.json off-chainid 11155111. RegisterParent has verify() (records post-registration .forkBlock).
+- Critical path now waits on human: H3 → A1 live → A4 Deploy/Seed live → A5 sync → B5/C2 → C-E2E (needs H1 for World verify + H4/H5 for Vercel).
+- T+0:35 Contracts complete: full fork suite 42/42 (lead verified), AC-3/4/5/22 pass. createInvoice gas (real registrar) 952,840 → README. US-010 awaits live deploy (H3).
+- T+0:37 US-007 (B1), US-011 (A5) PASS (lead verified tsc/lint/build). US-013 code done (ae72ff4), on-chain check pending deploy. Running: A4 (rehearsal), B2b, B4, C1b, C3.
+- T+0:40 US-014 (C1b) PASSES. A4 scripts finalized (0a9beaa) + rehearsed; polling for keys (needs .userRegistry/.parentName from A1 live first). Gotcha: anvil key0 has EIP-7702 delegation on Sepolia — use fresh keys; Sepolia fork keeps chainid 11155111 so set DEPLOYMENTS_JSON scratch when rehearsing.
+- T+0:44 A6 stretch DONE (f3b95ec): suite 46/46 (lead verified). AC-2 target is now 46. A5 asked to regenerate ABIs.
+- T+0:47 US-012 (B2b) PASSES. A5 regenerated ABIs incl. markOverdue (ce41137). Spawning B5 phase 1 (centralize addresses via @/lib/deployments); phase 2 (cleanup/push/Vercel) after live deploy + H4/H5.
+- T+0:50 C4 docs drafted (c8c2853) with FILL markers; US-021 closes after deploy.
+- T+0:52 C3 docs drafted (AC-17 a/b/c pass). Remaining FILL markers need deploy/E2E/H6. Idle lanes: A0,A1(poll),A2,A3,A4(poll),A5,A6,B0,B1,B2,B2b,B3,C0,C1,C1b,C3,C4. Running: B4, B5-phase1.
+- T+0:56 B4 done (9f1b168); AC-9 proven on fork, live pending deploy. GOTCHA (B4): EIP-7702-delegated EOAs (incl. anvil default accounts on Sepolia, and MetaMask smart accounts) fail as ISSUER because registry.register mints ERC-1155 to owner → ERC1155InvalidReceiver. Use plain EOAs for SME wallet; IssueForm should warn if getCode(account) != 0x (B6 task).
+- T+1:00 B5 phase 1 done (3b7cccc), lead verified. B6 spawned (11 data-states, markOverdue UI, EIP-7702 issuer warning, mobile). Running: B5 (rename), B6. Everything else waits on H1/H3/H4.
+- T+1:05 US-020 (B6) PASSES (lead verified). ALL code lanes idle. Waiting on H1/H3/H4 only.
+- T+1:05 Lead generated 7 fresh wallets (cast wallet new) into contracts/.env.wallets.local (chmod 600, gitignored). NOT merged into contracts/.env yet to avoid A1 broadcasting before the deployer is funded. Next: user funds DEPLOYER_ADDRESS with Sepolia ETH → lead merges into contracts/.env + web/.env.local + web/.env.e2e → A1/A4 go live.
+- T+1:07 fund-watcher running (pid 42378); merges env when deployer 0x5256…a5f1 >= 0.5 ETH.
+- 15:15 JST (T+10:35): deployer funded 0.3 ETH (tx 0x823d…9044); watcher merged env; A1 told GO LIVE (E2/E1), A4 told to reduce Seed then Deploy/Seed after A1. Note: ~9.5h idle gap 05:47→15:12 while waiting for user.
+- 15:30 JST: H1 received (app_47ea…, rp_26da…, signer 0xed1d…); written to web/.env.local + spike/world/.env.local. WORLD_ENV set to production tentatively (portal shows no staging/production; C0 to confirm via verify response environment field).
+- 15:35 JST US-006 (A1) PASSES LIVE: seikyu.eth + UserRegistry 0xA9DF…eD67 on Sepolia; AC-6 OK. A4 deploying next.
+- 15:50 JST: C0 LIVE: passport preset works in simulator (v4 proof; identifier "passport"; schema 9303; signal_hash == hashSignal(investor)); T_first_success ~1m49s. BLOCKER: /api/v4/verify → 403 environment_not_allowed ("Staging verification is not open for this app. Open a staging window with the set_world_id_staging_verification tool"). `environment` is an IDKit widget prop (staging shows simulator link; production only QR).
+- Path A: Developer Portal MCP https://developer.world.org/api/mcp (Bearer api_… team key from Team settings → API Keys) likely exposes set_world_id_staging_verification → need user's API key. Path B: Sandbox (environment: sandbox, proofs verify on production endpoint) but needs TestFlight/Play tester approval on the user's phone.
+- Real result saved .omc/research/world-result-investorA.json; C1 asked to add environment prop + fixtures.
+- 15:50 JST US-010 (A4 live deploy) + US-009 (C1) PASS. Live: registrar 0x6287…48eF, market 0x9Cf9…B875, mUSDC 0x6B41…451D, deployBlock 11784486; broadcast receipts committed (4c333b6); web deployments synced (lead). Fork tests need archive RPC: --fork-url https://sepolia.gateway.tenderly.co (publicnode/1rpc pruned 11781431) → README/runbook note.
+- Next: B5 phase 2 (cleanup/build), C1b --seed, B4 AC-9 live, C2 (delete spike/world, F1/F5 live). Blocked on user: staging window (portal API key), repo name (H4), deadline.
+- 15:48 JST: C1b --seed LIVE: inv-1.seikyu.eth (tx 0x0a0d4954e2115ebe18cf86461d50f3d136d2979dd5f4892aa21bbfc2f16b184b, due +7d) and inv-2.seikyu.eth (tx 0x4e089388900ad4349a5905b45fcf5669ab1fc2ef8eb972a09c25b81752dbb21f, due 1790405804 ≈ 15:56:44 JST). AC-7 verified by lead (8 records, RESOLVES true, LIVE_STATE REGISTERED); inv-1 ack=acknowledged (B4 ran eac-negative). SME balance 0.0481. AC-8 capture job scheduled (.omc/ac8-capture.txt).
+- 15:52 JST US-015 (B4) PASSES LIVE (AC-9 ack tx 0xc118…dedb).
+- 15:55 JST A4: Sourcify exact_match ×3 (Blockscout shows source for all; Etherscan exact only for registrar). Suite 46/46 at forkBlock 11784478 (tenderly archive RPC).
+- 15:55 JST B5 phase 2 + C2 done; AC-14 a/b/c/d verified by lead; build/lint 0. Push/Vercel PAUSED by user. Remaining blockers: staging window (API key), repo, deadline.
+- 15:58 JST C3 filled docs (aaf77f0): addresses, E2/E1/Deploy txs, Sourcify links, archive-RPC note, debrief T_first_success 108s + friction items. Asked C3 to add inv-1/inv-2/ack tx hashes. Remaining FILL: H4/H5/H6/VIDEO (user) + buy/settle/expiry/markOverdue/Harden txs (E2E).
+- 17:15 JST AC-8 LIVE evidence captured (.omc/ac8-capture.txt). Network outage 16:00–16:52 killed C3 (its ENS_INTEGRATION fill committed by lead) and the first AC-8 job.
+- 17:20 JST PAUSED by user. State: PRD 14/24 passed. Live on Sepolia: seikyu.eth, UserRegistry 0xA9DF…eD67, registrar 0x6287…48eF, market 0x9Cf9…B875, mUSDC 0x6B41…451D, inv-1 (live, ack=acknowledged), inv-2 (expired; AC-8 evidence captured). Web builds clean, reads chain. Docs filled except FILL-TX ×5 (buy/settle/transfer-attempt/markOverdue/Harden) + FILL-H4/H5/H6/VIDEO.
+- RESUME CHECKLIST (needs user): (1) Portal API key → connect MCP https://developer.world.org/api/mcp → call set_world_id_staging_verification for app_47ea… → verify investor A via simulator on /invoice/inv-1 → e2e-sepolia.ts --flow (CREATE/VERIFY/BUY/SETTLE tx) → F3 via cast setVerified(investorA2, NULLIFIER_A) → re-seed +10min invoice before video; (2) repo name → git push, Vercel (root web, env keys from web/.env.example + NEXT_PUBLIC_WORLD_ENVIRONMENT=staging), AC-15/AC-18; (3) H6 team info; (4) Harden.s.sol at CP7 → AC-20; (5) V2 verifier pass; (6) video + submit.
+- Wallet keys: contracts/.env.wallets.local (chmod 600). Deployer balance ≈0.169 ETH. Dead agents: exec-c3 (network). All others idle.
+- 17:26 JST: staging window OPENED via portal MCP (expires 2026-09-27T08:26Z); token stored as WORLD_STAGING_VERIFICATION_TOKEN in web/.env.local; header x-staging-verification-token required on /api/v4/verify.
+- 17:27 JST: saved C0 proof + token → 400 verification_failed (execution reverted) — stale rp_context suspected; fresh proof via live page in progress (C1). Ladder ready: passport → proofOfHuman → orbLegacy.
+- 17:40 JST WORLD HAPPY PATH LIVE (C1): fresh Passport proof → route 200 → InvestorVerified tx 0xffdf3910f2e55373ac6a084bab8575a593c0467050bb3a026f3b1cc11ef3b975 (block 11785076) for user's Chrome wallet 0x2aaA…259A; nullifier 0x2831…85ab (same as C0's saved proof → nullifier = f(rp, action, simulator identity in browser profile)). Investor A verification to be done by exec-manual in a fresh Playwright profile. F3 = second wallet in same profile → 409.
+- 18:00 JST DEMO CONSTRAINT: simulator.worldcoin.org has only 5 fixed shared test identities (Settings → Switch test identity). Identity #4 (/id/0x18310f83, default) is bound to user's Chrome wallet 0x2aaA…259A; exec-manual uses #1 for investor A (and reuses #1 with A2 for F3). Keep #2/#3/#5 for the video. If a nullifier must be freed: owner (deployer) calls InvoiceMarket.revokeVerification(wallet, nullifier).
+- 18:08 JST: Simulator Passport credential shares ONE nullifier across all identities (exec-manual verified with #4,#1,#5) → only one wallet can verify with passport on staging. Ladder step taken: NEXT_PUBLIC_WORLD_PRESET=proofOfHuman for the demo (production default stays passport). Dev :3021 restarted.
+- 18:30 JST AC-11 + AC-12 LIVE (lead verified). World demo path = proofOfHuman preset + simulator "Legacy v3 proof" mode (v4 mode gives one shared nullifier for all identities/credentials — simulator limitation). Fix 9dbbeba accepts identifier "orb" for v3. Identities bound: #4(v4)→0x2aaA…, #1(v3)→investor A. Free for video: #0/#2/#3 in Legacy v3 mode.
+- 18:45 JST USER_GUIDE.md done (8dd49b6, 8b651d4; 33 figures, lead spot-checked callouts). inv-3 full flow txs: create 0xb519…aac7, ack 0x7e68…e791, verify 0xde35…a38c, buy 0x0d79…382a, settle 0x5137…e9cb; inv-4 dispute 0x2f47…9068, cancel 0xb1c8…a1b1. US-013 + US-017 PASS. C1b running --flow (AC-16); B6 fixing 3 UI nits.
+- 18:50 JST US-018 PASSES (AC-11/12/16 live). inv-5 flow: create 0x521e…c8cc, buy 0x493b…cb17, settle 0x00ab…20dd.
+- 19:10 JST US-022 PASSES: Harden live (0xde2f…be51), AC-20=0, post-harden issue OK (inv-6 0xcda7…11c0).

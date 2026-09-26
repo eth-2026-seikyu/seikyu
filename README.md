@@ -12,9 +12,14 @@ Built for ETHGlobal Tokyo 2026, targeting **ENS Best Use of ENSv2**, **World Bes
 
    | Name | Role | X / GitHub |
    |---|---|---|
-   | TBD | TBD | TBD |
+   | Ikhalas Mannoon | Lead / integrator (ran every session, holds deployer + operator keys) | [@ikhalas112](https://github.com/ikhalas112) |
+   | TBD | TBD | [@KoonPorZa](https://github.com/KoonPorZa) |
+   | TBD | TBD | [@prakasit-lertprakitsin](https://github.com/prakasit-lertprakitsin) |
+   | TBD | TBD | [@TaiChi112](https://github.com/TaiChi112) |
 
-   <!-- FILL-H6: team names + X/GitHub handles -->
+   <!-- FILL-H6: names, roles, X handles for the other three members -->
+
+   How the work was split between people and AI is stated in [`docs/AI_USAGE.md`](docs/AI_USAGE.md).
 
 4. **Setup & testing** — see the full [Setup & testing](#setup--testing) section below.
 
@@ -153,6 +158,10 @@ There are **two mock USDCs**: ENS's `ensMockUsdc` above (parent registration onl
 - The operator key can only call `setVerified` (`contracts/src/InvoiceMarket.sol:142-152`). The owner can rotate it (`setOperator`), pause the market (`pause`/`unpause`), or clear a squatted nullifier (`revokeVerification`).
 - `Harden.s.sol` revokes every root role the deployer holds on our `UserRegistry` — irreversible, run at feature freeze (`contracts/script/Harden.s.sol`; **run live**: [tx](https://eth-sepolia.blockscout.com/tx/0xde2f1130b97117aaf09a0039c241ad1d4ae5b08d8a78186ea88b732fd17dbe51), the deployer's `roles(0, deployer)` is now `0`, confirmed by AC-20). The parent name's owner on ENS's `ETHRegistry`, however, can still call `setSubregistry` on the parent; this is disclosed, not mitigated.
 - MultiBaas was evaluated for the invoice activity feed and not used — time-boxed out (see item 2 above); the frontend reads state via direct RPC calls (`web/lib/invoices.ts`, `web/lib/ens.ts`).
+
+## AI usage & planning artifacts
+
+This project was built spec-first with Claude Code: AI agents drafted and reviewed the plan, wrote every source file, and ran the tests and deployments; the humans chose the target, approved the plan, did every external-account and funding step, and reviewed the results. Every commit carries a `Co-Authored-By: Claude` trailer. The full statement of which parts used AI is [`docs/AI_USAGE.md`](docs/AI_USAGE.md); the plan, PRD, research spikes, progress log, and every prompt (human-typed and agent-directed, secrets redacted) are in [`docs/planning/`](docs/planning/README.md).
 
 ## Prizes targeted
 

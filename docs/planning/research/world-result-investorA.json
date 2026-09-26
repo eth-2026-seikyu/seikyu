@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "note": "Captured live via World ID Simulator (staging network), spike/world (C0), 2026-09-26",
+    "preset": "passport",
+    "signal_investor_address": "0x601344DFBEd3Cc685CF49190f39c18B1b570C131",
+    "widget_environment_prop": "staging",
+    "T_start": "2026-09-26T06:32:01.875Z",
+    "T_first_success": "2026-09-26T06:33:50.120Z",
+    "app_id": "app_47ea303bb2ca8ee8e6e4dfddfb8b090b",
+    "rp_id": "rp_26da7441b98d1a38"
+  },
+  "idkit_onSuccess_result": {
+    "action": "buy-receivable",
+    "environment": "staging",
+    "nonce": "0x0050d1cea6f422fbf9c025883fbcbff1f5cde7a76ef3797329f2e763e644945b",
+    "protocol_version": "4.0",
+    "responses": [
+      {
+        "expires_at_min": 1790404322,
+        "identifier": "passport",
+        "issuer_schema_id": 9303,
+        "nullifier": "0x28318508ef4f584f142db492a5a8a2d1af223ccf4b6edd08183d4c09583c85ab",
+        "proof": [
+          "13586708970665106381745288208973107748208932217529228854957135199212447396569",
+          "3496315628313386146607455000394330740674813200397598144228559932493601834382",
+          "24911389304964050339536334864926605829222014766159611726448603010999788557571",
+          "2061725491485979853583972913247404948584683107149486747299314869970839483327",
+          "10442162504619117625503155665608155026801839232948277265663602594287241473816"
+        ],
+        "signal_hash": "0x0058a67f5b3adba1c7a9452185d8e3822b8689ac0c12227d74a713e91a749d54"
+      }
+    ]
+  },
+  "verify_api_response": {
+    "request": "POST https://developer.world.org/api/v4/verify/rp_26da7441b98d1a38",
+    "status": 403,
+    "body": {
+      "code": "environment_not_allowed",
+      "detail": "Staging verification is not open for this app. Open a staging window with the set_world_id_staging_verification tool, or omit `environment` (or set it to `production`) to verify production proofs.",
+      "attribute": "environment",
+      "app_id": "app_47ea303bb2ca8ee8e6e4dfddfb8b090b"
+    }
+  },
+  "signal_hash_verification": {
+    "note": "Independently recomputed hashSignal(investor_address) server-side and compared to responses[0].signal_hash from the live result above.",
+    "computed_with": "hashSignal from @worldcoin/idkit-core/hashing v4.3.0",
+    "input": "0x601344DFBEd3Cc685CF49190f39c18B1b570C131",
+    "computed_signal_hash": "0x0058a67f5b3adba1c7a9452185d8e3822b8689ac0c12227d74a713e91a749d54",
+    "matches_responses_0_signal_hash": true
+  }
+}

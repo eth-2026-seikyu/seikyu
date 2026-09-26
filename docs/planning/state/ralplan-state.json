@@ -1,0 +1,17 @@
+{
+  "active": false,
+  "iteration": 2,
+  "max_iterations": 5,
+  "current_phase": "handoff-to-ralph",
+  "plan_path": "/Users/ikhalas/Documents/side-projects/eth-2026/.omc/plans/invoice-rwa-tokyo2026.md",
+  "completed_at": "2026-09-25T19:36:00.000Z",
+  "critic_verdict": "APPROVE (round 2, v2.1); plan finalized v2.2",
+  "execution_approved_by_user": "ralph",
+  "handoff": "ralph",
+  "_meta": {
+    "mode": "ralplan",
+    "sessionId": "d808efe5-001b-4ff7-9e68-da96b33804e6",
+    "updatedAt": "2026-09-25T19:36:06.164Z",
+    "updatedBy": "state_write_tool"
+  }
+}

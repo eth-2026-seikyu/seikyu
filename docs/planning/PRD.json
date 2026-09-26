@@ -1,0 +1,466 @@
+{
+  "project": "Seikyu — Invoice RWA (ETHGlobal Tokyo 2026)",
+  "plan": "/Users/ikhalas/Documents/side-projects/eth-2026/.omc/plans/invoice-rwa-tokyo2026.md",
+  "baseline": "T+0 = 2026-09-26 04:40 JST (re-baselined from plan's 02:30); T+20 = 2026-09-27 00:40 JST",
+  "ensTag": "sepolia-deployment-2026-09-15 (f2f0a05e)",
+  "humanBlockers": {
+    "H1": "World Developer Portal staging app + action buy-receivable → NEXT_PUBLIC_WORLD_APP_ID, WORLD_RP_ID, WORLD_RP_SIGNING_KEY",
+    "H2": "Reown/WalletConnect projectId → NEXT_PUBLIC_WC_PROJECT_ID",
+    "H3": "Sepolia ETH >= 0.8 to deployer; 6 wallet addresses; SEPOLIA_RPC_URL; ETHERSCAN_API_KEY → contracts/.env",
+    "H4": "Public GitHub repo (name) + push",
+    "H5": "Vercel project (root=web) + env",
+    "H6": "Team + social handles for README",
+    "H7": "Video voice-over",
+    "H8": "Submit on ETHGlobal"
+  },
+  "stories": [
+    {
+      "id": "US-001",
+      "card": "A0",
+      "lane": "A",
+      "priority": 1,
+      "passes": true,
+      "title": "Toolchain, ENSv2 pin, minimal interfaces, selector parity, fork go/no-go",
+      "description": "Install foundry; forge init contracts; pin OZ v5.1.0 + contracts-v2@sepolia-deployment-2026-09-15 (f2f0a05e); hand-write src/interfaces/ens/*.sol from tag ABIs; IInvoiceRegistrar.sol per §2.5 verbatim; deployments/sepolia.json schema; selector-parity.sh; ForkBase + GoNoGo fork tests; record per-invoice gas cost.",
+      "acceptanceCriteria": [
+        "forge --version, cast --version, anvil --version all succeed",
+        "git -C contracts/lib/contracts-v2 rev-parse --short=8 HEAD == f2f0a05e",
+        "cd contracts && forge build → exit 0 (AC-1)",
+        "bash contracts/script/selector-parity.sh → last line 'PARITY OK (26 selectors)' (AC-21)",
+        "forge test --fork-url $SEPOLIA_RPC_URL --fork-block-number $FORK_BLOCK --match-contract GoNoGoForkTest → 2 passed, 0 failed",
+        "createInvoice-equivalent gas (resolver deployProxy + 7 setText + grantSetterRoles + register) < 2,500,000 recorded in .omc/research/spike-ensv2.md as 'per-invoice cost' with gas price",
+        "contracts/src/interfaces/IInvoiceRegistrar.sol matches plan §2.5 exactly and is committed (interface freeze)",
+        "contracts/deployments/sepolia.json exists with all 17 keys; fixed ENS addresses match tag JSONs",
+        "Only contracts/, .gitignore additions committed on main; no web/ or spike/ files touched"
+      ],
+      "notes": "GO at T+0:35 (commit 50ed66d): GoNoGoForkTest 2/2 on fork 11781431; gas 694,332 (<2.5M); PARITY OK (26); tag f2f0a05e; ROLE_SET_TEXT=1<<4; lead re-verified forge build + parity"
+    },
+    {
+      "id": "US-002",
+      "card": "B0",
+      "lane": "B-alpha",
+      "priority": 1,
+      "passes": true,
+      "title": "Next.js 15 web scaffold with wagmi/RainbowKit/IDKit deps",
+      "description": "create-next-app@15 web (--disable-git); add wagmi viem@2 react-query rainbowkit idkit idkit-core zod; dev deps tsx @wagmi/cli; providers, wagmi.ts (sepolia + fallback transports), env.ts (zod), .env.example.",
+      "acceptanceCriteria": [
+        "web/ scaffold committed on main within ~15 min (unblocks C1)",
+        "pnpm -C web build → exit 0",
+        "web/lib/wagmi.ts exports config with sepolia chain and fallback([http(NEXT_PUBLIC_SEPOLIA_RPC_URL), http()])",
+        "web/lib/env.ts validates env with zod; LOCAL_MARKET_ADDRESS rejected when NODE_ENV=production",
+        "web/.env.example lists every key in plan §2.8 with no secret values",
+        "No nested .git inside web/"
+      ],
+      "notes": "Done T+0:25 by B0: commits 9cd7eeb, 46973f1, 99a7906; build+lint exit 0; RainbowKit dropped (Coinbase connector → @coinbase/cdp-sdk → missing @x402/*), injected() only; wagmi pinned 2.19.5; idkit 4.3.0"
+    },
+    {
+      "id": "US-003",
+      "card": "C0",
+      "lane": "C",
+      "priority": 1,
+      "passes": false,
+      "title": "World ID spike: credential decision (CP0) + U-7 signal-hash rule",
+      "description": "Throwaway app in spike/world/ with IDKitRequestWidget + passport() preset + rp-context route (signRequest). Test in World Simulator with staging app; forward to /api/v4/verify/{rp_id}. Record T_start/T_first_success, identifier value, v4 signal hashing rule (U-7), one successful result for fixtures. Fallback ladder: passport → proofOfHuman → orbLegacy → selfieCheck (disclosed).",
+      "acceptanceCriteria": [
+        ".omc/research/spike-world.md exists with: chosen preset, T_start, T_first_success, responses[0].identifier value, U-7 signal-hash rule + field name, one real successful result JSON (wallet A)",
+        "POST https://developer.world.org/api/v4/verify/{rp_id} returned HTTP 200 with environment == staging for the chosen preset (or ladder fallback documented with reason)",
+        "Blocked items (H1 credentials) reported precisely to team lead if verification could not run"
+      ],
+      "notes": "C0 spike built + U-7 resolved (local branch: signal_hash on responses[i]); live verification BLOCKED on H1 credentials; spike server localhost:3101"
+    },
+    {
+      "id": "US-004",
+      "card": "A3",
+      "lane": "A",
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-001 interface freeze"
+      ],
+      "title": "InvoiceMarket + MockUSDC + MockInvoiceRegistrar + 22 unit tests",
+      "description": "src/InvoiceMarket.sol per §2.5 (ERC721+Ownable+Pausable, _update mint/burn-only exemption, buy gated by isVerified+isLive+ack allow-list, settle/cancel → closeInvoice), src/MockUSDC.sol, test/mocks/MockInvoiceRegistrar.sol, test/InvoiceMarket.t.sol with the 22 named tests.",
+      "acceptanceCriteria": [
+        "forge test --match-contract InvoiceMarketTest → 22 passed, 0 failed",
+        "All 22 test names from plan card A3 exist verbatim",
+        "forge build exit 0; no changes to foundry.toml/remappings.txt/interfaces"
+      ],
+      "notes": "Done T+0:25 by A3 (d27347c): 22/22 unit tests; lead re-ran suite"
+    },
+    {
+      "id": "US-005",
+      "card": "A2",
+      "lane": "A",
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-001 GO"
+      ],
+      "title": "InvoiceRegistrar (per-invoice Permissioned Resolver, expiry=dueDate) + 14 fork tests",
+      "description": "src/InvoiceRegistrar.sol implementing §2.4 E5–E7 + path R (resolve multicall) + path L (getState) + closeInvoice skipping unregister when !isLive; test/InvoiceRegistrar.t.sol (fork) with 14 named tests.",
+      "acceptanceCriteria": [
+        "$FT --match-contract InvoiceRegistrarTest → 14 passed, 0 failed",
+        "test_accountantCannotSetAmount_reverts and test_accountantCannotSetStatus_reverts expect EACUnauthorizedAccountRoles",
+        "test_issuerCannotTransferName_reverts expects TransferDisallowed",
+        "test_nameExpiredAtDueDate: after vm.warp(dueDate) getState.status == AVAILABLE and ownerOf == 0; test_statusOf_afterExpiry still reads via stored resolver"
+      ],
+      "notes": "Done T+0:30 by A2 (b6eae29): 14/14 fork tests (lead re-ran 14/14 at 05:11 JST); registerInvoice gas 754,746; DEVIATION: issuer transfer reverts TransferUnsafeUntilRegistryIsEmancipated (registrar holds root ROLE_UNREGISTER) — docs must NOT claim TransferDisallowed; 7 setText run inside initialize calls[]"
+    },
+    {
+      "id": "US-006",
+      "card": "A1",
+      "lane": "A",
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-001",
+        "H3"
+      ],
+      "title": "UserRegistry proxy + parent .eth on Sepolia (E2 → E1+E3)",
+      "description": "script/DeployUserRegistry.s.sol (admin-only grants, writes .userRegistry); script/RegisterParent.s.sol with commit() and register() (ensMockUsdc mint+approve; subregistry=userRegistry; writes .parentName). Labels: seikyu → seikyu-rwa → invoicerwa.",
+      "acceptanceCriteria": [
+        "AC-6: cast call ETHRegistry getSubregistry(string)(address) $PARENT_LABEL == jq .userRegistry sepolia.json → HIERARCHY_OK",
+        "deployments/sepolia.json .userRegistry and .parentName non-zero, written via vm.writeJson(..., \".key\")",
+        "cast call $USER_REGISTRY roles(uint256,address)(uint256) 0 $DEPLOYER shows only admin bits (23694882055805708026345164039296315868315648)"
+      ],
+      "notes": "LIVE 15:35 JST (A1, 819ec2e): seikyu.eth registered (tx 0x7b31788bd5f7bef84a84530cdec3c289d7b1e13ad051319f500eda5ea067b913, block 11784477), userRegistry 0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67 (E2 tx 0xd2bba845…), AC-6 HIERARCHY_OK re-verified by lead; deployer roles = DEPLOYER_ADMIN_ONLY"
+    },
+    {
+      "id": "US-007",
+      "card": "B1",
+      "lane": "B-alpha",
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-002"
+      ],
+      "title": "Web data layer (path R/L) + S3 viem read spike",
+      "description": "spike/ens-read S3 (45 min timebox): prove viem can call resolve(dnsName, multicall(8×text)) and UR v2 resolve. lib/ens.ts (dnsEncode, readRecords, isLive), lib/invoices.ts (listInvoices, getInvoice → InvoiceView), scripts/check-ens.ts, temporary lib/__fixtures__/invoices.ts.",
+      "acceptanceCriteria": [
+        "pnpm -C web exec tsc --noEmit → exit 0",
+        ".omc/research/spike-ens-read.md records S3 result (a) and (b) with pass/fail and chosen path",
+        "scripts/check-ens.ts prints 8 records[key]=value lines + RESOLVES: true|false + LIVE_STATE: AVAILABLE|RESERVED|REGISTERED",
+        "No use of viem getEnsText or registry getResolver for record reads"
+      ],
+      "notes": "Done T+0:35 by B1 (d41734b, 47161b1): S3 (a)+(b) PASS (viem resolve+multicall decode; UR v2 resolve); path R chosen; lead verified tsc/lint/build exit 0 at 05:17"
+    },
+    {
+      "id": "US-008",
+      "card": "B2",
+      "lane": "B-beta",
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-002"
+      ],
+      "title": "List page + invoice detail page + InvoiceCard + StatusBadge",
+      "description": "app/page.tsx (Active/Attention/Closed groups, revalidate=15), app/invoice/[name]/page.tsx, components/InvoiceCard.tsx (data-invoice-card), components/StatusBadge.tsx (displayState + ackView, invalid=red), 8 data-record attributes.",
+      "acceptanceCriteria": [
+        "curl -s localhost:3000/ | grep -o 'data-invoice-card' | wc -l → ≥ 2 (fixtures)",
+        "curl -s localhost:3000/invoice/inv-1.seikyu.eth | grep -o 'data-record=' | wc -l → 8",
+        "pnpm -C web build → exit 0"
+      ],
+      "notes": "Done T+0:35 by B2 (a793add, 7a237f0): lead verified cards=4, records=8, disputed=1, 404 on unknown; build+lint exit 0 per B2"
+    },
+    {
+      "id": "US-009",
+      "card": "C1",
+      "lane": "C",
+      "priority": 2,
+      "passes": true,
+      "dependsOn": [
+        "US-002 scaffold commit",
+        "US-001 step 0 anvil"
+      ],
+      "title": "World verify API routes + WorldVerifyButton + fixtures (anvil)",
+      "description": "app/api/world/rp-context/route.ts, app/api/world/verify/route.ts (8 steps §2.6 incl. signal check, credential mismatch, nonceManager+retry), components/WorldVerifyButton.tsx (5 data-states), lib/world.ts, lib/server/chain.ts, contracts/test/mocks/MockInvoiceMarket.sol, fixtures bad-proof.json + signal-mismatch.json.",
+      "acceptanceCriteria": [
+        "AC-10a: curl POST /api/world/verify with {investor:0x…1,result:{}} → 400 INVALID_BODY",
+        "AC-10b: curl -d @scripts/fixtures/bad-proof.json → 422 VERIFICATION_FAILED",
+        "AC-10c: curl -d @scripts/fixtures/signal-mismatch.json → 422 SIGNAL_MISMATCH (or 422 VERIFICATION_FAILED if API-branch documented at CP-U in spike-world.md, changed in same commit)",
+        "WorldVerifyButton renders data-state values cancelled|credential-unavailable|credential-mismatch|signal-mismatch|nullifier-used",
+        "Happy path against anvil MockInvoiceMarket: setVerified tx sent by operator with nonceManager"
+      ],
+      "notes": "DONE (C1 9ca9c03, 7c62905, 614d9a1): AC-10a 400 / 10b 422 VERIFICATION_FAILED (World 403 environment_not_allowed passthrough) / 10c 422 SIGNAL_MISMATCH — lead re-ran with real fixtures; environment prop wired; steps 7–8 verified on anvil. Live happy path blocked until staging window opened (portal API key)"
+    },
+    {
+      "id": "US-010",
+      "card": "A4",
+      "lane": "A",
+      "priority": 3,
+      "passes": true,
+      "dependsOn": [
+        "US-004",
+        "US-005",
+        "US-006"
+      ],
+      "title": "Integration fork tests + Deploy/Seed/Harden scripts + Sepolia deploy",
+      "description": "test/Integration.t.sol (4 tests), script/Deploy.s.sol (MockUSDC → InvoiceRegistrar → InvoiceMarket; E4 grantRootRoles 69633; setMarket; writeJson keys), script/Seed.s.sol (ETH + mUSDC distribution, invoices #1 +7d and #2 +10min), script/Harden.s.sol (revoke all deployer bits; assert roles(0,deployer)==0).",
+      "acceptanceCriteria": [
+        "$FT --match-contract Integration → 4 passed, 0 failed",
+        "AC-2: $FT 2>&1 | tail -n 3 → '42 tests passed, 0 failed'",
+        "forge script Deploy.s.sol --broadcast (--verify) succeeded on Sepolia; jq -e all four addresses != 0x0 → true",
+        "forge test --gas-report shows createInvoice gas number (record in progress.txt for README)",
+        "AC-22: 4 named ENS-gate tests pass"
+      ],
+      "notes": "LIVE 15:45 JST (A4 f46fde3): registrar 0x628701e9A322B019e4aFe31A077f393644D748eF, market 0x9Cf9989AfC0196720aa0A64F61a614CFB548B875, mockUsdc 0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D, deployBlock 11784486; Seed done; suite 46/46 (archive RPC tenderly needed for fork block); lead re-verified wiring + jq; NOT etherscan-verified; Harden pending CP7"
+    },
+    {
+      "id": "US-011",
+      "card": "A5",
+      "lane": "A",
+      "priority": 3,
+      "passes": true,
+      "dependsOn": [
+        "US-010"
+      ],
+      "title": "ABI export to web (wagmi cli) + deployments sync",
+      "description": "web/wagmi.config.ts (foundry plugin) → web/lib/generated.ts; web/scripts/sync-deployments.mjs → web/lib/deployments.sepolia.json + web/lib/deployments.ts.",
+      "acceptanceCriteria": [
+        "pnpm -C web wagmi generate && pnpm -C web build → exit 0",
+        "web/lib/deployments.ts exports typed addresses read from deployments.sepolia.json (no hard-coded 0x in app/components)"
+      ],
+      "notes": "Done T+0:36 by A5 (b371d04, b5c6b0c): generated.ts exports iPermissionedResolverAbi/iUserRegistryAbi/invoiceMarketAbi/invoiceRegistrarAbi/mockUsdcAbi; deployments.ts (isDeployed, nameUnderParent); lead verified build"
+    },
+    {
+      "id": "US-012",
+      "card": "B2b",
+      "lane": "B-beta",
+      "priority": 3,
+      "passes": true,
+      "dependsOn": [
+        "US-008",
+        "US-009"
+      ],
+      "title": "BuyPanel / PayPanel / FaucetButton",
+      "description": "BuyPanel shows WorldVerifyButton when unverified, else approve+buy; decodes NotVerifiedInvestor, PositionCapReached, NameNotLive, PurchaseBlockedByAck, DueDatePassed to data-state. PayPanel approve+settle. FaucetButton mints mUSDC.",
+      "acceptanceCriteria": [
+        "pnpm -C web build → exit 0",
+        "grep -c WorldVerifyButton web/components/BuyPanel.tsx → ≥ 1",
+        "Custom-error decode maps to data-state values not-verified|position-cap|name-not-live|ack-blocked"
+      ],
+      "notes": "Done T+0:46 by B2b (7b3be0e): lead verified tsc 0, SSR data-actions=1, ack-blocked=1, 4 data-states, WorldVerifyButton used, 0 hard-coded addrs"
+    },
+    {
+      "id": "US-013",
+      "card": "B3",
+      "lane": "B-alpha",
+      "priority": 3,
+      "passes": true,
+      "dependsOn": [
+        "US-007"
+      ],
+      "title": "/issue page (createInvoice form)",
+      "description": "Form: debtor, debtor AP (accountant), faceValue, discount %, due presets +7d/+30d/+10min(demo); calls createInvoice; parses InvoiceCreated; redirects to /invoice/<name>.",
+      "acceptanceCriteria": [
+        "pnpm -C web build → exit 0",
+        "In C-E2E: submitting on Sepolia lands on /invoice/inv-<n>.<parent> showing 8 records (7 non-empty, ack may be empty)"
+      ],
+      "notes": "LIVE via UI (exec-manual): /issue form created inv-3.seikyu.eth (tx 0xb5195264…aac7) and inv-4 (0x9f6997c1…c0c8); detail page showed 8 records; figures 01-01..01-04 in docs/manual"
+    },
+    {
+      "id": "US-014",
+      "card": "C1b",
+      "lane": "C",
+      "priority": 3,
+      "passes": true,
+      "dependsOn": [
+        "US-001"
+      ],
+      "title": "scripts/e2e-sepolia.ts (--seed / --flow)",
+      "description": "--seed creates invoices due +7d and +10min and prints EXPIRY_DEMO=inv-<n>.<parent>; --flow runs create → buy (INVESTOR_A) → settle and prints CREATE_TX, VERIFY_TX, NULLIFIER_A, BUY_TX, SETTLE_TX, STATE=3, LIVE_STATE=AVAILABLE, records[status]=paid.",
+      "acceptanceCriteria": [
+        "pnpm -C web exec tsc --noEmit → exit 0",
+        "Script reads addresses from lib/deployments.ts and keys from web/.env.e2e (never committed)"
+      ],
+      "notes": "Done T+0:39 by C1b (11db0b2): --seed/--flow/--status rehearsed on anvil (STATE=3, records[status]=paid); tsc/lint 0; lead re-ran tsc"
+    },
+    {
+      "id": "US-015",
+      "card": "B4",
+      "lane": "B-beta",
+      "priority": 3,
+      "passes": true,
+      "dependsOn": [
+        "US-011"
+      ],
+      "title": "/accountant page + scripts/eac-negative.ts",
+      "description": "Debtor-AP wallet sets ack via setText(dnsName,'ack',v); buttons 'Try to edit amount'/'Try to edit status' use simulateContract and surface EACUnauthorizedAccountRoles.",
+      "acceptanceCriteria": [
+        "AC-9: pnpm -C web exec tsx scripts/eac-negative.ts inv-1.$PARENT → 'ack: OK (tx 0x…)', 'amount: REVERTED (EACUnauthorizedAccountRoles)', 'status: REVERTED (EACUnauthorizedAccountRoles)'"
+      ],
+      "notes": "LIVE 15:50 JST (B4 9f1b168): eac-negative.ts on inv-1.seikyu.eth → ack OK (tx 0xc118b4106a306f511e3f49ccba78be1647b36cf31485630cb34aea217c6adedb), amount/status REVERTED EACUnauthorizedAccountRoles; AC-7 live 8 records (lead corroborated: ack=acknowledged visible)"
+    },
+    {
+      "id": "US-016",
+      "card": "B5",
+      "lane": "B-alpha",
+      "priority": 4,
+      "passes": false,
+      "dependsOn": [
+        "US-011",
+        "H4",
+        "H5"
+      ],
+      "title": "Wire pages to Sepolia, remove fixtures/spikes, deploy to Vercel",
+      "description": "All pages read Sepolia via generated ABIs + deployments; delete web/lib/__fixtures__ and spike/ens-read; push to GitHub; Vercel build.",
+      "acceptanceCriteria": [
+        "curl -s -o /dev/null -w '%{http_code}' $DEMO_URL → 200",
+        "test ! -d web/lib/__fixtures__ -a ! -d spike/ens-read && echo CLEAN_B5 → CLEAN_B5",
+        "AC-15: curl -s $DEMO_URL | grep -oE 'inv-[0-9]+\\.' | sort -u | wc -l → ≥ 1",
+        "AC-7 on live: check-ens.ts inv-1.$PARENT → 8 records, RESOLVES: true, LIVE_STATE: REGISTERED"
+      ],
+      "notes": "Phase 2 cleanup DONE (B5 3086756): fixtures+spikes removed, build/lint 0, / and /invoice/inv-1 render from Sepolia (lead verified AC-14 a/b/c=0, d CLEAN). PUSH + Vercel + AC-15 PAUSED by user (repo name pending)"
+    },
+    {
+      "id": "US-017",
+      "card": "C2",
+      "lane": "C",
+      "priority": 4,
+      "passes": true,
+      "dependsOn": [
+        "US-011",
+        "US-009"
+      ],
+      "title": "World verify against real Sepolia market; delete spike/world",
+      "description": "lib/server/chain.ts reads market address from lib/deployments.ts; test F1, F3, F5 on Sepolia; delete spike/world/.",
+      "acceptanceCriteria": [
+        "test ! -d spike/world && echo CLEAN_C2 → CLEAN_C2",
+        "F1 (cancel), F3 (409 NULLIFIER_ALREADY_USED), F5 (422 SIGNAL_MISMATCH) reproduced against Sepolia market and noted in progress.txt"
+      ],
+      "notes": "C2 DONE: live market wired, spike/world deleted (CLEAN_C2), F1 + F5 verified on real page; F3 reproduced LIVE (UI 409 for investor A2 bound to A; on-chain setVerified revert NullifierAlreadyUsed) after staging window + orb-identifier fix"
+    },
+    {
+      "id": "US-018",
+      "card": "C-E2E",
+      "lane": "C",
+      "priority": 4,
+      "passes": true,
+      "dependsOn": [
+        "US-016",
+        "US-014",
+        "US-017"
+      ],
+      "title": "End-to-end on live URL: verify via simulator, seed, flow",
+      "description": "Human verifies INVESTOR_A via simulator on live URL; run e2e-sepolia.ts --seed then --flow; capture tx hashes.",
+      "acceptanceCriteria": [
+        "AC-11a: cast call $MARKET isVerified(address)(bool) $INVESTOR_A → true",
+        "AC-11b: cast logs InvestorVerified since deployBlock → ≥ 1 transactionHash",
+        "AC-16: e2e-sepolia.ts --flow prints CREATE_TX, VERIFY_TX, BUY_TX, SETTLE_TX hashes, STATE=3, LIVE_STATE=AVAILABLE, records[status]=paid",
+        "AC-12: cast send setVerified($INVESTOR_A2, $NULLIFIER_A) from operator → reverts NullifierAlreadyUsed (grep ≥ 1)"
+      ],
+      "notes": "LIVE: AC-11a/b (investor A verified, tx 0xde35…a38c), AC-12 (setVerified(A2,N_A) reverts NullifierAlreadyUsed(A)), AC-16 (--flow on inv-5.seikyu.eth: CREATE 0x521e486b…c8cc, BUY 0x493be34b…cb17, SETTLE 0x00abfd3b…20dd, STATE=3, LIVE_STATE=AVAILABLE, records[status]=paid; lead re-ran --status)"
+    },
+    {
+      "id": "US-019",
+      "card": "C3",
+      "lane": "C",
+      "priority": 4,
+      "passes": false,
+      "dependsOn": [
+        "US-010",
+        "US-003"
+      ],
+      "title": "README (Curvegrid 5 items) + docs/ENS_INTEGRATION.md + docs/WORLD_ID_DEBRIEF.md",
+      "description": "README sections 1–5 per §9 + architecture + addresses table + disclosures (confidentiality, recourse, fraud, two mock USDCs, parent owner can change subregistry, per-invoice resolver required by key-only scope). ENS_INTEGRATION table feature|purpose|file:line|Sepolia tx|judge bullet. WORLD_ID_DEBRIEF with 4 required ### headings.",
+      "acceptanceCriteria": [
+        "AC-17a: all 5 doc files exist → DOCS_OK (DEMO_SCRIPT/SHOWCASE may be stubs until US-021)",
+        "AC-17b: 4 headings 'Time to first success', 'Friction', 'Missing capability', 'greatest impact' present in WORLD_ID_DEBRIEF.md → 4",
+        "AC-17c: grep 'exactly as long as the debt' in README/docs → 0",
+        "README contains numbered items: one-sentence summary; MultiBaas usage or 'Not used — why'; Team + social handles (placeholder until H6); Setup & testing with commands from §6; MultiBaas experience or N/A"
+      ],
+      "notes": "Drafted by C3 (4ffe81f, eb27ae3, ba3af15): AC-17a/b/c pass (lead verified); Curvegrid items 1–5 present; FILL markers remain: README FILL-ADDR×5/H5/H6/VIDEO, ENS_INTEGRATION FILL-TX×13, DEBRIEF FILL-H1 → passes after deploy + E2E + H6"
+    },
+    {
+      "id": "US-020",
+      "card": "B6",
+      "lane": "B-beta",
+      "priority": 5,
+      "passes": true,
+      "dependsOn": [
+        "US-012",
+        "US-016"
+      ],
+      "title": "Fail-path UI states + mobile",
+      "description": "States not-verified, ack-blocked, name-not-live, position-cap, overdue, expired-unsold added; mobile layout.",
+      "acceptanceCriteria": [
+        "grep -rhoE 'data-state=\"(cancelled|credential-unavailable|credential-mismatch|signal-mismatch|nullifier-used|not-verified|ack-blocked|name-not-live|position-cap|overdue|expired-unsold)\"' web/components web/app | sort -u | wc -l → 11",
+        "pnpm -C web build → exit 0"
+      ],
+      "notes": "Done T+1:05 by B6 (4647607, 67e4d2b, ef5f0be): 11 data-states, markOverdue UI, EIP-7702 issuer warning, mobile polish; lead verified build/lint + SSR states"
+    },
+    {
+      "id": "US-021",
+      "card": "C4",
+      "lane": "C",
+      "priority": 5,
+      "passes": false,
+      "dependsOn": [
+        "US-018"
+      ],
+      "title": "docs/DEMO_SCRIPT.md + docs/SHOWCASE.md",
+      "description": "3-minute demo script per §10 with checklist for AC-19; ETHGlobal showcase text per §11 with real addresses/links.",
+      "acceptanceCriteria": [
+        "docs/DEMO_SCRIPT.md contains timed table 0:00–3:00 and AC-19 checklist (happy path, F1, F3/F5, EAC revert, disputed blocks buy, name gone after settle, Expired-unsold)",
+        "docs/SHOWCASE.md contains live URL, repo URL, contract addresses from deployments/sepolia.json"
+      ],
+      "notes": "Drafted by C4 (c8c2853): timed table, talk track, checklists, showcase text; 8 FILL markers (URLs/addresses/video) to fill after deploy + H4/H5"
+    },
+    {
+      "id": "US-022",
+      "card": "Harden",
+      "lane": "A",
+      "priority": 5,
+      "passes": true,
+      "dependsOn": [
+        "US-018"
+      ],
+      "title": "Harden UserRegistry (revoke all deployer bits) at CP7",
+      "description": "forge script Harden.s.sol --broadcast after final E4.",
+      "acceptanceCriteria": [
+        "AC-20: cast call $USER_REGISTRY roles(uint256,address)(uint256) 0 $DEPLOYER_ADDRESS → 0"
+      ],
+      "notes": "LIVE 19:05 JST (A4 b4fd887): Harden tx 0xde2f1130b97117aaf09a0039c241ad1d4ae5b08d8a78186ea88b732fd17dbe51 (block 11785532); AC-20 roles(0,deployer)=0 (lead re-verified); registrar keeps REGISTRAR_ROOT; post-harden createInvoice OK (inv-6, tx 0xcda7c60d…11c0)"
+    },
+    {
+      "id": "US-023",
+      "card": "V2",
+      "lane": "verify",
+      "priority": 6,
+      "passes": false,
+      "dependsOn": [
+        "US-016",
+        "US-019",
+        "US-020",
+        "US-022"
+      ],
+      "title": "Final verification pass (V2): hygiene, expiry live, repo public",
+      "description": "Run §6 steps 9 and 11 in order via verifier agent (never the author).",
+      "acceptanceCriteria": [
+        "AC-8a: check-ens.ts $EXPIRY_DEMO after due → RESOLVES: false, LIVE_STATE: AVAILABLE, records[status]=listed",
+        "AC-8b: cast call getState(labelhash) first field → 0",
+        "AC-13: pnpm -C web build && pnpm -C web lint → exit 0",
+        "AC-14a/b/c/d: 0, 0, 0, CLEAN",
+        "AC-18: gh repo view $GH_REPO visibility → PUBLIC; LICENSE_OK"
+      ],
+      "notes": "AC-8 captured live 17:14 JST: inv-2.seikyu.eth after due (1790405804): RESOLVES false, LIVE_STATE AVAILABLE, getState.status=0, registry getResolver=0x0, records[status]=listed still readable via stored resolver. AC-13/14 verified 15:55. AC-18 pending repo."
+    },
+    {
+      "id": "US-024",
+      "card": "A6/C6/C5",
+      "lane": "stretch",
+      "priority": 9,
+      "passes": false,
+      "dependsOn": [
+        "CP6 passed"
+      ],
+      "title": "STRETCH (only after cut line passes): markOverdue, MultiBaas /activity, video re-seed",
+      "description": "A6 reviveOverdue/markOverdue + test_markOverdue_revivesNameWithOverdueStatus; C6 MultiBaas 90-min timebox; C5 re-seed + record video (human).",
+      "acceptanceCriteria": [
+        "If A6 done: AC-2 count becomes 43 and Overdue.t.sol passes",
+        "If C6 not done: README items 2/5 say 'evaluated, not used, because …'",
+        "AC-19 (manual): video ≤ 3:00 per DEMO_SCRIPT checklist"
+      ],
+      "notes": "A6 DONE (f3b95ec): markOverdue/reviveOverdue + Overdue.t.sol 4/4; full suite 46/46 (lead re-ran). C6 MultiBaas: not used (README says so). C5 video: human."
+    }
+  ]
+}
