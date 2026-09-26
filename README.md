@@ -121,7 +121,9 @@ There are **two mock USDCs**: ENS's `ensMockUsdc` above (parent registration onl
   - [`createInvoice` → inv-2.seikyu.eth](https://eth-sepolia.blockscout.com/tx/0x4e089388900ad4349a5905b45fcf5669ab1fc2ef8eb972a09c25b81752dbb21f) (the +10-minute expiry demo name)
   - [accountant `setText(ack="acknowledged")` on inv-1](https://eth-sepolia.blockscout.com/tx/0xc118b4106a306f511e3f49ccba78be1647b36cf31485630cb34aea217c6adedb) — `amount`/`status` edits from the same wallet were rejected as simulated reverts (`EACUnauthorizedAccountRoles`, never broadcast — see `web/scripts/eac-negative.ts` output)
   - `check-ens.ts inv-1.seikyu.eth`: all 8 records readable via the stored resolver, `RESOLVES: true`, `LIVE_STATE: REGISTERED`
-  - Buy / settle / expiry / `markOverdue` / `Harden` transactions: pending, to follow
+  - `check-ens.ts` on inv-2 after its due date passed: `RESOLVES: false`, `LIVE_STATE: AVAILABLE`, `records[status]=listed` — records still readable, liveness correctly gone (see [`docs/ENS_INTEGRATION.md`](docs/ENS_INTEGRATION.md) "Records survive expiry")
+  - A real World ID Passport proof from the simulator, verified server-side and recorded on-chain: [`InvestorVerified` tx](https://eth-sepolia.blockscout.com/tx/0xffdf3910f2e55373ac6a084bab8575a593c0467050bb3a026f3b1cc11ef3b975) (block 11785076) — full story in [`docs/WORLD_ID_DEBRIEF.md`](docs/WORLD_ID_DEBRIEF.md)
+  - Buy / settle / `markOverdue` / `Harden` transactions: pending, to follow
 
 ## Gas & tests
 
@@ -251,8 +253,8 @@ pnpm exec tsx scripts/e2e-sepolia.ts --status <name>    # prints current on-chai
    - `WORLD_RP_ID=...` (server-only)
    - `WORLD_RP_SIGNING_KEY=...` (server-only — never expose client-side)
 4. Leave `NEXT_PUBLIC_WORLD_PRESET=passport` and `NEXT_PUBLIC_WORLD_ENVIRONMENT=staging` for local development against the simulator.
-5. **Open the app's staging verification window** in the portal before calling `/api/v4/verify` with any staging proof — without it, verification fails with `403 environment_not_allowed`. This bit us on the live run; see [`docs/WORLD_ID_DEBRIEF.md`](docs/WORLD_ID_DEBRIEF.md#friction).
-6. Test against the simulator at [simulator.worldcoin.org](https://simulator.worldcoin.org/) before trying a real World App scan — confirmed working end-to-end for Passport on this deployment.
+5. **Open the app's staging verification window** before calling `/api/v4/verify` with any staging proof — without it, verification fails with `403 environment_not_allowed`. This isn't a portal UI toggle we found; it's a call to the Developer Portal's MCP server (`https://developer.world.org/api/mcp`, Bearer-authenticated with a team API key from Team settings → API Keys) using the `set_world_id_staging_verification({ app_id, enabled: true })` tool, which returns a `staging_verification_token` valid 24h. Put that token in `web/.env.local` as `WORLD_STAGING_VERIFICATION_TOKEN` — `/api/world/verify` sends it as the `x-staging-verification-token` header on every staging/sandbox request (production doesn't need it) and fails fast with `503 STAGING_TOKEN_MISSING` if it's unset. Full discovery story: [`docs/WORLD_ID_DEBRIEF.md`](docs/WORLD_ID_DEBRIEF.md#friction).
+6. Test against the simulator at [simulator.worldcoin.org](https://simulator.worldcoin.org/) before trying a real World App scan — **confirmed working end-to-end on this deployment**: a Passport proof from the simulator passed `/api/v4/verify` and the operator recorded it on-chain ([`InvestorVerified` tx](https://eth-sepolia.blockscout.com/tx/0xffdf3910f2e55373ac6a084bab8575a593c0467050bb3a026f3b1cc11ef3b975), block 11785076; `isVerified` reads `true`).
 
 Full verification architecture and fail paths: [`docs/WORLD_ID_DEBRIEF.md`](docs/WORLD_ID_DEBRIEF.md).
 
