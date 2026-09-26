@@ -3,9 +3,11 @@
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = process.env.MANUAL_PW_ROOT ??
-  "/private/tmp/claude-501/-Users-ikhalas-Documents-side-projects-eth-2026/d808efe5-001b-4ff7-9e68-da96b33804e6/scratchpad/pw";
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+// Same gitignored playwright install as common.mjs; see README.md.
+const root = process.env.MANUAL_PW_ROOT ?? path.join(HERE, ".pw");
 const { chromium } = createRequire(path.join(root, "package.json"))("@playwright/test");
 const [file, top = "0", bottom = "0"] = process.argv.slice(2);
 const buf = readFileSync(file);

@@ -24,3 +24,6 @@ spike/
 # per-lane foundry build dirs (parallel executors)
 contracts/out-*/
 contracts/cache-*/
+
+# local one-time playwright install for docs/manual/capture (see its README)
+docs/manual/capture/.pw/

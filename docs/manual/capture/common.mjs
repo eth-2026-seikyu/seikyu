@@ -11,11 +11,13 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 process.env.MANUAL_BASE_URL ??= "http://localhost:3021";
 process.env.MANUAL_OUT ??= path.resolve(HERE, "..");
-process.env.MANUAL_PW_ROOT ??=
-  "/private/tmp/claude-501/-Users-ikhalas-Documents-side-projects-eth-2026/d808efe5-001b-4ff7-9e68-da96b33804e6/scratchpad/pw";
+// A one-time, gitignored playwright install lives next to the capture
+// scripts so a fresh clone works without any machine-local path. See
+// docs/manual/capture/README.md for the one-time setup command.
+process.env.MANUAL_PW_ROOT ??= path.join(HERE, ".pw");
 process.env.MANUAL_TZ ??= "Asia/Tokyo";
 
-const KIT = process.env.MANUAL_KIT ?? "/Users/ikhalas/.claude/skills/screenshot-manual/scripts/kit.mjs";
+const KIT = process.env.MANUAL_KIT ?? path.join(HERE, "kit.mjs");
 export const kit = await import(KIT);
 export const { BASE, settle, shot, describe } = kit;
 export const wallet = await import(path.join(HERE, "wallet.mjs"));
