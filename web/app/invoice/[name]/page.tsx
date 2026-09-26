@@ -1,28 +1,19 @@
 import { notFound } from "next/navigation";
-import { formatUnits, type Address } from "viem";
 import { AckBadge, SettlementBadge } from "@/components/StatusBadge";
-import { LiveCountdown } from "@/components/InvoiceCard";
+import RoleBanner, { DueRelative } from "@/components/RoleBanner";
+import TechDetails from "@/components/TechDetails";
+import AddressChip from "@/components/AddressChip";
 import InvoiceActions from "@/components/InvoiceActions";
+import { Card } from "@/components/ui/Card";
 import { getAddresses } from "@/lib/addresses";
-import { getInvoice, RECORD_KEYS } from "@/lib/invoices";
+import { getInvoice } from "@/lib/invoices";
+import { formatDueDate, formatMoney } from "@/lib/format";
+import { TEST_MONEY_NOTICE } from "@/lib/copy";
 
-function etherscanAddress(address: Address): string {
-  return `https://sepolia.etherscan.io/address/${address}`;
-}
-
-function formatMoney(raw: bigint, decimals = 6): string {
-  const formatted = formatUnits(raw, decimals);
-  const [whole, frac = "0"] = formatted.split(".");
-  const withCommas = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return `${withCommas}.${frac.slice(0, 2).padEnd(2, "0")}`;
-}
-
-function formatDate(unixSeconds: bigint): string {
-  return new Date(Number(unixSeconds) * 1000).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+/** Percent discount off face value, one decimal place (e.g. "5.0"). */
+function discountPercent(faceValue: bigint, price: bigint): number {
+  if (faceValue <= BigInt(0)) return 0;
+  return Number(((faceValue - price) * BigInt(10_000)) / faceValue) / 100;
 }
 
 export default async function InvoiceDetailPage({
@@ -37,9 +28,11 @@ export default async function InvoiceDetailPage({
   const { name, records, market, resolver, live, displayState, ackView, ensExpiry } = invoice;
   const dueDateSeconds = BigInt(records.dueDate);
   // `ensExpiry` reflects a `markOverdue` revival past the original due date;
-  // fall back to `dueDate` when it isn't available.
+  // fall back to `dueDate` when it isn't available. This is only for the
+  // ENS-liveness countdown inside Technical details — the plain "Due" field
+  // below always uses `market.dueDate` (plan §2: never `ensExpiry` there, or
+  // a revived overdue invoice would misleadingly read "due in 30 days").
   const countdownTarget = ensExpiry ?? dueDateSeconds;
-  const ensAppUrl = `https://sepolia.app.ens.domains/${name}`;
 
   // Before a sale, `ownerOf(id)` is the market contract itself (it
   // self-custodies the token via `_mint(address(this), id)` in
@@ -51,151 +44,87 @@ export default async function InvoiceDetailPage({
       ? market.holder
       : null;
 
+  const discountPct = discountPercent(market.faceValue, market.price);
+  // `.absolute` doesn't depend on `nowSeconds` at all (it only formats
+  // `dueDate` itself, pinned to Asia/Tokyo) so it's safe to compute here on
+  // the server; the `now`-dependent `.relative` half comes from the client
+  // component `DueRelative` instead (avoids server-clock/ISR skew).
+  const dueAbsolute = formatDueDate(market.dueDate, market.dueDate).absolute;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="font-mono text-xl font-semibold">{name}</h1>
-          <a
-            href={ensAppUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-          >
-            View on ENS app →
-          </a>
-        </div>
+      <h1 className="font-mono text-xl font-semibold">{name}</h1>
+      <p className="mt-1 text-sm opacity-70">
+        Invoice ID — an ENS name that stops resolving when the invoice is paid, withdrawn, or
+        expires.
+      </p>
+
+      <Card className="mt-6">
         <div className="flex flex-wrap items-center gap-4">
           <SettlementBadge state={displayState} />
           <AckBadge ackView={ackView} />
         </div>
-      </div>
 
-      <p className="mt-3 text-sm opacity-70">
-        Name live on ENS: {live ? "yes" : "no"} —{" "}
-        <LiveCountdown dueDateSeconds={countdownTarget} live={live} />
-      </p>
-
-      <section className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
-          ENS records
-        </h2>
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-[420px] border-collapse text-sm">
-            <tbody>
-              {RECORD_KEYS.map((key) => {
-                const value = records[key];
-                return (
-                  <tr
-                    key={key}
-                    data-record={key}
-                    className="border-b border-black/[.08] last:border-0 dark:border-white/[.145]"
-                  >
-                    <td className="py-2 pr-4 align-top font-mono text-xs opacity-60">
-                      {key}
-                    </td>
-                    <td className="py-2 font-mono text-xs break-all">
-                      {value === "" ? "—" : value}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-2 text-xs opacity-60">
-          Resolver:{" "}
-          <a
-            href={etherscanAddress(resolver)}
-            target="_blank"
-            rel="noreferrer"
-            className="font-mono hover:underline"
-          >
-            {resolver}
-          </a>
-        </p>
-      </section>
-
-      <section className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
-          Settlement
-        </h2>
-        <dl className="mt-3 grid grid-cols-1 gap-y-4 text-sm md:grid-cols-2 md:gap-x-6">
+        <dl className="mt-4 grid grid-cols-1 gap-y-4 text-sm md:grid-cols-2 md:gap-x-6">
           <div className="min-w-0">
-            <dt className="text-xs opacity-60">Issuer</dt>
+            <dt className="text-xs opacity-60">Amount owed</dt>
+            <dd>{formatMoney(market.faceValue)} test USDC</dd>
+          </div>
+          <div className="min-w-0">
+            <dt className="text-xs opacity-60">Sale price</dt>
             <dd>
-              <a
-                href={etherscanAddress(market.issuer)}
-                target="_blank"
-                rel="noreferrer"
-                className="break-all font-mono text-xs hover:underline"
-              >
-                {market.issuer}
-              </a>
+              {formatMoney(market.price)} test USDC
+              {discountPct > 0 && (
+                <span className="opacity-70"> ({discountPct.toFixed(1)}% discount)</span>
+              )}
             </dd>
           </div>
           <div className="min-w-0">
-            <dt className="text-xs opacity-60">Debtor</dt>
+            <dt className="text-xs opacity-60">Due</dt>
             <dd>
-              <a
-                href={etherscanAddress(market.debtor)}
-                target="_blank"
-                rel="noreferrer"
-                className="break-all font-mono text-xs hover:underline"
-              >
-                {market.debtor}
-              </a>
+              {dueAbsolute} — <DueRelative dueDate={market.dueDate} />
             </dd>
           </div>
           <div className="min-w-0">
-            <dt className="text-xs opacity-60">Face value</dt>
+            <dt className="text-xs opacity-60">Supplier</dt>
             <dd>
-              {formatMoney(market.faceValue)} {records.currency}
+              <AddressChip address={market.issuer} />
             </dd>
           </div>
           <div className="min-w-0">
-            <dt className="text-xs opacity-60">Price</dt>
+            <dt className="text-xs opacity-60">Debtor company</dt>
             <dd>
-              {formatMoney(market.price)} {records.currency}
+              <AddressChip address={market.debtor} />
             </dd>
           </div>
           <div className="min-w-0">
-            <dt className="text-xs opacity-60">Due date</dt>
-            <dd>{formatDate(market.dueDate)}</dd>
-          </div>
-          <div className="min-w-0">
-            <dt className="text-xs opacity-60">State</dt>
-            <dd>{market.state}</dd>
-          </div>
-          <div className="min-w-0">
-            <dt className="text-xs opacity-60">Holder</dt>
+            <dt className="text-xs opacity-60">Current owner</dt>
             <dd>
               {realHolder ? (
-                <a
-                  href={etherscanAddress(realHolder)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="break-all font-mono text-xs hover:underline"
-                >
-                  {realHolder}
-                </a>
+                <AddressChip address={realHolder} />
               ) : (
-                <span className="opacity-60">
-                  {displayState === "Paid"
-                    ? "— paid out to the last holder"
-                    : displayState === "Cancelled"
-                      ? "— cancelled"
-                      : "— unsold"}
-                </span>
+                <span className="opacity-60">— not sold yet</span>
               )}
             </dd>
           </div>
         </dl>
-      </section>
+
+        <p className="mt-4 text-xs opacity-60">{TEST_MONEY_NOTICE}</p>
+      </Card>
+
+      <RoleBanner invoice={invoice} />
 
       <section id="actions" data-actions className="mt-8">
         <InvoiceActions invoice={invoice} />
       </section>
+
+      <TechDetails
+        name={name}
+        live={live}
+        countdownTarget={countdownTarget}
+        records={records}
+        resolver={resolver}
+      />
     </div>
   );
 }

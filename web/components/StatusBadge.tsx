@@ -1,4 +1,5 @@
 import type { AckView, DisplayState } from "@/lib/invoices";
+import { plainAck, plainState } from "@/lib/format";
 
 /**
  * Two independent badges that must never be visually merged into one pill:
@@ -48,12 +49,12 @@ export function SettlementBadge({
       className={`inline-flex flex-col items-start gap-0.5 ${className}`}
     >
       <span className="text-[10px] font-medium uppercase tracking-wide text-black/50 dark:text-white/50">
-        Settlement (on-chain)
+        Status
       </span>
       <span
         className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${SETTLEMENT_STYLES[state]}`}
       >
-        {state}
+        {plainState(state)}
       </span>
     </span>
   );
@@ -73,10 +74,10 @@ export function AckBadge({
       className={`inline-flex flex-col items-start gap-0.5 ${className}`}
     >
       <span className="text-[10px] font-medium uppercase tracking-wide text-black/50 dark:text-white/50">
-        ENS ack
+        Debtor&apos;s response
       </span>
       <span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${meta.className}`}>
-        {meta.label}
+        {plainAck(ackView)}
       </span>
     </span>
   );
