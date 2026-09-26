@@ -452,18 +452,22 @@ World ID ให้รหัสประจำตัวแบบไม่ระ�
 
 *ภาพที่ 34 — กล่อง Overdue พร้อมปุ่ม Mark overdue และกล่องชำระเงิน*
 
-เมื่อธุรกรรม Mark overdue สำเร็จ ให้รีเฟรชหน้า invoice บรรทัดสถานะจะเป็น "Name live on ENS: yes" อีกครั้ง — ชื่อ ENS กลับมาใช้งานได้
-(ใน inv-7 ชื่อได้อายุใหม่ถึงเวลา Unix `1793010720`) ส่วนป้าย SETTLEMENT ยังเป็น `Overdue` และ State ยังเป็น `Funded` เพราะยังไม่มีการจ่ายเงิน
+เมื่อธุรกรรม Mark overdue สำเร็จ ให้รีเฟรชหน้า invoice ป้าย SETTLEMENT ยังเป็น `Overdue` เพราะยังไม่มีการจ่ายเงิน แต่
 
-6. record `dueDate` ยังเป็นวันครบกำหนดเดิม (`1790417526`) — การต่ออายุไม่ได้แก้วันครบกำหนดของหนี้
-7. record `status` เปลี่ยนจาก `funded` เป็น `overdue` — ใครดูชื่อนี้บน ENS ก็เห็นว่า invoice ค้างชำระ
+6. บรรทัดสถานะกลับเป็น "Name live on ENS: yes — expires in 29d 23h" — ชื่อ ENS ใช้งานได้อีกครั้งพร้อมอายุใหม่
+7. record `dueDate` ยังเป็นวันครบกำหนดเดิม (`1790417526`) — การต่ออายุไม่ได้แก้วันครบกำหนดของหนี้
+8. record `status` เปลี่ยนจาก `funded` เป็น `overdue` — ใครดูชื่อนี้บน ENS ก็เห็นว่า invoice ค้างชำระ
 
-![ENS records หลัง Mark overdue](manual/screenshots/06-14-overdue-after-records.png)
+![invoice หลัง Mark overdue](manual/screenshots/06-14-overdue-after.png)
 
-*ภาพที่ 35 — inv-7.seikyu.eth หลัง Mark overdue: status เป็น overdue*
+*ภาพที่ 35 — inv-7.seikyu.eth หลัง Mark overdue: ชื่อกลับมาใช้งานได้และ status เป็น overdue*
 
-> **อย่ากด Mark overdue ซ้ำ** หลังต่ออายุแล้ว หน้า invoice ยังแสดงกล่องสีเหลืองและปุ่ม **Mark overdue** อยู่
-> แต่การกดซ้ำจะไม่ผ่าน (ชื่อยังใช้งานได้อยู่ สัญญาปฏิเสธด้วย `NameStillLive`) และจะขึ้นว่า "Failed to mark overdue — please try again."
+9. กล่องสีเหลืองเปลี่ยนเป็น "Overdue — the ENS name was revived (status overdue) until Oct 26, 2026; the debtor can still settle."
+   และไม่มีปุ่ม Mark overdue แล้ว (ต่ออายุได้ครั้งเดียวต่อการหมดอายุหนึ่งครั้ง) กล่องชำระเงินด้านล่างยังใช้ได้ตามบทที่ 5
+
+![กล่อง Overdue หลังต่ออายุชื่อ](manual/screenshots/06-15-overdue-actions-after.png)
+
+*ภาพที่ 36 — กล่อง Overdue หลังต่ออายุ และกล่องชำระเงินที่ยังใช้ได้*
 
 > **อายุใหม่ของชื่อ** `markOverdue()` ต่ออายุชื่อ ENS ออกไปอีก **30 วันนับจากเวลาที่กด** (ค่าคงที่ `OVERDUE_EXTENSION` ในสัญญา InvoiceMarket)
 > ไม่ใช่นับจากวันครบกำหนดเดิม และเขียน `status = overdue` เพื่อให้คนภายนอกเห็นบน ENS ว่า invoice นี้ค้างชำระ
@@ -534,13 +538,13 @@ wallet ตัวอย่างที่ใช้ในคู่มือ
 
 ![Settings ของ Simulator](manual/screenshots/06-02-sim-settings.png)
 
-*ภาพที่ 36 — หน้า Settings ของ World ID Simulator*
+*ภาพที่ 37 — หน้า Settings ของ World ID Simulator*
 
 3. กดเลือก identity ที่ต้องการ (ในภาพคือ Identity #1) — Simulator จะกลับไปหน้าแรกพร้อม identity ใหม่ จากนั้นเริ่มบทที่ 2 ใหม่ตั้งแต่ข้อ 1
 
 ![รายการ identity ทดสอบ](manual/screenshots/06-03-sim-identities.png)
 
-*ภาพที่ 37 — เลือก identity ทดสอบ*
+*ภาพที่ 38 — เลือก identity ทดสอบ*
 
 **Staging window คืออะไร**
 ช่วงทดสอบ (staging) World ID จะรับหลักฐานจาก Simulator ก็ต่อเมื่อเจ้าของแอปเปิด "staging verification window" ไว้ใน World Developer Portal

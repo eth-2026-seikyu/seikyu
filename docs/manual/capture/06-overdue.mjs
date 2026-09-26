@@ -16,15 +16,23 @@ console.log("OVERDUE", JSON.stringify({ status, live, markVisible }));
 const suffix = status.trim() === "overdue" ? "after" : "before";
 
 if (suffix === "after") {
-  // After markOverdue the app still shows "expires in expired" (countdown uses the
-  // original dueDate) and a stale "Mark overdue" box (a second call reverts NameStillLive).
-  // Those are app bugs, so the "after" figure is cropped to the ENS records only.
-  await shot(page, "06-14-overdue-after-records", {
+  // After markOverdue the name is live again until the revived expiry and the amber box
+  // explains the revival (no button: a second call would revert NameStillLive).
+  await shot(page, "06-14-overdue-after", {
     highlights: [
-      { selector: "main tr[data-record='dueDate']", n: 6, pad: 2 },
-      { selector: "main tr[data-record='status']", n: 7, pad: 2 },
+      { selector: "main p:has-text('Name live on ENS')", n: 6 },
+      { selector: "main tr[data-record='dueDate']", n: 7, pad: 2 },
+      { selector: "main tr[data-record='status']", n: 8, pad: 2 },
     ],
-    clipTo: await unionClip(page, ["main h2:has-text('ENS records')", "main section:has(table)"], { padX: 24, padY: 16 }),
+    clipTo: await unionClip(page, ["main h1", "main section:has(table)"], { padX: 24, padY: 16 }),
+  });
+  await dropClip(page);
+  await page.locator("#actions").evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await settle(page, 500);
+  await shot(page, "06-15-overdue-actions-after", {
+    highlights: [{ selector: "#actions [data-state='overdue']", n: 9 }],
+    clipTo: await unionClip(page, ["main dl > div:has(dt:text-is('Price'))", "#actions"], { padX: 24, padY: 4 }),
+    clipPad: 8,
   });
   await dropClip(page);
   await browser.close();
