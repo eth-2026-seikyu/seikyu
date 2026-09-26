@@ -13,6 +13,7 @@ import {
   worldEnvironment,
   type WorldVerifyState,
 } from "@/lib/world";
+import { useOnSepolia } from "./ChainGuard";
 import { Button } from "./ui/Button";
 
 type RpContext = {
@@ -36,12 +37,24 @@ type WorldVerifyButtonProps = {
 const ERROR_TEXT = "text-sm text-red-600 dark:text-red-400";
 const MUTED_TEXT = "text-sm opacity-70";
 
-function renderState(state: WorldVerifyState, message: string, onAction: () => void) {
+function renderState(
+  state: WorldVerifyState,
+  message: string,
+  onAction: () => void,
+  onSepolia: boolean,
+) {
   switch (state) {
     case "idle":
       return (
         <div data-state="idle">
-          <Button onClick={onAction}>Verify with World ID</Button>
+          <Button onClick={onAction} disabled={!onSepolia}>
+            Verify with World ID
+          </Button>
+          {!onSepolia && (
+            <p className="mt-2 text-sm opacity-70">
+              Switch to the Sepolia test network first (see the banner above).
+            </p>
+          )}
         </div>
       );
     case "open":
@@ -125,6 +138,7 @@ export function WorldVerifyButton({ investor, onVerified }: WorldVerifyButtonPro
   const [boundTo, setBoundTo] = useState<Address | undefined>(undefined);
   const [rpContext, setRpContext] = useState<RpContext | null>(null);
   const txHashRef = useRef<Hex | null>(null);
+  const onSepolia = useOnSepolia();
 
   const handleOpen = useCallback(async () => {
     setBoundTo(undefined);
@@ -226,7 +240,7 @@ export function WorldVerifyButton({ investor, onVerified }: WorldVerifyButtonPro
 
   return (
     <>
-      {renderState(state, message, handleOpen)}
+      {renderState(state, message, handleOpen, onSepolia)}
       {rpContext && appId && (
         <IDKitRequestWidget
           open={open}

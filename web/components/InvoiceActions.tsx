@@ -7,6 +7,7 @@ import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagm
 import { getAddresses } from "@/lib/addresses";
 import { invoiceMarketAbi } from "@/lib/generated";
 import type { InvoiceView } from "@/lib/invoices";
+import { useOnSepolia } from "./ChainGuard";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import BuyPanel from "./BuyPanel";
@@ -26,6 +27,7 @@ type CancelState = "idle" | "cancelling" | "cancelled" | "error";
 function CancelInvoiceButton({ id }: { id: bigint }) {
   const router = useRouter();
   const { market } = getAddresses();
+  const onSepolia = useOnSepolia();
   const [state, setState] = useState<CancelState>("idle");
   const [hash, setHash] = useState<Hex | undefined>();
   const { writeContractAsync } = useWriteContract();
@@ -62,7 +64,7 @@ function CancelInvoiceButton({ id }: { id: bigint }) {
         variant="danger"
         size="sm"
         onClick={handleCancel}
-        disabled={state === "cancelling" || state === "cancelled"}
+        disabled={state === "cancelling" || state === "cancelled" || !onSepolia}
       >
         {state === "cancelling"
           ? "Cancelling…"
@@ -70,6 +72,11 @@ function CancelInvoiceButton({ id }: { id: bigint }) {
             ? "Cancelled"
             : "Cancel invoice"}
       </Button>
+      {!onSepolia && (
+        <p className="mt-1 text-xs opacity-60">
+          Switch to the Sepolia test network first (see the banner above).
+        </p>
+      )}
       {state === "error" && (
         <p className="mt-1 text-xs text-red-600 dark:text-red-400">
           Cancel failed — the invoice may already be sold.
@@ -90,6 +97,7 @@ type MarkOverdueState = "idle" | "marking" | "marked" | "error";
 function MarkOverdueButton({ id }: { id: bigint }) {
   const router = useRouter();
   const { market } = getAddresses();
+  const onSepolia = useOnSepolia();
   const [state, setState] = useState<MarkOverdueState>("idle");
   const [hash, setHash] = useState<Hex | undefined>();
   const { writeContractAsync } = useWriteContract();
@@ -126,7 +134,7 @@ function MarkOverdueButton({ id }: { id: bigint }) {
         variant="secondary"
         size="sm"
         onClick={handleMark}
-        disabled={state === "marking" || state === "marked"}
+        disabled={state === "marking" || state === "marked" || !onSepolia}
         className="border-amber-400 text-amber-800 dark:border-amber-700 dark:text-amber-300"
       >
         {state === "marking"
@@ -135,6 +143,11 @@ function MarkOverdueButton({ id }: { id: bigint }) {
             ? "Marked overdue"
             : "Mark overdue"}
       </Button>
+      {!onSepolia && (
+        <p className="mt-1 text-xs opacity-60">
+          Switch to the Sepolia test network first (see the banner above).
+        </p>
+      )}
       {state === "error" && (
         <p className="mt-1 text-xs text-red-600 dark:text-red-400">
           Failed to mark overdue — please try again.

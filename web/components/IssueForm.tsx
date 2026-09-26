@@ -22,6 +22,7 @@ import { getAddresses } from "@/lib/addresses";
 import { TERMS } from "@/lib/copy";
 import { formatMoney } from "@/lib/format";
 import { invoiceMarketAbi } from "@/lib/generated";
+import { useOnSepolia } from "./ChainGuard";
 import { Button } from "./ui/Button";
 
 /** Mirrors `InvoiceMarket.MIN_TENOR` (see contracts/src/InvoiceMarket.sol). */
@@ -76,6 +77,7 @@ export function IssueForm() {
   const router = useRouter();
   const { address, isConnected } = useAccount();
   const { market: marketAddress, parentName } = getAddresses();
+  const onSepolia = useOnSepolia();
 
   // Smart-account guard: the registrar mint reverts for an account that has
   // code — including a MetaMask smart account or an anvil default key
@@ -393,7 +395,8 @@ export function IssueForm() {
           isSubmitting ||
           isConfirming ||
           isPaused === true ||
-          issuerIsContract
+          issuerIsContract ||
+          !onSepolia
         }
         className="self-start"
       >
@@ -405,6 +408,11 @@ export function IssueForm() {
               ? "Issued!"
               : "Issue invoice"}
       </Button>
+      {!onSepolia && (
+        <p className="text-sm opacity-60">
+          Switch to the Sepolia test network first (see the banner above).
+        </p>
+      )}
     </form>
   );
 }

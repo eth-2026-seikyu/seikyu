@@ -13,6 +13,7 @@ import { EAC_UNAUTHORIZED_ERROR, permissionedResolverAbi, registrarAbi } from "@
 import { getAddresses } from "@/lib/addresses";
 import { idFromLabel } from "@/lib/ens";
 import { RECORD_KEYS, ackViewOf, type RecordKey } from "@/lib/invoices";
+import { useOnSepolia } from "./ChainGuard";
 import { AckBadge } from "./StatusBadge";
 import { Button } from "./ui/Button";
 
@@ -47,6 +48,7 @@ export function AckEditor({ initialName }: { initialName?: string }) {
   const { address, isConnected } = useAccount();
   const publicClient = usePublicClient();
   const registrar = getAddresses().registrar;
+  const onSepolia = useOnSepolia();
 
   const [nameInput, setNameInput] = useState(initialName ?? "");
   const [nameError, setNameError] = useState<string | null>(null);
@@ -284,6 +286,10 @@ export function AckEditor({ initialName }: { initialName?: string }) {
                   </h2>
                   {recordsByKey && <AckBadge ackView={ackViewOf(recordsByKey.ack)} />}
                 </div>
+                <p className="mt-1 text-xs opacity-60">
+                  Raw on-chain records (technical view) — &ldquo;mUSDC&rdquo; is the test USDC
+                  token.
+                </p>
                 <table className="mt-3 w-full border-collapse text-sm">
                   <tbody>
                     {RECORD_KEYS.map((key) => {
@@ -327,26 +333,31 @@ export function AckEditor({ initialName }: { initialName?: string }) {
                 </h2>
                 <div className="flex flex-wrap gap-3">
                   <Button
-                    disabled={!isConnected || ackState === "pending"}
+                    disabled={!isConnected || ackState === "pending" || !onSepolia}
                     onClick={() => submitAck("acknowledged")}
                   >
                     Acknowledge
                   </Button>
                   <Button
                     variant="danger"
-                    disabled={!isConnected || ackState === "pending"}
+                    disabled={!isConnected || ackState === "pending" || !onSepolia}
                     onClick={() => submitAck("disputed")}
                   >
                     Dispute
                   </Button>
                   <Button
                     variant="secondary"
-                    disabled={!isConnected || ackState === "pending"}
+                    disabled={!isConnected || ackState === "pending" || !onSepolia}
                     onClick={() => submitAck("")}
                   >
                     Clear
                   </Button>
                 </div>
+                {!onSepolia && (
+                  <p className="text-sm opacity-60">
+                    Switch to the Sepolia test network first (see the banner above).
+                  </p>
+                )}
 
                 {ackState === "pending" && (
                   <p className="text-sm opacity-60">
@@ -388,19 +399,24 @@ export function AckEditor({ initialName }: { initialName?: string }) {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     variant="secondary"
-                    disabled={!isConnected || negativePending === "amount"}
+                    disabled={!isConnected || negativePending === "amount" || !onSepolia}
                     onClick={() => runNegativeDemo("amount")}
                   >
                     {negativePending === "amount" ? "Simulating…" : "Try to edit amount"}
                   </Button>
                   <Button
                     variant="secondary"
-                    disabled={!isConnected || negativePending === "status"}
+                    disabled={!isConnected || negativePending === "status" || !onSepolia}
                     onClick={() => runNegativeDemo("status")}
                   >
                     {negativePending === "status" ? "Simulating…" : "Try to edit status"}
                   </Button>
                 </div>
+                {!onSepolia && (
+                  <p className="text-xs opacity-60">
+                    Switch to the Sepolia test network first (see the banner above).
+                  </p>
+                )}
 
                 {(["amount", "status"] as const).map((key) => {
                   const result = negativeResults[key];

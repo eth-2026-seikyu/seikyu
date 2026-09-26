@@ -5,6 +5,7 @@ import { formatUnits, zeroAddress, type Hex } from "viem";
 import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { getAddresses } from "@/lib/addresses";
 import { mockUsdcAbi } from "@/lib/generated";
+import { useOnSepolia } from "./ChainGuard";
 import { Button } from "./ui/Button";
 
 /** 10,000 mUSDC at 6 decimals — well under MockUSDC's 1,000,000e6 per-call cap. */
@@ -25,6 +26,7 @@ function formatMoney(raw: bigint): string {
 export default function FaucetButton() {
   const { mockUsdc } = getAddresses();
   const { address: account } = useAccount();
+  const onSepolia = useOnSepolia();
   const [hash, setHash] = useState<Hex | undefined>();
   const [minting, setMinting] = useState(false);
 
@@ -76,12 +78,17 @@ export default function FaucetButton() {
           variant="secondary"
           size="sm"
           onClick={handleMint}
-          disabled={minting || !account}
+          disabled={minting || !account || !onSepolia}
           title={!account ? "Connect a wallet first" : undefined}
         >
           {minting ? "Minting…" : "Get 10,000 mUSDC"}
         </Button>
       </div>
+      {!onSepolia && (
+        <p className="text-xs opacity-60">
+          Switch to the Sepolia test network first (see the banner above).
+        </p>
+      )}
     </div>
   );
 }

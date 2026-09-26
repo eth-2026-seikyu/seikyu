@@ -9,6 +9,7 @@ import { TERMS } from "@/lib/copy";
 import { formatMoney, shortAddress } from "@/lib/format";
 import { invoiceMarketAbi, mockUsdcAbi } from "@/lib/generated";
 import type { InvoiceView } from "@/lib/invoices";
+import { useOnSepolia } from "./ChainGuard";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 
@@ -26,6 +27,7 @@ function renderState(
     faceValueLabel: string;
     needsApproval: boolean;
     busy: boolean;
+    onSepolia: boolean;
     onApprove: () => void;
     onSettle: () => void;
   },
@@ -58,9 +60,18 @@ function renderState(
               ? `Step 1 of 2 — allow Seikyu to move ${ctx.faceValueLabel} ${TERMS.testUsdc}`
               : `Step 2 of 2 — pay ${ctx.faceValueLabel} ${TERMS.testUsdc} to the current owner; this closes the invoice`}
           </p>
-          <Button onClick={primaryAction} disabled={ctx.busy || !ctx.holder} className="mt-3">
+          <Button
+            onClick={primaryAction}
+            disabled={ctx.busy || !ctx.holder || !ctx.onSepolia}
+            className="mt-3"
+          >
             {primaryLabel}
           </Button>
+          {!ctx.onSepolia && (
+            <p className="mt-2 text-xs opacity-60">
+              Switch to the Sepolia test network first (see the banner above).
+            </p>
+          )}
           <p className="mt-2 text-xs opacity-60">
             Paying closes the invoice and retires its ENS name.
           </p>
@@ -90,9 +101,20 @@ function renderState(
           <p className="text-sm text-red-600 dark:text-red-400">
             Transaction failed. Please try again.
           </p>
-          <Button variant="secondary" size="sm" onClick={primaryAction} className="mt-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={primaryAction}
+            disabled={!ctx.onSepolia}
+            className="mt-2"
+          >
             Retry
           </Button>
+          {!ctx.onSepolia && (
+            <p className="mt-2 text-xs opacity-60">
+              Switch to the Sepolia test network first (see the banner above).
+            </p>
+          )}
         </div>
       );
   }
@@ -108,6 +130,7 @@ export default function PayPanel({
   const router = useRouter();
   const { market, mockUsdc } = getAddresses();
   const holder = invoice.market.holder;
+  const onSepolia = useOnSepolia();
 
   const [state, setState] = useState<PayState>("idle");
   const [phase, setPhase] = useState<"approve" | "settle" | null>(null);
@@ -194,6 +217,7 @@ export default function PayPanel({
         faceValueLabel: formatMoney(invoice.market.faceValue),
         needsApproval,
         busy,
+        onSepolia,
         onApprove: handleApprove,
         onSettle: handleSettle,
       })}

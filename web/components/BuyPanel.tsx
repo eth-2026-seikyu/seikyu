@@ -15,6 +15,7 @@ import { TERMS } from "@/lib/copy";
 import { formatMoney } from "@/lib/format";
 import { invoiceMarketAbi, mockUsdcAbi } from "@/lib/generated";
 import type { InvoiceView } from "@/lib/invoices";
+import { useOnSepolia } from "./ChainGuard";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { WorldVerifyButton } from "./WorldVerifyButton";
@@ -81,6 +82,7 @@ function renderState(
     discountPct: number;
     ackText: string;
     busy: boolean;
+    onSepolia: boolean;
     onApprove: () => void;
     onBuy: () => void;
   },
@@ -114,11 +116,16 @@ function renderState(
           </p>
           <Button
             onClick={ctx.needsApproval ? ctx.onApprove : ctx.onBuy}
-            disabled={ctx.busy}
+            disabled={ctx.busy || !ctx.onSepolia}
             className="mt-3"
           >
             {ctx.needsApproval ? "Approve mUSDC" : `Buy for ${ctx.priceLabel} mUSDC`}
           </Button>
+          {!ctx.onSepolia && (
+            <p className="mt-2 text-xs opacity-60">
+              Switch to the Sepolia test network first (see the banner above).
+            </p>
+          )}
         </div>
       );
     }
@@ -212,6 +219,7 @@ export default function BuyPanel({
 }) {
   const router = useRouter();
   const { market, mockUsdc } = getAddresses();
+  const onSepolia = useOnSepolia();
 
   const [state, setState] = useState<BuyState>("idle");
   const [ackMessage, setAckMessage] = useState<string | undefined>();
@@ -339,6 +347,7 @@ export default function BuyPanel({
         discountPct,
         ackText: ackMessage ?? invoice.records.ack,
         busy,
+        onSepolia,
         onApprove: handleApprove,
         onBuy: handleBuy,
       })}
