@@ -20,9 +20,10 @@ if (suffix === "after") {
   // explains the revival (no button: a second call would revert NameStillLive).
   await shot(page, "06-14-overdue-after", {
     highlights: [
-      { selector: "main p:has-text('Name live on ENS')", n: 6 },
-      { selector: "main tr[data-record='dueDate']", n: 7, pad: 2 },
-      { selector: "main tr[data-record='status']", n: 8, pad: 2 },
+      { selector: "main span[data-state='Overdue']", n: 6 },
+      { selector: "main p:has-text('Name live on ENS')", n: 7 },
+      { selector: "main tr[data-record='dueDate']", n: 8, pad: 2 },
+      { selector: "main tr[data-record='status']", n: 9, pad: 2 },
     ],
     clipTo: await unionClip(page, ["main h1", "main section:has(table)"], { padX: 24, padY: 16 }),
   });
@@ -30,7 +31,7 @@ if (suffix === "after") {
   await page.locator("#actions").evaluate((el) => el.scrollIntoView({ block: "center" }));
   await settle(page, 500);
   await shot(page, "06-15-overdue-actions-after", {
-    highlights: [{ selector: "#actions [data-state='overdue']", n: 9 }],
+    highlights: [{ selector: "#actions [data-state='overdue']", n: 10 }],
     clipTo: await unionClip(page, ["main dl > div:has(dt:text-is('Price'))", "#actions"], { padX: 24, padY: 4 }),
     clipPad: 8,
   });

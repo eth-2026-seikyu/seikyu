@@ -452,18 +452,19 @@ World ID ให้รหัสประจำตัวแบบไม่ระ�
 
 *ภาพที่ 34 — กล่อง Overdue พร้อมปุ่ม Mark overdue และกล่องชำระเงิน*
 
-เมื่อธุรกรรม Mark overdue สำเร็จ ให้รีเฟรชหน้า invoice ป้าย SETTLEMENT ยังเป็น `Overdue` เพราะยังไม่มีการจ่ายเงิน แต่
+เมื่อธุรกรรม Mark overdue สำเร็จ ให้รีเฟรชหน้า invoice
 
-6. บรรทัดสถานะกลับเป็น "Name live on ENS: yes — expires in 29d 23h" — ชื่อ ENS ใช้งานได้อีกครั้งพร้อมอายุใหม่
-7. record `dueDate` ยังเป็นวันครบกำหนดเดิม (`1790417526`) — การต่ออายุไม่ได้แก้วันครบกำหนดของหนี้
-8. record `status` เปลี่ยนจาก `funded` เป็น `overdue` — ใครดูชื่อนี้บน ENS ก็เห็นว่า invoice ค้างชำระ
+6. ป้าย **SETTLEMENT (ON-CHAIN)** ยังเป็น `Overdue` เพราะยังไม่มีการจ่ายเงิน
+7. บรรทัดสถานะกลับเป็น "Name live on ENS: yes — expires in 29d 23h" — ชื่อ ENS ใช้งานได้อีกครั้งพร้อมอายุใหม่
+8. record `dueDate` ยังเป็นวันครบกำหนดเดิม (`1790417526`) — การต่ออายุไม่ได้แก้วันครบกำหนดของหนี้
+9. record `status` เปลี่ยนจาก `funded` เป็น `overdue` — ใครดูชื่อนี้บน ENS ก็เห็นว่า invoice ค้างชำระ
 
 ![invoice หลัง Mark overdue](manual/screenshots/06-14-overdue-after.png)
 
 *ภาพที่ 35 — inv-7.seikyu.eth หลัง Mark overdue: ชื่อกลับมาใช้งานได้และ status เป็น overdue*
 
-9. กล่องสีเหลืองเปลี่ยนเป็น "Overdue — the ENS name was revived (status overdue) until Oct 26, 2026; the debtor can still settle."
-   และไม่มีปุ่ม Mark overdue แล้ว (ต่ออายุได้ครั้งเดียวต่อการหมดอายุหนึ่งครั้ง) กล่องชำระเงินด้านล่างยังใช้ได้ตามบทที่ 5
+10. กล่องสีเหลืองเปลี่ยนเป็น "Overdue — the ENS name was revived (status overdue) until Oct 26, 2026; the debtor can still settle."
+    และไม่มีปุ่ม Mark overdue แล้ว (ต่ออายุได้ครั้งเดียวต่อการหมดอายุหนึ่งครั้ง) กล่องชำระเงินด้านล่างยังใช้ได้ตามบทที่ 5
 
 ![กล่อง Overdue หลังต่ออายุชื่อ](manual/screenshots/06-15-overdue-actions-after.png)
 
