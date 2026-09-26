@@ -95,15 +95,19 @@ Pre-existing ENSv2 contracts, pinned to tag `sepolia-deployment-2026-09-15` (com
 | UniversalResolverV2 | `0x5d25c1d6acbb71b7a28aa7899618a3412a8303e3` | not used for record reads (see disclosures) |
 | ENS MockUSDC (`ensMockUsdc`) | `0x16f95d91dba7da3aca778ec053df0ff6c6a8aa8e` | ENS's own testnet token — pays **only** for the one-time parent registration |
 
-Seikyu's own contracts (from `contracts/deployments/sepolia.json` at doc time):
+Seikyu's own contracts, live on Sepolia (from `contracts/deployments/sepolia.json`):
 
 | Contract | Address | Deployed by |
 |---|---|---|
-| Our `UserRegistry` | _pending deploy_ <!-- FILL-ADDR: userRegistry --> | `script/DeployUserRegistry.s.sol` |
-| Parent name | _pending deploy_ <!-- FILL-ADDR: parentName --> | `script/RegisterParent.s.sol` |
-| `InvoiceRegistrar` | _pending deploy_ <!-- FILL-ADDR: invoiceRegistrar --> | `script/Deploy.s.sol` |
-| `InvoiceMarket` | _pending deploy_ <!-- FILL-ADDR: invoiceMarket --> | `script/Deploy.s.sol` |
-| Our MockUSDC (`mUSDC`) | _pending deploy_ <!-- FILL-ADDR: mockUsdc --> | `script/Deploy.s.sol` |
+| Our `UserRegistry` | `0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67` | `script/DeployUserRegistry.s.sol` ([tx](https://sepolia.etherscan.io/tx/0xd2bba84501953caf250623987fbdbf8cea6129dce0d80e92f70c2dd757ac213c)) |
+| Parent name | `seikyu.eth` | `script/RegisterParent.s.sol` (commit [tx](https://sepolia.etherscan.io/tx/0x9e31c31403cca6412055a4847b244987a59e0d05a702964afc035b4951b73c2f), register [tx](https://sepolia.etherscan.io/tx/0x7b31788bd5f7bef84a84530cdec3c289d7b1e13ad051319f500eda5ea067b913), block 11784477, fee 8,000,021 ENS-mUSDC) |
+| `InvoiceRegistrar` | `0x628701e9A322B019e4aFe31A077f393644D748eF` | `script/Deploy.s.sol` |
+| `InvoiceMarket` | `0x9Cf9989AfC0196720aa0A64F61a614CFB548B875` | `script/Deploy.s.sol` |
+| Our MockUSDC (`mUSDC`) | `0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D` | `script/Deploy.s.sol` |
+
+Deploy block `11784486` (contract-creation txs in blocks 11784489–11784494; raw receipts committed under `contracts/broadcast/*/11155111/`). **Source verification**: not yet verified on Etherscan (attempted via `--verify` during `Deploy.s.sol`, pending); check current status on [Sourcify](https://sourcify.dev/#/lookup/0x628701e9A322B019e4aFe31A077f393644D748eF) or Etherscan directly.
+
+Demo wallets: operator `0x61461a6a0E817a915566CeD94e661eE9Eefbe359`, SME (issuer) `0x0df1770bB1b839E9aF883FcBD2C90ae27181385f`, investor A `0x601344DFBEd3Cc685CF49190f39c18B1b570C131`, investor A2 `0xC91913F3eCDef9D30816C5D2d424142f3ABfD9c8`, debtor `0xb6359D76E104a9fF007c979d5b18b2804578E72B`, debtor's accountant `0xe1D7a414963005BdCeecA0da42a50A3FFF7d9aDe`.
 
 There are **two mock USDCs**: ENS's `ensMockUsdc` above (parent registration only) and our own `mUSDC` (every price and settlement in `InvoiceMarket`).
 
@@ -168,7 +172,7 @@ cp web/.env.example web/.env.local
 
 `contracts/.env.example` (Foundry scripts): `SEPOLIA_RPC_URL`, `SEPOLIA_RPC_URL_BACKUP`, `FORK_BLOCK`, `ETHERSCAN_API_KEY`, `DEPLOYER_PRIVATE_KEY`, `DEPLOYER_ADDRESS`, `OPERATOR_ADDRESS`, `PARENT_LABEL`, `PARENT_SECRET`, `SME_ADDRESS`, `INVESTOR_A`, `INVESTOR_A2`, `DEBTOR_ADDRESS`, `DEBTOR_AP_ADDRESS`.
 
-`web/.env.example` (Next.js): public — `NEXT_PUBLIC_SEPOLIA_RPC_URL`, `NEXT_PUBLIC_WC_PROJECT_ID`, `NEXT_PUBLIC_WORLD_APP_ID`, `NEXT_PUBLIC_WORLD_ACTION` (`buy-receivable`), `NEXT_PUBLIC_WORLD_PRESET` (`passport`); server-only — `SEPOLIA_RPC_URL`, `WORLD_RP_ID`, `WORLD_RP_SIGNING_KEY`, `WORLD_ENV` (`staging`), `OPERATOR_PRIVATE_KEY`, `LOCAL_MARKET_ADDRESS` (dev-only, rejected in production by `web/lib/env.ts:95-99`).
+`web/.env.example` (Next.js): public — `NEXT_PUBLIC_SEPOLIA_RPC_URL`, `NEXT_PUBLIC_WC_PROJECT_ID`, `NEXT_PUBLIC_WORLD_APP_ID`, `NEXT_PUBLIC_WORLD_ACTION` (`buy-receivable`), `NEXT_PUBLIC_WORLD_PRESET` (`passport`); server-only — `SEPOLIA_RPC_URL`, `WORLD_RP_ID`, `WORLD_RP_SIGNING_KEY`, `OPERATOR_PRIVATE_KEY`, `LOCAL_MARKET_ADDRESS` (dev-only, rejected in production by `web/lib/env.ts:95-99`). The World ID `environment` value ("staging"/"sandbox"/"production", default "staging") is read straight from `NEXT_PUBLIC_WORLD_ENVIRONMENT` by `worldEnvironment()` (`web/lib/world.ts:90-93`) and shared as-is by both the client widget prop and the server's verify check — not yet added to `web/.env.example` (falls back to "staging" if unset), superseding the older server-only `WORLD_ENV` name.
 
 ### Build and test the contracts
 
@@ -178,6 +182,8 @@ forge build                                                              # AC-1
 forge test --fork-url $SEPOLIA_RPC_URL --fork-block-number $FORK_BLOCK    # AC-2: 46 tests passed, 0 failed
 bash script/selector-parity.sh                                           # AC-21: PARITY OK (26 selectors)
 ```
+
+`FORK_BLOCK` is `11784478` (post-registration — see `contracts/deployments/sepolia.json`). Public RPCs (publicnode, 1rpc) have already pruned that block, so fork tests need an archive RPC, e.g. `SEPOLIA_RPC_URL=https://sepolia.gateway.tenderly.co`.
 
 ### Deploy to Sepolia (in this order)
 
@@ -238,8 +244,9 @@ pnpm exec tsx scripts/e2e-sepolia.ts --status <name>    # prints current on-chai
    - `NEXT_PUBLIC_WORLD_APP_ID=app_staging_...` (public, must start with `app_`)
    - `WORLD_RP_ID=...` (server-only)
    - `WORLD_RP_SIGNING_KEY=...` (server-only — never expose client-side)
-4. Leave `NEXT_PUBLIC_WORLD_PRESET=passport` and `WORLD_ENV=staging` for local development.
-5. Test against the simulator at [simulator.worldcoin.org](https://simulator.worldcoin.org/) before trying a real World App scan.
+4. Leave `NEXT_PUBLIC_WORLD_PRESET=passport` and `NEXT_PUBLIC_WORLD_ENVIRONMENT=staging` for local development against the simulator.
+5. **Open the app's staging verification window** in the portal before calling `/api/v4/verify` with any staging proof — without it, verification fails with `403 environment_not_allowed`. This bit us on the live run; see [`docs/WORLD_ID_DEBRIEF.md`](docs/WORLD_ID_DEBRIEF.md#friction).
+6. Test against the simulator at [simulator.worldcoin.org](https://simulator.worldcoin.org/) before trying a real World App scan — confirmed working end-to-end for Passport on this deployment.
 
 Full verification architecture and fail paths: [`docs/WORLD_ID_DEBRIEF.md`](docs/WORLD_ID_DEBRIEF.md).
 

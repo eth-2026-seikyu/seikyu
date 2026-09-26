@@ -65,14 +65,14 @@ Pinned ENSv2 infrastructure (`sepolia-deployment-2026-09-15`, commit `f2f0a05e`)
 | UserRegistry (impl) | `0xa80338aaa8d23831cea25e858d1774534abb0263` |
 | ENS mock USDC (parent registration only) | `0x16f95d91dba7da3aca778ec053df0ff6c6a8aa8e` |
 
-Seikyu's own deployment:
+Seikyu's own deployment (live on Sepolia):
 
 | Contract | Address |
 |---|---|
-| Parent name | _pending_ <!-- FILL-ADDR: parentName --> |
-| UserRegistry (our proxy) | _pending_ <!-- FILL-ADDR: userRegistry --> |
-| InvoiceRegistrar | _pending_ <!-- FILL-ADDR: invoiceRegistrar --> |
-| InvoiceMarket | _pending_ <!-- FILL-ADDR: invoiceMarket --> |
-| Mock USDC (market currency) | _pending_ <!-- FILL-ADDR: mockUsdc --> |
+| Parent name | `seikyu.eth` |
+| UserRegistry (our proxy) | `0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67` |
+| InvoiceRegistrar | `0x628701e9A322B019e4aFe31A077f393644D748eF` |
+| InvoiceMarket | `0x9Cf9989AfC0196720aa0A64F61a614CFB548B875` |
+| Mock USDC (market currency) | `0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D` |
 
-_Addresses above reflect `contracts/deployments/sepolia.json` at the time this doc was written — re-check that file once live deployment completes; every `_pending_` row will fill in with a real address._
+Source not yet verified on Etherscan (Sourcify attempted, in progress). Deploy block `11784486`; `seikyu.eth` registered at block `11784477` for 8,000,021 ENS-mUSDC.

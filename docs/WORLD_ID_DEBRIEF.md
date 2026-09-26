@@ -27,25 +27,29 @@ Three requirements the credential has to satisfy:
 **Accepted residual risk**: someone holding two valid passports can verify twice and get a 2×
 cap (6 open positions instead of 3). This is a bounded, known gap, not an unknown one.
 
-**Fallback ladder actually implemented** (`web/lib/env.ts:14-19`, `web/lib/world.ts:29-59`):
+**Fallback ladder actually implemented** (`web/lib/env.ts:14-19`, `web/lib/world.ts:30-59`):
 `passport` → `proofOfHuman` → `orbLegacy` → `selfieCheck`, selected via `NEXT_PUBLIC_WORLD_PRESET`.
 If the pilot ever had to fall back to `selfieCheck`, that would be a real drop below R2 and must be
 called out plainly rather than described as passing — the fallback exists for demo continuity, not
 as a silent downgrade of the security claim.
+
+**Confirmed live, not just in theory**: a real Passport proof was generated and verified against
+this deployment's staging app via the World ID simulator on 2026-09-26 — no fallback to
+`proofOfHuman`/`orbLegacy` was needed. See "Time to first success" below.
 
 ## Verification architecture
 
 `POST /api/world/verify` (`web/app/api/world/verify/route.ts`, `export const maxDuration = 30`)
 runs 8 steps in order:
 
-1. **Body validation** — zod schema requires `investor` (a `0x`-address) and `result` — `web/app/api/world/verify/route.ts:16-19,26-38`. Malformed input returns `400 INVALID_BODY`.
-2. **Action check** — `result.action` must equal `NEXT_PUBLIC_WORLD_ACTION` (`buy-receivable`) — `web/app/api/world/verify/route.ts:40-43`.
-3. **Identifier match** — `responses[0].identifier` must equal the identifier the configured preset produces (`passport`→`"passport"`, `proofOfHuman`/`orbLegacy`→`"proof_of_human"`, `selfieCheck`→`"selfie"`); this stops a client from silently downgrading to a weaker credential than the server expects — `web/app/api/world/verify/route.ts:51-55`, `web/lib/world.ts:82-92`.
-4. **Signal binding (local check)** — the server hashes `investor` itself with idkit-core's own `hashSignal` (never re-implemented) and compares it, case-insensitively, against `responses[0].signal_hash` from the client's proof; a missing or mismatched hash fails closed — `web/app/api/world/verify/route.ts:57-79`, `web/lib/world.ts:94-105`.
-5. **Forward to World** — the *entire* result is POSTed as-is to `https://developer.world.org/api/v4/verify/{WORLD_RP_ID}`; a non-2xx response is mapped to `422 VERIFICATION_FAILED`, a network error or 5xx to `502 WORLD_API_UNAVAILABLE` — `web/app/api/world/verify/route.ts:86-114`.
-6. **Environment check** — the response's `environment` must equal our configured `WORLD_ENV` (staging/production), or `409 ENV_MISMATCH` — `web/app/api/world/verify/route.ts:116-119`.
-7. **Nullifier binding** — normalize the nullifier, then read `InvoiceMarket.nullifierOwner(nullifier)` on-chain; if it's already bound to a different wallet, `409 NULLIFIER_ALREADY_USED` — `web/app/api/world/verify/route.ts:121-151`.
-8. **Operator transaction** — the operator wallet calls `setVerified(investor, nullifier)` using viem's `nonceManager`, retrying once on `nonce too low`/`replacement transaction underpriced`, and returns the tx hash **without waiting for a receipt** (Vercel's function timeout is the constraint) — `web/app/api/world/verify/route.ts:153-191`.
+1. **Body validation** — zod schema requires `investor` (a `0x`-address) and `result` — `web/app/api/world/verify/route.ts:17-20,27-39`. Malformed input returns `400 INVALID_BODY`.
+2. **Action check** — `result.action` must equal `NEXT_PUBLIC_WORLD_ACTION` (`buy-receivable`) — `web/app/api/world/verify/route.ts:41-44`.
+3. **Identifier match** — `responses[0].identifier` must equal the identifier the configured preset produces (`passport`→`"passport"`, `proofOfHuman`/`orbLegacy`→`"proof_of_human"`, `selfieCheck`→`"selfie"`); this stops a client from silently downgrading to a weaker credential than the server expects — `web/app/api/world/verify/route.ts:52-56`, `web/lib/world.ts:116-126`. Confirmed live: the real proof below carries `"identifier": "passport"`.
+4. **Signal binding (local check)** — the server hashes `investor` itself with idkit-core's own `hashSignal` (never re-implemented) and compares it, case-insensitively, against `responses[0].signal_hash` from the client's proof; a missing or mismatched hash fails closed — `web/app/api/world/verify/route.ts:58-80`, `web/lib/world.ts:137-139`. Confirmed live (see "Time to first success"): `hashSignal(investorAddress)` matched `responses[0].signal_hash` exactly, byte for byte.
+5. **Forward to World** — the *entire* result is POSTed as-is to `https://developer.world.org/api/v4/verify/{WORLD_RP_ID}`; a non-2xx response is mapped to `422 VERIFICATION_FAILED`, a network error or 5xx to `502 WORLD_API_UNAVAILABLE` — `web/app/api/world/verify/route.ts:87-115`.
+6. **Environment check** — the response's `environment` must equal `worldEnvironment()` (`web/lib/world.ts:90-93`, read from `NEXT_PUBLIC_WORLD_ENVIRONMENT`) — the *same* value passed as the `environment` prop on the widget (`web/components/WorldVerifyButton.tsx:242`), so client and server can't drift apart — or `409 ENV_MISMATCH` — `web/app/api/world/verify/route.ts:116-123`.
+7. **Nullifier binding** — normalize the nullifier, then read `InvoiceMarket.nullifierOwner(nullifier)` on-chain; if it's already bound to a different wallet, `409 NULLIFIER_ALREADY_USED` — `web/app/api/world/verify/route.ts:125-155`.
+8. **Operator transaction** — the operator wallet calls `setVerified(investor, nullifier)` using viem's `nonceManager`, retrying once on `nonce too low`/`replacement transaction underpriced`, and returns the tx hash **without waiting for a receipt** (Vercel's function timeout is the constraint) — `web/app/api/world/verify/route.ts:157-166,169-195`.
 
 `GET /api/world/rp-context` signs a fresh RP context for the widget — `web/app/api/world/rp-context/route.ts:17-36`.
 
@@ -63,19 +67,24 @@ runs 8 steps in order:
 
 ### Time to first success
 
-<!-- FILL-H1: minutes from spike-world.md once a live World ID verification succeeds -->
+**≈108 seconds (1 minute 48 seconds)** from opening the widget to a captured, verified Passport
+proof: `T_start` `2026-09-26T06:32:01.875Z` → `T_first_success` `2026-09-26T06:33:50.120Z`
+(`.omc/research/spike-world.md`, "LIVE RUN"). That time is almost entirely a human clicking through
+the World ID simulator UI by hand (opening the simulator tab, picking the Passport credential tab,
+clicking Continue) — an automated test would take seconds. No code changes were needed once
+`NEXT_PUBLIC_WORLD_APP_ID`/`WORLD_RP_ID`/`WORLD_RP_SIGNING_KEY` landed: widget props, the preset,
+and the `rp-context` signing route all worked on the first try.
 
-Not yet measured end-to-end: live verification is blocked on the World ID Developer Portal
-credentials (`NEXT_PUBLIC_WORLD_APP_ID`, `WORLD_RP_ID`, `WORLD_RP_SIGNING_KEY`), which as of this
-writing haven't landed in the environment (`.omc/research/spike-world.md`, "Timeline"). What's
-already verified without live credentials: `GET /api/world/rp-context` correctly returns
-`{"code":"WORLD_NOT_CONFIGURED"}` (503) with no env set; the widget page renders with zero console
-errors, with its verify button correctly disabled until `NEXT_PUBLIC_WORLD_APP_ID` exists; and
-`npx tsc --noEmit` is clean across the whole integration. The moment credentials land, no further
-code changes are expected before a first live run.
+This measures the **client-side proof**, not a full round trip through our own `/api/world/verify`
+route: the very next call, forwarding that real proof to `POST /api/v4/verify/{rp_id}`, hit a
+separate blocker (`403 environment_not_allowed` — see Friction) that had nothing to do with our
+code and needed a Developer Portal setting changed. Before that credentials landed at all,
+`GET /api/world/rp-context` correctly returned `{"code":"WORLD_NOT_CONFIGURED"}` (503) with no env
+set, and the widget's verify button was correctly disabled with `NEXT_PUBLIC_WORLD_APP_ID` unset.
 
 ### Friction
 
+- **`403 environment_not_allowed` on `/api/v4/verify` until a portal-side toggle is flipped.** A correctly-generated, correctly-signaled staging proof was rejected outright: `{"code":"environment_not_allowed","detail":"Staging verification is not open for this app. Open a staging window with the set_world_id_staging_verification tool, or omit \`environment\` (or set it to \`production\`) to verify production proofs."}`. This is not documented anywhere in the request/response schema for `/api/v4/verify` — a new app's staging verification has to be explicitly opened in the Developer Portal before any simulator-generated proof will pass, and the only pointer to how is the error message itself naming an internal-sounding `set_world_id_staging_verification` tool. This cost real time figuring out that the *proof* was fine and the *rejection* was an app-configuration gate, not a bug in our signal check or request shape.
 - **`signRequest()`'s camelCase output vs the widget's snake_case input.** `@worldcoin/idkit-core/signing`'s `signRequest({ signingKeyHex, action })` returns `{ sig, nonce, createdAt, expiresAt }`, but `IDKitRequestWidget`'s `rp_context` prop wants `{ rp_id, nonce, created_at, expires_at, signature }` — and `rp_id` isn't even in the signer's output, it's just the `WORLD_RP_ID` env var. Missing this remap produces a silent `invalid_rp_signature` with no hint that it's a field-naming problem. We had to write the remap explicitly (`web/app/api/world/rp-context/route.ts:24-35`).
 - **The `passport()` preset's own documentation is effectively "coming soon".** The public docs prose doesn't enumerate the preset factories or their options; the only reliable source was reading `@worldcoin/idkit/dist/index.d.ts` and `@worldcoin/idkit-core/dist/index.d.ts` directly.
 - **Simulator readiness for v4 Passport is unconfirmed from docs alone.** `simulator.worldcoin.org` states outright that "this simulator will change with the adoption of World ID 4.0" — there's no way to know from documentation whether a Passport request actually completes there; it needs a live run to find out, and the test identity we found had no pre-configured credentials.
@@ -87,7 +96,9 @@ code changes are expected before a first live run.
 
 - World's own `/api/v4/verify` has no way to express "and also check this signal server-side" or to return a distinct error code when a signal doesn't match — every RP has to reimplement the local hash-and-compare check correctly, with no help from the API if they get it wrong.
 - No canonical, versioned reference table of `identifier` values per preset (passport/proofOfHuman/orbLegacy/selfieCheck/mnc/identityCheck) exists in the public docs — we had to derive it from `.d.ts` doc comments and `issuer_schema_id` cross-checks, then independently confirm it via a spike.
-- No documented guarantee (or even a clear statement either way) of Passport support in the public simulator for v4 — a developer building against Passport today can't tell from docs alone whether their staging tests will actually complete.
+- No documented guarantee (or even a clear statement either way) of Passport support in the public simulator for v4 — a developer building against Passport today can't tell from docs alone whether their staging tests will actually complete. **Now confirmed live**: it works, no fallback needed.
+- The Developer Portal's "staging verification window" gate for `/api/v4/verify` isn't documented anywhere we could find before hitting it — see the Friction item above.
+- **`responses[i].proof` is an array of decimal-string big integers, not `0x`-hex strings**, despite `@worldcoin/idkit-core`'s own `.d.ts` comment describing them as "(hex strings)". A real captured proof: `["13586708970665106381745288208973107748208932217529228854957135199212447396569", ...]` — five plain base-10 numbers. `nullifier` and `signal_hash`, by contrast, genuinely are `0x`-prefixed hex, each 33 bytes (66 hex chars) rather than the 32 you'd expect from a plain field element. Anything downstream that consumes `proof` (e.g. a Solidity verifier call) needs to treat each element as an arbitrary-precision integer literal, not assume a `0x` prefix — the type declaration is simply wrong on this point.
 
 ### The one improvement with greatest impact
 
@@ -103,3 +114,7 @@ friction point here fails loudly and immediately during development; a broken si
 ship and only get discovered by exploitation. Moving that check into World's own API, where it can
 be tested once against the real ZK circuit instead of reimplemented by every RP, would remove an
 entire class of otherwise-silent integration bugs from every app built on IDKit, not just this one.
+
+(The staging-verification-window 403 from the live run above was real friction too, but it fails
+loudly, points at itself, and is a one-time per-app setup step — not a silent, ongoing security gap
+like an unenforced signal check.)

@@ -20,7 +20,7 @@ accountant hasn't disputed it.
 
 | ENSv2 feature | What it does in Seikyu | file:line | Sepolia tx | Judge bullet |
 |---|---|---|---|---|
-| Own `UserRegistry` under `<parent>.eth` (hierarchical registry) | We deploy our own `UserRegistry` proxy via the ENSv2 `VerifiableFactory` and register `<parent>.eth` with it as the subregistry, so every `inv-<id>.<parent>.eth` name lives in a registry we control, not a shared namespace | `contracts/script/DeployUserRegistry.s.sol:17-49` (E2), `contracts/script/RegisterParent.s.sol:53-85` (E1+E3) | <!-- FILL-TX: DeployUserRegistry.run() --> / <!-- FILL-TX: RegisterParent.register() --> | E2, E3 |
+| Own `UserRegistry` under `<parent>.eth` (hierarchical registry) | We deployed our own `UserRegistry` proxy at `0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67` via the ENSv2 `VerifiableFactory` and registered `seikyu.eth` (paid 8,000,021 ENS-mUSDC) with it as the subregistry, so every `inv-<id>.seikyu.eth` name lives in a registry we control, not a shared namespace | `contracts/script/DeployUserRegistry.s.sol:17-49` (E2), `contracts/script/RegisterParent.s.sol:53-85` (E1+E3) | [DeployUserRegistry](https://sepolia.etherscan.io/tx/0xd2bba84501953caf250623987fbdbf8cea6129dce0d80e92f70c2dd757ac213c) / [commit](https://sepolia.etherscan.io/tx/0x9e31c31403cca6412055a4847b244987a59e0d05a702964afc035b4951b73c2f) / [register](https://sepolia.etherscan.io/tx/0x7b31788bd5f7bef84a84530cdec3c289d7b1e13ad051319f500eda5ea067b913) (block 11784477) | E2, E3 |
 | Expiring subname (`expiry = dueDate`) | `InvoiceRegistrar.registerInvoice` calls `REGISTRY.register(label, issuer, address(0), resolver, 0, dueDate)` — the name's absolute expiry is the invoice's due date, set once at issuance | `contracts/src/InvoiceRegistrar.sol:89` | <!-- FILL-TX: createInvoice() --> | E7 |
 | Revocable (`closeInvoice` → `unregister`) | `settle()`/`cancel()` call `closeInvoice`, which sets the final `status` then unregisters the name immediately if it's still live | `contracts/src/InvoiceMarket.sol:191-202,204-214`, `contracts/src/InvoiceRegistrar.sol:99-104` | <!-- FILL-TX: settle() --> | revocable |
 | Non-transferable | The issuer is registered with `roleBitmap = 0` (`register(label, issuer, ..., 0, dueDate)`), so they can't transfer or re-resolve the name. **Live error**: `TransferUnsafeUntilRegistryIsEmancipated()` — the registrar permanently holds root `ROLE_UNREGISTER`, so the registry is never emancipated and every `safeTransferFrom` reverts at that check before the empty-roleBitmap check is ever reached. (`TransferDisallowed` only fires once `ROLE_UNREGISTER` has been revoked from every root holder — not the case on our live deployment.) | `contracts/src/InvoiceRegistrar.sol:89`; live-path proof in `contracts/test/InvoiceRegistrar.t.sol:196-212` (`test_issuerCannotTransferName_reverts`) | <!-- FILL-TX: issuer safeTransferFrom attempt --> | non-transferable |
@@ -64,6 +64,8 @@ current, not for a fixed, unrelated period.
   for an expired name, by design (see path R vs path L above).
 
 ## How to verify on-chain
+
+Live values for this deployment: `PARENT_LABEL=seikyu`, `USER_REGISTRY=0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67`, `DEPLOYER_ADDRESS` from `contracts/.env`. Public RPCs (publicnode, 1rpc) have already pruned the registration block (`11784478`) — use an archive RPC such as `https://sepolia.gateway.tenderly.co` for anything that reads historical state.
 
 ```bash
 # AC-6: our parent's subregistry really is our UserRegistry
