@@ -47,7 +47,7 @@ Three facts we didn't expect going in:
 
 ## Links
 
-- Live app: <!-- FILL-H5: live URL -->
+- Live app: https://seikyu.xyz
 - Repository: https://github.com/eth-2026-seikyu/seikyu
 - Demo video: <!-- FILL-VIDEO -->
 - User guide (Thai, with screenshots): [`docs/USER_GUIDE.md`](USER_GUIDE.md)

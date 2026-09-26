@@ -118,7 +118,7 @@ There are **two mock USDCs**: ENS's `ensMockUsdc` above (parent registration onl
 
 ## Live demo + video
 
-- Live demo: <!-- FILL-H5: demo URL -->
+- Live demo: https://seikyu.xyz (Vercel, Sepolia)
 - Video (≤ 3:00): <!-- FILL-VIDEO -->
 - Demo script: [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md)
 - User guide (Thai): [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — 33 screenshots captured from the live Sepolia deployment (issue, verify, buy, accountant ack/dispute, settle, cancel)
