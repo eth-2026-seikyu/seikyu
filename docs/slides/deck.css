@@ -141,8 +141,8 @@ code, .mono {
   width: calc(var(--panel-left) - var(--pad-x) - 44px);
 }
 
-.body:not(.stack):not(.text-only) > figure,
-.body:not(.stack):not(.text-only) > .pair {
+.body:not(.stack):not(.text-only):not(.flow) > figure,
+.body:not(.stack):not(.text-only):not(.flow) > .pair {
   /* Offsets resolve against .slide's padding box, which is the full 1280x720 —
      so 0 already means the slide edge, no padding to cancel. */
   position: absolute;
@@ -164,7 +164,7 @@ code, .mono {
 .body.text-only > .col,
 .body:not(.stack):not(:has(> figure)):not(:has(> .pair)) > .col {
   width: auto;
-  max-width: 62ch;
+  max-width: 900px;
 }
 
 /* Text above, a full-width banner image below — for wide, short screenshots
@@ -178,7 +178,66 @@ code, .mono {
 }
 
 .body.stack figure { align-self: stretch; }
+/* The banner runs the full width, so the text above it does too — the shared
+   .col width only exists to leave room for a side panel. */
+.body.stack > .col { width: auto; }
 .body.stack li { max-width: 58ch; }
+
+/* Heading on top, the sequence diagram filling everything below it. */
+.body.flow {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+}
+
+.body.flow > .col { width: auto; max-width: none; }
+.body.flow > .col h2 { margin-bottom: 0; }
+
+/* ---- the sequence diagram (drawn by deck.js) ---- */
+
+figure.seq { display: block; width: 100%; height: 100%; }
+figure.seq svg { width: 100%; height: 100%; }
+
+/* Every label is painted with a paper-coloured halo, so text stays readable
+   where it crosses a lifeline — cheaper and safer than fitting backing rects
+   to text we cannot measure before layout. */
+.seq text {
+  font-family: inherit;
+  font-size: 16.5px;
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 7px;
+  stroke-linejoin: round;
+}
+
+.seq .lane-t { font-size: 20px; font-weight: 660; }
+.seq .lane-s { font-size: 14.5px; fill: var(--muted); }
+.seq .note-t { font-size: 14.5px; fill: var(--muted); }
+.seq .band-t {
+  font-size: 13px;
+  font-weight: 640;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  fill: var(--muted);
+}
+
+.seq .head { fill: #fff; stroke: var(--line); stroke-width: 1.5; }
+.seq .bx { fill: #fff; stroke: #cfcec9; stroke-width: 1.5; }
+.seq .life { stroke: #c9c8c3; stroke-width: 1.5; stroke-dasharray: 3 6; }
+.seq .bd { stroke: #dbdad5; stroke-width: 1.5; stroke-dasharray: 2 7; }
+.seq .ar { stroke: var(--ink); stroke-width: 2; marker-end: url(#seq-arrow); }
+.seq .xm { stroke: var(--muted); stroke-width: 2.5; }
+.seq .ah { fill: var(--ink); }
+.seq .ah.hi { fill: var(--accent); }
+
+/* Highlighting picks a step out in the accent colour rather than dimming the
+   rest — a dimmed diagram is unreadable from the back of a booth. */
+.seq .hi text, .seq .hi .lane-s, .seq .hi .note-t { fill: var(--accent); }
+.seq .hi .head, .seq .hi .bx { stroke: var(--accent); }
+.seq .hi .ar { stroke: var(--accent); marker-end: url(#seq-arrow-hi); }
+.seq .hi .xm { stroke: var(--accent); }
 
 .col { min-width: 0; }
 

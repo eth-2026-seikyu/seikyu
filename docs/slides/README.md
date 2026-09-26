@@ -5,10 +5,14 @@ network, so they work with no wifi. Each deck has a matching speaker script.
 
 | Deck | Use it for | Length | Script |
 |---|---|---|---|
-| [`main.html`](main.html) | Top 10 live judging | 11 slides · 3 min | [`script-main.md`](script-main.md) |
-| [`world.html`](world.html) | World booth | ~7 slides · 2–3 min | [`script-world.md`](script-world.md) |
-| [`ens.html`](ens.html) | ENS booth | ~7 slides · 2–3 min | [`script-ens.md`](script-ens.md) |
-| [`curvegrid.html`](curvegrid.html) | Curvegrid booth (RWA) | ~6 slides · 2 min | [`script-curvegrid.md`](script-curvegrid.md) |
+| [`main.html`](main.html) | Top 10 live judging | 13 slides · 3:20 | [`script-main.md`](script-main.md) |
+| [`world.html`](world.html) | World booth | 10 slides · 2–3 min | [`script-world.md`](script-world.md) |
+| [`ens.html`](ens.html) | ENS booth | 10 slides · 2–3 min | [`script-ens.md`](script-ens.md) |
+| [`curvegrid.html`](curvegrid.html) | Curvegrid booth (RWA) | 9 slides · 2–3 min | [`script-curvegrid.md`](script-curvegrid.md) |
+
+Every deck opens the same way — the problem, then the fix, then one diagram of
+the whole deal — so nobody has to already understand invoice factoring. Each
+script says which of those slides to drop when you are short on time.
 
 ## Presenting
 
@@ -39,6 +43,24 @@ node docs/slides/export-pdf.mjs
 
 It needs the Playwright install used by the screenshot harness
 (`docs/manual/capture/.pw` — see `docs/manual/capture/README.md`).
+
+## The flow diagram
+
+The "How it works" slide in every deck draws the same sequence diagram, defined
+once in `deck.js`. A deck asks for it with an empty figure:
+
+```html
+<figure class="seq" data-hi="worldid,buy" data-sub-investor="one verified human"></figure>
+```
+
+- `data-hi` — comma-separated step or lane keys to pick out in the accent
+  colour (`issue`, `ack`, `worldid`, `buy`, `transfer`, `settle`, `retire`, or a
+  lane: `supplier`, `invoice`, `investor`, `debtor`)
+- `data-sub-<lane>` — rewrite a lane's subtitle for that audience
+- `data-t-<step>` — rewrite a step's label for that audience
+
+Highlighting only recolours; it never dims the rest, because a dimmed diagram
+is unreadable from the back of a booth.
 
 ## Screenshots
 

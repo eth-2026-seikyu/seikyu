@@ -1,79 +1,100 @@
 # Speaker script — main deck (`main.html`)
 
-Target: **3 minutes**, 11 slides. Spoken text below is ~500 words, which lands
-around 3:00 at a calm pace. Advance with → or space. Press `f` for fullscreen.
+Target: **3 minutes 20**, 13 slides. The spoken text below is ~560 words, which
+lands around 3:20 at a calm pace. Advance with → or space. Press `f` for
+fullscreen.
+
+The deck opens on the problem, then the fix, then one picture of the whole
+deal — so a judge who has never heard of invoice factoring is with you before
+any screenshot appears.
 
 Say the numbers slowly; skip a bullet rather than rush it. If you are cut to
-two minutes, drop slides 5 and 10 — the story still closes.
+**two and a half minutes**, drop slides 3 and 7. If you are cut to **two**,
+drop 3, 7 and 12 — the story still closes.
 
 ---
 
-## 1 — Seikyu 請求 *(0:00–0:12)*
+## 1 — Seikyu 請求 *(0:00–0:10)*
 
 "Seikyu — Japanese for invoice. A supplier can sell an unpaid invoice today
-instead of waiting to be paid. Every invoice here is an ENS name that expires
-on the day the debt is due. It's live on Sepolia right now."
+instead of waiting to be paid. It's live on Sepolia right now."
 
-## 2 — The problem *(0:12–0:32)*
+## 2 — The problem *(0:10–0:28)*
 
-"A supplier delivers the work today and gets paid in sixty to ninety days.
-Until the debtor pays, that invoice is real money they can't touch. And nobody
-else can buy it from them, because nobody outside the deal can check whether
-the invoice is genuine."
+"Start with the problem. A supplier finishes the work today and gets paid in
+sixty to ninety days. Payroll doesn't wait sixty days. Materials don't wait.
+A bank will lend against that invoice, but only after collateral, paperwork,
+and a couple of weeks — which is exactly the money and time they don't have."
 
-## 3 — Three people, one invoice *(0:32–0:52)*
+## 3 — Why nobody just buys it *(0:28–0:44)*
 
-"Seikyu has three roles, and the front page says so in plain words. A supplier
-lists an unpaid invoice. An investor buys it at a discount, which pays the
-supplier now. The debtor company pays the full amount on the due date. No
-crypto vocabulary anywhere on this screen."
+"The obvious fix is to sell the invoice to someone who has cash. But the
+invoice is a PDF, and a PDF proves nothing. Was the work delivered? Only the
+debtor knows. Has it already been sold to someone else? No way to tell.
+Checking costs more than the discount is worth, so nobody checks, and the
+supplier waits."
 
-## 4 — One signature *(0:52–1:10)*
+## 4 — The solution *(0:44–1:00)*
 
-"Issuing is one signature. That single transaction mints the receivable token,
-deploys a resolver for this invoice alone, and registers `inv-15.seikyu.eth`
-with its expiry set to the due date. The name's lifetime is the debt's
-lifetime."
+"So we made the invoice checkable. Three roles, named in plain words on the
+front page: a supplier lists an unpaid invoice, an investor buys it today at a
+discount, and the debtor company confirms the debt and later pays in full.
+No crypto vocabulary anywhere on this screen."
 
-## 5 — The invoice *is* the ENS name *(1:10–1:26)*
+## 5 — How it works *(1:00–1:24)*
+
+"Here's the whole deal in one picture. Today: the supplier lists the invoice —
+that's one signature, and it creates an ENS name that expires on the due date.
+The debtor's own accountant confirms the invoice is real. The buyer proves with
+World ID that they're one real person, then pays 950 — straight to the
+supplier, nothing sits in escrow — and ownership moves to them. Sixty days
+later the debtor pays the full thousand, and the name retires with the debt."
+
+## 6 — One signature *(1:24–1:40)*
+
+"Issuing is that one signature. It mints the receivable token, deploys a
+resolver for this invoice alone, and registers `inv-15.seikyu.eth` with its
+expiry set to the due date. The name's lifetime is the debt's lifetime."
+
+## 7 — The invoice *is* the ENS name *(1:40–1:54)*
 
 "Underneath, this is the invoice: eight text records — amount, debtor, due
 date, status. Anyone can read them straight off ENS. No Seikyu account, no
-API key. The name lives exactly as long as the debt is current."
+API key."
 
-## 6 — Only a real person can buy *(1:26–1:48)*
+## 8 — Only a real person can buy *(1:54–2:14)*
 
 "Before anyone can buy, they prove with World ID that they're one unique
 person. We bind the proof to their wallet on our server before we accept it,
 and record it on-chain — so one human maps to one investor wallet, capped at
 three open invoices. That's enforced in the contract, not in the interface."
 
-## 7 — 950 now, instead of 1,000 later *(1:48–2:04)*
+## 9 — 950 now, instead of 1,000 later *(2:14–2:28)*
 
-"The investor pays 950 for a thousand-dollar invoice. The supplier has cash
-the moment the sale clears, and the invoice's ENS status record flips to
-funded — visible to anyone watching the name."
+"The investor pays 950 for a thousand-dollar invoice. The supplier has cash the
+moment the sale clears, and the ENS status record flips to funded — visible to
+anyone watching the name."
 
-## 8 — The debtor confirms, and nothing else *(2:04–2:24)*
+## 10 — The debtor confirms, and nothing else *(2:28–2:46)*
 
 "The debtor's own accounting team confirms the invoice is real. They can write
 exactly one record. When they try to edit the amount, the chain rejects it —
 that red line is a real revert, not a disabled button. And a disputed invoice
 can't be bought at all."
 
-## 9 — Settle *(2:24–2:40)*
+## 11 — Settle *(2:46–3:00)*
 
 "When the debtor pays, the investor receives the full thousand, the receivable
 token is burned, and the ENS name is unregistered — all in one transaction.
 The invoice's identity retires with the debt."
 
-## 10 — Why expiry matters *(2:40–2:52)*
+## 12 — Why expiry matters *(3:00–3:12)*
 
 "And if nobody buys it in time, the name simply expires. There's no cleanup
 job — the due date *is* the expiry. The name stops resolving, but the records
 stay readable, so the history doesn't vanish."
 
-## 11 — Close *(2:52–3:00)*
+## 13 — Close *(3:12–3:20)*
 
 "A name lives as long as the debt behind it. It's live at seikyu.xyz, the
 contracts are verified on Sepolia, and everything you just saw is in the repo."
@@ -96,6 +117,9 @@ contracts are verified on Sepolia, and everything you just saw is in the repo."
 - **"What if the debtor never pays?"** — The invoice goes overdue. Anyone can
   extend the ENS name thirty days so the record stays live while the debt is
   chased. We don't pretend the investor is guaranteed.
+- **"Who takes the risk?"** — The investor, knowingly: the discount is the
+  price of that risk, and the debtor's on-chain confirmation is what makes it
+  worth taking.
 - **"Did you build this during the hackathon?"** — Yes, from scratch, with AI
   agents doing most of the coding. The plan, the prompts and a full disclosure
   are committed in the repo under `docs/`.
