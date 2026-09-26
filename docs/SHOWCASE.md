@@ -50,6 +50,7 @@ Three facts we didn't expect going in:
 - Live app: <!-- FILL-H5: live URL -->
 - Repository: <!-- FILL-H4: repo URL -->
 - Demo video: <!-- FILL-VIDEO -->
+- User guide (Thai, with screenshots): [`docs/USER_GUIDE.md`](USER_GUIDE.md)
 
 ## Contract addresses (Sepolia)
 
