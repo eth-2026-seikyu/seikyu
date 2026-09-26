@@ -71,8 +71,8 @@ Seikyu's own deployment (live on Sepolia):
 |---|---|
 | Parent name | `seikyu.eth` |
 | UserRegistry (our proxy) | `0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67` |
-| InvoiceRegistrar | `0x628701e9A322B019e4aFe31A077f393644D748eF` |
-| InvoiceMarket | `0x9Cf9989AfC0196720aa0A64F61a614CFB548B875` |
-| Mock USDC (market currency) | `0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D` |
+| InvoiceRegistrar | [`0x628701e9A322B019e4aFe31A077f393644D748eF`](https://eth-sepolia.blockscout.com/address/0x628701e9A322B019e4aFe31A077f393644D748eF) |
+| InvoiceMarket | [`0x9Cf9989AfC0196720aa0A64F61a614CFB548B875`](https://eth-sepolia.blockscout.com/address/0x9Cf9989AfC0196720aa0A64F61a614CFB548B875) |
+| Mock USDC (market currency) | [`0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D`](https://eth-sepolia.blockscout.com/address/0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D) |
 
-Source not yet verified on Etherscan (Sourcify attempted, in progress). Deploy block `11784486`; `seikyu.eth` registered at block `11784477` for 8,000,021 ENS-mUSDC.
+All three deployed contracts are Sourcify exact-match (solc `0.8.27`, 200 runs, `cancun`) and fully verified on Blockscout (linked above, used as the primary explorer); Etherscan shows an exact match only for InvoiceRegistrar, with the other two as "similar match" pending an Etherscan API key. Deploy block `11784486`; `seikyu.eth` registered at block `11784477` for 8,000,021 ENS-mUSDC.

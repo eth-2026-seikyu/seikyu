@@ -101,11 +101,11 @@ Seikyu's own contracts, live on Sepolia (from `contracts/deployments/sepolia.jso
 |---|---|---|
 | Our `UserRegistry` | `0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67` | `script/DeployUserRegistry.s.sol` ([tx](https://eth-sepolia.blockscout.com/tx/0xd2bba84501953caf250623987fbdbf8cea6129dce0d80e92f70c2dd757ac213c)) |
 | Parent name | `seikyu.eth` | `script/RegisterParent.s.sol` (commit [tx](https://eth-sepolia.blockscout.com/tx/0x9e31c31403cca6412055a4847b244987a59e0d05a702964afc035b4951b73c2f), register [tx](https://eth-sepolia.blockscout.com/tx/0x7b31788bd5f7bef84a84530cdec3c289d7b1e13ad051319f500eda5ea067b913), block 11784477, fee 8,000,021 ENS-mUSDC) |
-| `InvoiceRegistrar` | `0x628701e9A322B019e4aFe31A077f393644D748eF` | `script/Deploy.s.sol` |
-| `InvoiceMarket` | `0x9Cf9989AfC0196720aa0A64F61a614CFB548B875` | `script/Deploy.s.sol` |
-| Our MockUSDC (`mUSDC`) | `0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D` | `script/Deploy.s.sol` |
+| `InvoiceRegistrar` | [`0x628701e9A322B019e4aFe31A077f393644D748eF`](https://eth-sepolia.blockscout.com/address/0x628701e9A322B019e4aFe31A077f393644D748eF) | `script/Deploy.s.sol` |
+| `InvoiceMarket` | [`0x9Cf9989AfC0196720aa0A64F61a614CFB548B875`](https://eth-sepolia.blockscout.com/address/0x9Cf9989AfC0196720aa0A64F61a614CFB548B875) | `script/Deploy.s.sol` |
+| Our MockUSDC (`mUSDC`) | [`0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D`](https://eth-sepolia.blockscout.com/address/0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D) | `script/Deploy.s.sol` |
 
-Deploy block `11784486` (contract-creation txs in blocks 11784489–11784494; raw receipts committed under `contracts/broadcast/*/11155111/`). **Source verification**: not yet verified on Etherscan (attempted via `--verify` during `Deploy.s.sol`, pending); check current status on [Sourcify](https://sourcify.dev/#/lookup/0x628701e9A322B019e4aFe31A077f393644D748eF) or Etherscan directly.
+Deploy block `11784486` (contract-creation txs in blocks 11784489–11784494; raw receipts committed under `contracts/broadcast/*/11155111/`). **Source verification**: all three are [Sourcify](https://sourcify.dev) exact-match (solc `0.8.27`, 200 runs, `cancun`) — [MockUSDC](https://sourcify.dev/#/lookup/0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D), [InvoiceRegistrar](https://sourcify.dev/#/lookup/0x628701e9A322B019e4aFe31A077f393644D748eF), [InvoiceMarket](https://sourcify.dev/#/lookup/0x9Cf9989AfC0196720aa0A64F61a614CFB548B875) — and [Blockscout](https://eth-sepolia.blockscout.com) has imported all three with full source (linked above; use it as the primary explorer). Etherscan shows an exact match only for `InvoiceRegistrar`; the other two show as "similar match" pending an Etherscan API key.
 
 Demo wallets: operator `0x61461a6a0E817a915566CeD94e661eE9Eefbe359`, SME (issuer) `0x0df1770bB1b839E9aF883FcBD2C90ae27181385f`, investor A `0x601344DFBEd3Cc685CF49190f39c18B1b570C131`, investor A2 `0xC91913F3eCDef9D30816C5D2d424142f3ABfD9c8`, debtor `0xb6359D76E104a9fF007c979d5b18b2804578E72B`, debtor's accountant `0xe1D7a414963005BdCeecA0da42a50A3FFF7d9aDe`.
 
@@ -125,7 +125,7 @@ There are **two mock USDCs**: ENS's `ensMockUsdc` above (parent registration onl
 
 ## Gas & tests
 
-- `forge test --fork-url $SEPOLIA_RPC_URL --fork-block-number 11781431` runs **46 tests, 0 failed**: 2 go/no-go (`contracts/test/fork/GoNoGo.t.sol`) + 14 `InvoiceRegistrar` (`contracts/test/InvoiceRegistrar.t.sol`) + 22 `InvoiceMarket` (`contracts/test/InvoiceMarket.t.sol`) + 4 integration (`contracts/test/Integration.t.sol`) + 4 overdue-revival (`contracts/test/Overdue.t.sol`, stretch feature A6).
+- `forge test --fork-url https://sepolia.gateway.tenderly.co --fork-block-number 11784478` runs **46 tests, 0 failed**: 2 go/no-go (`contracts/test/fork/GoNoGo.t.sol`) + 14 `InvoiceRegistrar` (`contracts/test/InvoiceRegistrar.t.sol`) + 22 `InvoiceMarket` (`contracts/test/InvoiceMarket.t.sol`) + 4 integration (`contracts/test/Integration.t.sol`) + 4 overdue-revival (`contracts/test/Overdue.t.sol`, stretch feature A6). (Public RPCs have pruned this block; an archive RPC is required — see [Setup & testing](#build-and-test-the-contracts).)
 - `bash contracts/script/selector-parity.sh` checks 26 selectors against the deployed bytecode of the pinned tag and prints `PARITY OK (26 selectors)`.
 - Gas, measured on the Sepolia fork:
   - ENS operations only inside `registerInvoice` (per the go/no-go stub, `.omc/research/spike-ensv2.md`): 694,332 — `deployProxy`+`initialize` 154,853 / 7× `setText` 383,240 / `grantSetterRoles(ack)` 55,708 / `register` 100,531.
