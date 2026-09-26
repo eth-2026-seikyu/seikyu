@@ -47,6 +47,8 @@ Seikyu was built in a spec-driven workflow with Claude Code. **Every source file
 | GitHub | Role |
 |---|---|
 | [@ikhalas112](https://github.com/ikhalas112) | Lead: ran every Claude Code session, made the decisions above, holds the deployer and operator keys |
-| [@KoonPorZa](https://github.com/KoonPorZa) | Organization owner; role to be stated by the team |
-| [@prakasit-lertprakitsin](https://github.com/prakasit-lertprakitsin) | Organization owner; role to be stated by the team |
-| [@TaiChi112](https://github.com/TaiChi112) | Organization owner; role to be stated by the team |
+| [@KoonPorZa](https://github.com/KoonPorZa) | Patipol Pantarat, team member (web developer); organization owner |
+| [@prakasit-lertprakitsin](https://github.com/prakasit-lertprakitsin) | Prakasit "Farm" Lertprakitsin, team member (web developer); organization owner |
+| [@TaiChi112](https://github.com/TaiChi112) | Anothai Vichapaiboon, team member (CS student, agentic systems); organization owner |
+
+Roles for the three members other than the lead are taken from their public GitHub profiles. All commits in this repository up to this disclosure were made from the lead's sessions; see the git log for who authored what after it.

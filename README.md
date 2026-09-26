@@ -13,11 +13,9 @@ Built for ETHGlobal Tokyo 2026, targeting **ENS Best Use of ENSv2**, **World Bes
    | Name | Role | X / GitHub |
    |---|---|---|
    | Ikhalas Mannoon | Lead / integrator (ran every session, holds deployer + operator keys) | [@ikhalas112](https://github.com/ikhalas112) |
-   | TBD | TBD | [@KoonPorZa](https://github.com/KoonPorZa) |
-   | TBD | TBD | [@prakasit-lertprakitsin](https://github.com/prakasit-lertprakitsin) |
-   | TBD | TBD | [@TaiChi112](https://github.com/TaiChi112) |
-
-   <!-- FILL-H6: names, roles, X handles for the other three members -->
+   | Patipol Pantarat | Team member (web developer) | [@KoonPorZa](https://github.com/KoonPorZa) |
+   | Prakasit "Farm" Lertprakitsin | Team member (web developer) | [@prakasit-lertprakitsin](https://github.com/prakasit-lertprakitsin) |
+   | Anothai Vichapaiboon | Team member (CS student, agentic systems) | [@TaiChi112](https://github.com/TaiChi112) |
 
    How the work was split between people and AI is stated in [`docs/AI_USAGE.md`](docs/AI_USAGE.md).
 
@@ -180,7 +178,7 @@ This project was built spec-first with Claude Code: AI agents drafted and review
 ### Clone
 
 ```bash
-git clone --recursive <repo-url>
+git clone --recursive https://github.com/eth-2026-seikyu/seikyu.git
 # or, if already cloned without --recursive:
 git submodule update --init --recursive
 ```
