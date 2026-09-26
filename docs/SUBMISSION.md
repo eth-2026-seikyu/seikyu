@@ -34,3 +34,13 @@ World ID: IDKit 4.3 request widget with a server-signed RP context. The verify r
 Things we learned the hard way: (1) The deployed resolver scopes setter roles by record key only, not by name, so isolating the debtor's ack permission to one invoice requires a resolver per invoice. We found no cheaper way. (2) An expired ENSv2 name keeps its resolver storage and can be revived with renew(), so "mark overdue" is an ENS renewal that keeps an unpaid invoice's identity alive for 30 more days. (3) Staging World ID verification needs a 24-hour staging token that is only obtainable through the Developer Portal's MCP endpoint. We open the window there and send the token as a header on every staging verify call. (4) EIP-7702 smart-account EOAs cannot be issuers because the ERC-1155 registry mint rejects them; the issue form warns about it.
 
 Built during the hackathon with Claude Code agents; the plan, PRD and every prompt are in docs/planning/, and the AI disclosure is docs/AI_USAGE.md.
+
+## Describe how AI tools were used
+
+Claude Code (Anthropic) wrote the code; the team made the decisions, ran the deployment and verified it live. We used the oh-my-claudecode plugin to run planner, reviewer and executor agents, and one of us ran every session.
+
+Before any code, a planner agent drafted the plan and an architect agent and a critic agent reviewed it twice. A team member approved it. Executor agents then implemented the plan's task cards: the Solidity contracts, Foundry scripts and fork tests in contracts/, the Next.js app, World ID verify route and e2e scripts in web/, and the docs, including the Thai user manual and the Playwright scripts that capture its screenshots. Every commit has a Co-Authored-By: Claude trailer.
+
+The team picked the prize tracks and the idea after asking the AI to check prior art, approved the plan, funded the deployer, set up the wallets and the World Developer Portal, did the first live World ID verification with their own wallet, reviewed the output and steered the docs.
+
+Everything the AI was told is in the repo: the plan, the 24-story PRD, the research spikes, every prompt a person typed and every prompt the lead session gave an agent (secrets redacted) are in docs/planning/. Which parts used AI, by path, is in docs/AI_USAGE.md.

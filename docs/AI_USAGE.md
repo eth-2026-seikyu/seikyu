@@ -4,7 +4,7 @@ ETHGlobal Tokyo 2026 allows AI tools but requires teams to state which files or 
 
 ## Summary
 
-Seikyu was built in a spec-driven workflow with Claude Code. **Every source file in this repository was written by Claude Code agents**, working from a plan that AI agents drafted and reviewed and a human approved, and from prompts and decisions that are recorded verbatim. No contract, frontend, script, or document was hand-typed by a team member. What the humans contributed is the direction: which prizes to target, which idea to build, the go/no-go on the plan, every external account and on-chain funding step, the review of results, and the requests that shaped the documentation. Nothing about the project existed before the hackathon opened; the first session started at 01:45 JST on 2026-09-26, twelve hours after hacking opened, and the first commit is at 04:38 JST the same day.
+Claude Code wrote the code in this repository; the team made the decisions, ran the deployment and the live verification, and reviewed the results. The workflow was spec-driven: AI agents drafted and reviewed the plan, a team member approved it, and executor agents implemented its task cards. The contracts, the web app, the scripts and the documentation are AI-written; the prompts that directed them and the decisions behind them are recorded verbatim in [`docs/planning/`](planning/README.md). Nothing about the project existed before the hackathon opened: the first session started at 01:45 JST on 2026-09-26, twelve hours after hacking opened, and the first commit is at 04:38 JST the same day.
 
 ## Tools and models
 

@@ -159,7 +159,7 @@ There are **two mock USDCs**: ENS's `ensMockUsdc` above (parent registration onl
 
 ## AI usage & planning artifacts
 
-This project was built spec-first with Claude Code: AI agents drafted and reviewed the plan, wrote every source file, and ran the tests and deployments; the humans chose the target, approved the plan, did every external-account and funding step, and reviewed the results. Every commit carries a `Co-Authored-By: Claude` trailer. The full statement of which parts used AI is [`docs/AI_USAGE.md`](docs/AI_USAGE.md); the plan, PRD, research spikes, progress log, and every prompt (human-typed and agent-directed, secrets redacted) are in [`docs/planning/`](docs/planning/README.md).
+Claude Code wrote the code; the team made the decisions. AI agents drafted and reviewed the plan and wrote the contracts, the web app and the docs; the team chose the target, approved the plan, funded and configured the deployment, verified it live, and reviewed the results. Every commit carries a `Co-Authored-By: Claude` trailer. The full statement of which parts used AI is [`docs/AI_USAGE.md`](docs/AI_USAGE.md); the plan, PRD, research spikes, progress log, and every prompt (human-typed and agent-directed, secrets redacted) are in [`docs/planning/`](docs/planning/README.md).
 
 ## Prizes targeted
 
