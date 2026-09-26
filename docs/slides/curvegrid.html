@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seikyu × Curvegrid — ETHGlobal Tokyo 2026</title>
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="body">
+      <p class="eyebrow">Curvegrid partner track — RWA tokenization</p>
+      <h1>A receivable that lives<br>and dies on-chain.</h1>
+      <p class="lede">One ERC-721 per invoice — minted at listing, transferred once, burned at settlement.</p>
+      <div class="links">
+        <span><b>seikyu.xyz</b></span>
+        <span>Live on Sepolia</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <p class="eyebrow">The asset</p>
+    <div class="body">
+      <div class="col">
+        <h2>The listing lives on-chain, not in a database</h2>
+        <ul>
+          <li>One ERC-721 minted when the supplier lists it</li>
+          <li>Self-held by the market contract: <code>_mint(address(this), id)</code></li>
+          <li>Burned the instant the debtor settles</li>
+        </ul>
+      </div>
+      <figure><img src="img/03-issue-filled.png" alt="Issue form filled in with debtor, accountant, face value and discount"></figure>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <p class="eyebrow">The controls</p>
+    <div class="body">
+      <div class="col">
+        <h2>Programmable rules live in the transfer itself</h2>
+        <ul>
+          <li>Every transfer runs through ERC-721's <code>_update</code> hook</li>
+          <li>Rejects investors who haven't passed World ID</li>
+          <li>Caps each person at 3 open invoices; mint and burn are exempt</li>
+        </ul>
+      </div>
+      <figure><img src="img/11-buy-button.png" alt="Buy panel showing Step 2 of 2 and the 950 mUSDC price"></figure>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <p class="eyebrow">No escrow, ever</p>
+    <div class="body">
+      <div class="col">
+        <h2>950 now, instead of 1,000 later</h2>
+        <ul>
+          <li><code>buy()</code> sends the price straight to the supplier</li>
+          <li><code>settle()</code> pays the current owner in full</li>
+          <li>One tx pays, burns the token, retires the ENS name</li>
+        </ul>
+      </div>
+      <div class="pair">
+        <figure><img src="img/12-sold-awaiting.png" alt="Invoice status showing Sold, awaiting payment"></figure>
+        <figure><img src="img/17-paid-in-full.png" alt="Invoice marked Paid in full after settlement"></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <p class="eyebrow">The states</p>
+    <div class="body">
+      <div class="col">
+        <h2>Six states — four on-chain, two derived</h2>
+        <ul>
+          <li>Listed, Funded, Paid, Cancelled are written on-chain</li>
+          <li>Overdue and Expired-unsold are derived from the due date</li>
+          <li>Marking overdue extends the ENS name 30 days</li>
+        </ul>
+      </div>
+      <figure><img src="img/04-invoice-summary.png" alt="Invoice summary with status badges, amount owed and sale price"></figure>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide center">
+    <div class="body">
+      <p class="eyebrow">What we'd tell Curvegrid</p>
+      <h1 style="font-size:50px">Verifiable on-chain, honest about the gaps</h1>
+      <ul style="text-align:left; max-width:640px; margin:0 auto 22px;">
+        <li>46 Foundry fork tests run against a pinned Sepolia block</li>
+        <li>All three contracts are Sourcify exact-match verified</li>
+        <li>The full issue-to-settle lifecycle ran live on Sepolia for the demo</li>
+      </ul>
+      <p class="proof">InvoiceMarket <span class="mono">0x9Cf9989AfC0196720aa0A64F61a614CFB548B875</span> · InvoiceRegistrar <span class="mono">0x628701e9A322B019e4aFe31A077f393644D748eF</span> · mock USDC <span class="mono">0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D</span></p>
+      <p class="proof">MultiBaas note: evaluated for the invoice feed, cut to hit the time-box. The app reads chain state over plain RPC — the README says so. A 15-minute Sepolia ERC-721 event quick-start with a Next.js example would change that.</p>
+      <div class="links">
+        <span><b>seikyu.xyz</b></span>
+      </div>
+    </div>
+  </section>
+
+</div>
+<script src="deck.js"></script>
+</body>
+</html>

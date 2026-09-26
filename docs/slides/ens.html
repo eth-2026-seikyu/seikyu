@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seikyu × ENS — ETHGlobal Tokyo 2026</title>
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="body">
+      <h1>Seikyu <span style="font-weight:500">on ENSv2</span></h1>
+      <p class="lede">Every invoice is an ENS name whose expiry is its due date.<br>Built for the ENS team, from the inside of ENSv2.</p>
+      <div class="links">
+        <span>Sepolia · <b>sepolia-deployment-2026-09-15</b> · <b>seikyu.eth</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <p class="eyebrow">Built on ENSv2</p>
+    <div class="body">
+      <div class="col">
+        <h2>Expiry is an economic primitive, not a label</h2>
+        <ul>
+          <li>Pinned to <code>sepolia-deployment-2026-09-15</code>; <code>main</code>'s API differs from what's deployed</li>
+          <li>Own <code>UserRegistry</code> via VerifiableFactory, under <code>seikyu.eth</code></li>
+          <li><code>inv-15.seikyu.eth</code>'s expiry equals the invoice's due date, exactly</li>
+        </ul>
+      </div>
+      <figure><img src="img/04-invoice-summary.png" alt="Invoice page with a plain summary and Technical details (ENS) collapsed below"></figure>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <p class="eyebrow">A constraint we hit</p>
+    <div class="body">
+      <div class="col">
+        <h2>One resolver per invoice — by force, not choice</h2>
+        <ul>
+          <li>Setter roles are scoped by <code>keccak256(key)</code>, never by name</li>
+          <li>Debtor write-access to <code>ack</code> alone needs its own resolver</li>
+          <li>Eight text records per invoice, resolver address included</li>
+        </ul>
+      </div>
+      <figure><img src="img/05-ens-records.png" alt="The eight ENS text records read live, plus the per-invoice resolver address"></figure>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <p class="eyebrow">Enforced on-chain, shown live</p>
+    <div class="body">
+      <div class="col">
+        <h2>Confirm the debt, touch nothing else</h2>
+        <ul>
+          <li>Debtor's AP wallet holds an EAC role scoped to <code>ack</code> alone</li>
+          <li>Editing the amount reverts: <code>EACUnauthorizedAccountRoles</code></li>
+          <li>Confirming <code>ack</code> flips the badge to "Confirmed by debtor"</li>
+        </ul>
+      </div>
+      <div class="pair">
+        <figure><img src="img/13-ack-confirmed.png" alt="Accountant page after writing ack, badge reads Confirmed by debtor"></figure>
+        <figure><img src="img/14-eac-denied.png" alt="Editing the amount blocked on-chain with EACUnauthorizedAccountRoles"></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <p class="eyebrow">ENS state gates real money</p>
+    <div class="body">
+      <div class="col">
+        <h2>A disputed invoice cannot be bought</h2>
+        <ul>
+          <li><code>InvoiceMarket.buy()</code> checks <code>REGISTRAR.isLive(id)</code> before moving money</li>
+          <li>Refuses outright when the debtor's <code>ack</code> reads <code>disputed</code></li>
+          <li>ENS state gates the money — not application logic</li>
+        </ul>
+      </div>
+      <figure><img src="img/15-dispute-blocked.png" alt="Buying blocked because the debtor disputed the invoice"></figure>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <p class="eyebrow">Two independent read paths</p>
+    <div class="body wide">
+      <div class="col">
+        <h2>The name retires; the record doesn't</h2>
+        <ul>
+          <li><code>closeInvoice</code> pays the investor, burns the token, unregisters — one tx</li>
+          <li>Liveness reads the registry; records read the resolver cached at registration</li>
+          <li>Registry returns <code>address(0)</code> once expired — the cache keeps records alive</li>
+        </ul>
+      </div>
+      <div class="pair">
+        <figure><img src="img/18-name-retired.png" alt="Technical details after settlement showing the ENS name is no longer live"></figure>
+        <figure><img src="img/20-records-survive.png" alt="Invoice records still readable on the resolver after the name stopped resolving"></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide center">
+    <div class="body">
+      <p class="eyebrow">What we'd tell the ENS team</p>
+      <h1 style="font-size:50px">The deploy tag should be<br>the docs entry point.</h1>
+      <p class="lede">Key-scoped setter roles deserve a prominent note — it drove our whole resolver-per-invoice design. The missing <code>text()</code> getter forces resolve + multicall. And <code>renew</code> reviving an expired name's storage is useful, though undocumented.</p>
+      <div class="links">
+        <span>UserRegistry <code>0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67</code></span>
+        <span>InvoiceRegistrar <code>0x628701e9A322B019e4aFe31A077f393644D748eF</code></span>
+        <span>InvoiceMarket <code>0x9Cf9989AfC0196720aa0A64F61a614CFB548B875</code></span>
+      </div>
+    </div>
+  </section>
+
+</div>
+<script src="deck.js"></script>
+</body>
+</html>

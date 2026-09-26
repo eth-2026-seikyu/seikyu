@@ -1,0 +1,263 @@
+/* Shared slide styling for the Seikyu decks.
+   Slides are a fixed 1280x720 box scaled to the viewport by deck.js, so the
+   layout is identical on any laptop or projector. */
+
+:root {
+  --ink: #0f1115;
+  --muted: #5b6370;
+  --line: #e2e2df;
+  --paper: #faf9f7;
+  --accent: #b45309;
+  --ok: #15803d;
+  --slide-w: 1280px;
+  --slide-h: 720px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #1c1d21;
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+#stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--slide-w);
+  height: var(--slide-h);
+  transform-origin: center center;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  padding: 54px 64px 48px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.slide.on { display: flex; }
+
+/* ---- type ---- */
+
+.eyebrow {
+  font-size: 17px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 650;
+  margin: 0 0 14px;
+}
+
+h1 {
+  font-size: 68px;
+  line-height: 1.04;
+  letter-spacing: -.022em;
+  margin: 0 0 20px;
+  font-weight: 680;
+}
+
+h2 {
+  font-size: 44px;
+  line-height: 1.1;
+  letter-spacing: -.018em;
+  margin: 0 0 22px;
+  font-weight: 670;
+}
+
+.lede {
+  font-size: 27px;
+  line-height: 1.42;
+  color: var(--muted);
+  margin: 0;
+  max-width: 24ch;
+}
+
+.slide.center .lede { max-width: 34ch; }
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 15px;
+}
+
+li {
+  font-size: 24px;
+  line-height: 1.38;
+  padding-left: 22px;
+  position: relative;
+  max-width: 30ch;
+}
+
+li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .62em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+li b { font-weight: 660; }
+
+code, .mono {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: .92em;
+  background: #efeeea;
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+
+/* ---- layout ---- */
+
+.body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 44px;
+  align-items: center;
+  min-height: 0;
+}
+
+.body.wide { grid-template-columns: 0.82fr 1.18fr; }
+.body.text-only { grid-template-columns: 1fr; }
+
+/* Text above, a full-width banner image below — for wide, short screenshots
+   that would be unreadable squeezed into a half column. */
+.body.stack {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+
+.body.stack figure { align-self: stretch; }
+.body.stack li { max-width: 58ch; }
+
+.col { min-width: 0; }
+
+figure {
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 0;
+}
+
+figure img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+figcaption {
+  font-size: 15px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  height: 100%;
+  align-items: center;
+}
+
+.slide.center {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.slide.center .body { display: block; flex: none; }
+
+/* ---- accents ---- */
+
+.kicker {
+  display: inline-block;
+  font-size: 19px;
+  font-weight: 640;
+  color: var(--ok);
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  padding: 5px 16px;
+  margin-top: 6px;
+}
+
+.proof {
+  margin-top: 20px;
+  font-size: 17px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.proof .mono { font-size: 15px; }
+
+.links {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  font-size: 23px;
+  margin-top: 26px;
+  flex-wrap: wrap;
+}
+
+.links span { color: var(--muted); }
+.links b { font-weight: 640; color: var(--ink); }
+
+/* ---- chrome ---- */
+
+.num {
+  position: absolute;
+  right: 26px;
+  bottom: 18px;
+  font-size: 14px;
+  color: #a5a9b0;
+  font-variant-numeric: tabular-nums;
+}
+
+.brand {
+  position: absolute;
+  left: 64px;
+  bottom: 18px;
+  font-size: 14px;
+  color: #a5a9b0;
+  letter-spacing: .04em;
+}
+
+.slide.center .brand, .slide.center .num { color: #b9bcc2; }
+
+/* ---- print: one slide per landscape page ---- */
+
+@media print {
+  html, body { background: #fff; height: auto; overflow: visible; }
+  @page { size: 1280px 720px; margin: 0; }
+  #stage { position: static; width: auto; height: auto; transform: none !important; }
+  .slide {
+    display: flex !important;
+    position: relative;
+    width: 1280px;
+    height: 720px;
+    break-after: page;
+    page-break-after: always;
+  }
+}

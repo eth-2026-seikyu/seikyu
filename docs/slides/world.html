@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seikyu × World — ETHGlobal Tokyo 2026</title>
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="body">
+      <p class="eyebrow">World partner track</p>
+      <h1>Buying a receivable<br>requires one real human.</h1>
+      <p class="lede">IDKit 4.3 · Proof of Human preset, legacy v3 proofs allowed for the demo</p>
+      <div class="links">
+        <span><b>seikyu.xyz</b></span>
+        <span>World ID gates every purchase</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <p class="eyebrow">Step 2 — Buy</p>
+    <div class="body wide">
+      <div class="col">
+        <h2>The client opens IDKit before checkout</h2>
+        <ul>
+          <li><code>IDKitRequestWidget</code>, IDKit 4.3</li>
+          <li>Preset: Proof of Human, legacy v3 allowed</li>
+          <li>Passport is the credential we designed around</li>
+        </ul>
+      </div>
+      <div class="pair">
+        <figure><img src="img/06-investor-banner.png" alt="Investor banner explaining the one-time human check"></figure>
+        <figure><img src="img/07-worldid-widget.png" alt="World ID widget open with a QR code"></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <p class="eyebrow">Server-side — the part verify() doesn't do</p>
+    <div class="body text-only">
+      <div class="col">
+        <h2>We verify before we forward</h2>
+        <ul>
+          <li>We hash the signal ourselves with idkit-core's <code>hashSignal</code></li>
+          <li>Compare it to <code>responses[0].signal_hash</code></li>
+          <li>World's <code>/api/v4/verify</code> never checks the signal — no hash fails closed</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <p class="eyebrow">Two more checks, server-side</p>
+    <div class="body wide">
+      <div class="col">
+        <h2>Credential and environment, matched exactly</h2>
+        <ul>
+          <li>Legacy proof reports <code>identifier: "orb"</code>, not <code>proof_of_human</code></li>
+          <li>We match it to our configured preset anyway</li>
+          <li>Response <code>environment</code> must match what the widget requested</li>
+        </ul>
+      </div>
+      <figure><img src="img/09-simulator-legacy-v3.png" alt="World ID Simulator with Human credential and legacy v3 toggle"></figure>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <p class="eyebrow">On success</p>
+    <div class="body">
+      <div class="col">
+        <h2>One nullifier, one wallet, forever</h2>
+        <ul>
+          <li>Operator wallet relays <code>setVerified(investor, nullifier)</code> on-chain</li>
+          <li>The nullifier binds permanently to the first wallet that uses it</li>
+          <li>Cap of 3 open invoices lives in the ERC-721 <code>_update</code> hook, not the UI</li>
+        </ul>
+      </div>
+      <div class="pair">
+        <figure><img src="img/10-verified.png" alt="Confirmation that the World ID is now connected"></figure>
+        <figure><img src="img/11-buy-button.png" alt="Buy panel unlocked for 950 mUSDC"></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <p class="eyebrow">Failure states — all real, not mocked</p>
+    <div class="body">
+      <div class="col">
+        <h2>Every rejection is a real response</h2>
+        <ul>
+          <li>Cancel is recoverable — the panel offers Retry</li>
+          <li>Reused World ID from another wallet → 409 <code>NULLIFIER_ALREADY_USED</code></li>
+          <li>Signal that doesn't match the wallet → 422 <code>SIGNAL_MISMATCH</code></li>
+        </ul>
+      </div>
+      <figure><img src="img/08-verify-cancelled.png" alt="Verification cancelled panel with a Retry button"></figure>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide center">
+    <div class="body">
+      <p class="eyebrow">What we'd tell World</p>
+      <h1 style="font-size:52px">Verified live, with feedback worth acting on</h1>
+      <ul style="text-align:left; max-width:640px; margin:0 auto 22px;">
+        <li><code>/api/v4/verify</code> silently ignores the signal — worth stating in the docs</li>
+        <li>Staging token only comes from the Portal's MCP endpoint, expires in 24h</li>
+        <li>Simulator's default mode shares one nullifier across all 5 test identities</li>
+      </ul>
+      <p class="proof">Wallet <span class="mono">0x1de375E3B8Bbb7dF74E927Ca481414843A2Bbe49</span> verified with Simulator identity #3 — <code>InvestorVerified</code> tx <span class="mono">0x5401e699…5132</span> on Sepolia, <code>isVerified</code> now true.</p>
+      <div class="links">
+        <span><b>seikyu.xyz</b></span>
+      </div>
+    </div>
+  </section>
+
+</div>
+<script src="deck.js"></script>
+</body>
+</html>

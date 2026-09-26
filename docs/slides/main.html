@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seikyu — ETHGlobal Tokyo 2026</title>
+<link rel="stylesheet" href="deck.css">
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1 -->
+  <section class="slide center">
+    <div class="body">
+      <h1>Seikyu&nbsp;<span style="font-weight:500">請求</span></h1>
+      <p class="lede">Sell an invoice today, or invest in one.<br>Every invoice is an ENS name that expires on its due date.</p>
+      <div class="links">
+        <span>Live on Sepolia · <b>seikyu.xyz</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <p class="eyebrow">The problem</p>
+    <div class="body text-only">
+      <div class="col">
+        <h2>A supplier delivers today<br>and gets paid in 60 to 90 days.</h2>
+        <p class="lede" style="max-width:40ch">Until the debtor pays, that invoice is real money the supplier cannot touch — and nobody else can buy it, because nobody can check whether it is genuine.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <p class="eyebrow">What Seikyu does</p>
+    <div class="body stack">
+      <div class="col">
+        <h2>Three people, one invoice</h2>
+        <ul>
+          <li><b>Supplier</b> lists an unpaid invoice · <b>Investor</b> buys it at a discount, paying the supplier now · <b>Debtor company</b> pays the full amount on the due date</li>
+        </ul>
+      </div>
+      <figure><img src="img/01b-role-cards.png" alt="Seikyu home page with three role cards"></figure>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <p class="eyebrow">Step 1 — Issue</p>
+    <div class="body">
+      <div class="col">
+        <h2>One signature turns an invoice into an asset</h2>
+        <ul>
+          <li>Mints an ERC-721 receivable</li>
+          <li>Deploys a resolver for this invoice alone</li>
+          <li>Registers <code>inv-15.seikyu.eth</code> with <b>expiry = the due date</b></li>
+        </ul>
+      </div>
+      <figure><img src="img/03-issue-filled.png" alt="Issue form filled in with debtor, amount and due date"></figure>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <p class="eyebrow">Step 1 — Issue</p>
+    <div class="body">
+      <div class="col">
+        <h2>The invoice <i>is</i> the ENS name</h2>
+        <ul>
+          <li>Eight text records: amount, debtor, due date, status, issuer…</li>
+          <li>Anyone can read it — no Seikyu account needed</li>
+          <li>The name lives exactly as long as the debt is current</li>
+        </ul>
+      </div>
+      <figure><img src="img/05-ens-records.png" alt="ENS records for the invoice read live from its resolver"></figure>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <p class="eyebrow">Step 2 — Buy</p>
+    <div class="body">
+      <div class="col">
+        <h2>Only a real person can buy</h2>
+        <ul>
+          <li>World ID proves the buyer is one unique human</li>
+          <li>The proof is bound to their wallet, server-side</li>
+          <li>One human, one investor wallet — capped at 3 open invoices</li>
+        </ul>
+      </div>
+      <figure><img src="img/07-worldid-widget.png" alt="World ID verification opening for the investor"></figure>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <p class="eyebrow">Step 2 — Buy</p>
+    <div class="body">
+      <div class="col">
+        <h2>950 now,<br>instead of 1,000 later</h2>
+        <ul>
+          <li>The supplier is paid the moment the sale clears</li>
+          <li>The ENS status record flips to <code>funded</code></li>
+        </ul>
+      </div>
+      <figure><img src="img/11-buy-button.png" alt="Buy panel showing the 950 test USDC price"></figure>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <p class="eyebrow">Step 3 — The debtor confirms</p>
+    <div class="body">
+      <div class="col">
+        <h2>They can confirm the debt — and change nothing else</h2>
+        <ul>
+          <li>The debtor's accountant writes one record: <code>ack</code></li>
+          <li>Editing the amount reverts on-chain, by design</li>
+          <li>A disputed invoice cannot be bought at all</li>
+        </ul>
+      </div>
+      <figure><img src="img/14-eac-denied.png" alt="Accountant page showing the amount edit blocked on-chain"></figure>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <p class="eyebrow">Step 4 — Settle</p>
+    <div class="body">
+      <div class="col">
+        <h2>Paid in full, and the identity retires with the debt</h2>
+        <ul>
+          <li>The investor receives the full 1,000</li>
+          <li>The receivable token is burned</li>
+          <li>The ENS name is unregistered — same transaction</li>
+        </ul>
+      </div>
+      <figure><img src="img/17-paid-in-full.png" alt="Invoice marked Paid in full after settlement"></figure>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <p class="eyebrow">Why expiry matters</p>
+    <div class="body wide">
+      <div class="col">
+        <h2>An unsold invoice<br>simply expires</h2>
+        <ul>
+          <li>No cleanup job — the due date <i>is</i> the expiry</li>
+          <li>The name stops resolving; the records stay readable</li>
+          <li>Unpaid but sold? Anyone can extend it 30 days</li>
+        </ul>
+      </div>
+      <figure><img src="img/19-not-sold-in-time.png" alt="Home page showing an invoice that was not sold in time"></figure>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide center">
+    <div class="body">
+      <p class="eyebrow">Live on Sepolia, today</p>
+      <h1 style="font-size:58px">A name lives as long as<br>the debt behind it.</h1>
+      <p class="lede">ENSv2 · World ID · ERC-721 receivables<br>46 fork tests · contracts verified · 17 invoices live</p>
+      <div class="links">
+        <span><b>seikyu.xyz</b></span>
+        <span><b>github.com/eth-2026-seikyu/seikyu</b></span>
+      </div>
+    </div>
+  </section>
+
+</div>
+<script src="deck.js"></script>
+</body>
+</html>
