@@ -1,6 +1,6 @@
 {
   "chainId": 11155111,
-  "forkBlock": 11781431,
+  "forkBlock": 11784478,
   "ensTag": "sepolia-deployment-2026-09-15",
   "ensCommit": "f2f0a05e6c1711134b73204a1e37f8e6c1aea6ab",
   "ethRegistry": "0x657ea849311d3d5823348dded7c2aaafb3ede09e",
@@ -10,8 +10,8 @@
   "permissionedResolverImpl": "0x14f09fd05d4585759e54844dc9b00147131cf243",
   "userRegistryImpl": "0xa80338aaa8d23831cea25e858d1774534abb0263",
   "ensMockUsdc": "0x16f95d91dba7da3aca778ec053df0ff6c6a8aa8e",
-  "parentName": "",
-  "userRegistry": "0x0000000000000000000000000000000000000000",
+  "parentName": "seikyu.eth",
+  "userRegistry": "0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67",
   "invoiceRegistrar": "0x0000000000000000000000000000000000000000",
   "invoiceMarket": "0x0000000000000000000000000000000000000000",
   "mockUsdc": "0x0000000000000000000000000000000000000000",
