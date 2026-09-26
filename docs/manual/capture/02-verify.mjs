@@ -1,4 +1,5 @@
-// Chapter 2 — investor A proves personhood with World ID (staging simulator, Passport).
+// Chapter 2 — investor A proves personhood with World ID (staging simulator).
+// The credential chip follows NEXT_PUBLIC_WORLD_PRESET: "Human" for proofOfHuman, "Passport" for passport.
 // Also captures the F1 "cancelled" state used in chapter 6. Captured at 1280 wide:
 // below ~1024px IDKit switches to its mobile sheet, which hides "Use the simulator".
 import path from "node:path";
@@ -10,6 +11,11 @@ const { parseAbi, parseEventLogs } = await import(VIEM);
 const { invoice } = loadState();
 const { browser, context, page, account } = await openAs("INVESTOR_A", { width: 1280, height: 860 });
 const verifyResponses = [];
+page.on("request", (r) => {
+  if (!r.url().includes("/api/world/verify")) return;
+  const item = JSON.parse(r.postData() ?? "{}").result?.responses?.[0] ?? {};
+  console.log("VERIFY_REQUEST", item.identifier, item.nullifier);
+});
 page.on("response", async (r) => {
   if (!r.url().includes("/api/world/verify")) return;
   const body = await r.json().catch(() => ({}));
@@ -90,16 +96,24 @@ await dropClip(page);
 const [sim] = await Promise.all([context.waitForEvent("page"), simLink.click()]);
 await sim.setViewportSize({ width: 1280, height: 860 });
 await sim.waitForLoadState("domcontentloaded");
-const passportChip = sim.getByRole("button", { name: "Passport", exact: true });
+const CREDENTIAL = process.env.SIM_CREDENTIAL ?? "Human";
+const credentialChip = sim.getByRole("button", { name: CREDENTIAL, exact: true });
 const continueBtn = sim.getByRole("button", { name: "Continue" });
 await continueBtn.waitFor({ timeout: 60_000 });
 await sim.waitForTimeout(2500);
+// "World ID 4.0" (default) or "Legacy v3 proof" — the simulator's proof-format switch.
+const PROOF_MODE = process.env.SIM_PROOF ?? "World ID 4.0";
+const proofToggle = sim.locator(`button:has-text("${PROOF_MODE}")`);
+await proofToggle.click();
+await sim.waitForTimeout(800);
 console.log("SIMULATOR", sim.url());
 await markBoxes(sim, [
-  { locator: passportChip, n: 3 },
-  { locator: continueBtn, n: 4 },
+  // Legacy v3 mode has no credential chips — only the toggle and Continue.
+  ...((await credentialChip.isVisible().catch(() => false)) ? [{ locator: credentialChip, n: 3 }] : []),
+  { locator: proofToggle, n: 4 },
+  { locator: continueBtn, n: 5 },
 ]);
-await shot(sim, "02-03-simulator-passport", {
+await shot(sim, "02-03-simulator-credential", {
   clipTo: await unionClip(sim, ["text=World ID Simulator", sim.locator("button:has-text(\"World ID 4.0\")"), sim.getByText("9:41")], { padX: 60, padY: 50 }),
 });
 await dropClip(sim);

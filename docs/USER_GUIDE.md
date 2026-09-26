@@ -128,7 +128,9 @@ invoice แต่ละใบจะมีชื่อ ENS ของตัวเ�
 
 ## บทที่ 2 ยืนยันตัวตนด้วย World ID (นักลงทุน)
 
-ก่อนซื้อ invoice ได้ นักลงทุนต้องพิสูจน์ด้วย World ID ว่าเป็นคนจริงที่มีพาสปอร์ต (credential แบบ **Passport**)
+ก่อนซื้อ invoice ได้ นักลงทุนต้องพิสูจน์ด้วย World ID ว่าเป็นมนุษย์ที่ไม่ซ้ำกับใคร
+ระบบที่ใช้ถ่ายคู่มือนี้ตั้งค่า credential เป็น **Human** (Proof of Human, `NEXT_PUBLIC_WORLD_PRESET=proofOfHuman`)
+— ข้อความในกล่องซื้อของแอปยังเขียนว่า "World ID Passport proof" อยู่ ให้ยึดตาม credential ที่ Simulator/World App ขอจริง
 ทำครั้งเดียวต่อ wallet และระบบผูก "หนึ่งคนต่อหนึ่ง wallet" — คนเดียวกันใช้ wallet ที่สองยืนยันซ้ำไม่ได้ (ดูบทที่ 6.4)
 นักลงทุนหนึ่งคนถือ invoice ที่ยังไม่ปิดได้สูงสุด 3 ใบ
 
@@ -154,20 +156,63 @@ invoice แต่ละใบจะมีชื่อ ENS ของตัวเ�
 > **หมายเหตุ** ถ้าหน้าต่างเบราว์เซอร์แคบ (ประมาณต่ำกว่า 1,024 px) หน้าต่าง World ID จะเปลี่ยนเป็นแบบมือถือ
 > มีเพียงปุ่ม "Open World ID App" และ "Display QR Code" โดยไม่มีลิงก์ Use the simulator — ให้ขยายหน้าต่างเบราว์เซอร์แล้วเปิดใหม่
 
-3. ในแท็บ Simulator จะเห็นหน้า "Complete verification" ตรวจว่าเลือก **Passport** อยู่ (มีกรอบรอบปุ่ม) และด้านล่างเขียนว่า "Unique document"
-4. กดปุ่ม **Continue**
+3. ในแท็บ Simulator จะเห็นหน้า "Complete verification" ตรวจว่าปุ่ม **Human** มีกรอบ (ถูกเลือกไว้แล้ว) และด้านล่างเขียนว่า "Unique Human"
+4. ที่หัวข้อ **SIMULATOR OPTIONS** ด้านล่าง กดเลือก **Legacy v3 proof** (สำคัญสำหรับ staging — ดูหมายเหตุด้านล่าง)
+5. กดปุ่ม **Continue**
 
-![World ID Simulator](manual/screenshots/02-03-simulator-passport.png)
+![World ID Simulator](manual/screenshots/02-03-simulator-credential.png)
 
-*ภาพที่ 10 — World ID Simulator: เลือก Passport (3) แล้วกด Continue (4)*
+*ภาพที่ 10 — World ID Simulator: เลือก Legacy v3 proof (4) แล้วกด Continue (5)*
 
-<!-- VERIFY-RESULT -->
+6. กลับมาที่แท็บ Seikyu ข้อความในกล่องจะเป็น "Verifying your World ID…" ระหว่างที่เซิร์ฟเวอร์ตรวจหลักฐานกับ World
+   และบันทึกผลลง blockchain (ธุรกรรม `InvestorVerified`) — เมื่อเสร็จ ข้อความจะเป็น "Verified with World ID."
+   และภายในไม่กี่วินาทีกล่องจะเปลี่ยนเป็นราคาพร้อมปุ่ม **Approve mUSDC** (บทที่ 3)
+
+> **ทำไมต้องเลือก Legacy v3 proof (staging เท่านั้น)** ในโหมด "World ID 4.0" (ค่าเริ่มต้น) Simulator ส่งรหัสประจำตัว (nullifier)
+> ค่าเดียวกันให้ **ทุก** identity และทุก credential — รหัสนั้นถูกผูกกับ wallet อื่นไปแล้ว ผลคือ `409 NULLIFIER_ALREADY_USED`
+> ส่วนโหมด "Legacy v3 proof" ให้รหัสแยกตาม identity ของ Simulator จึงยืนยัน wallet ใหม่ได้ (ถ้า identity นั้นยังไม่เคยใช้ — ดูภาคผนวก ข)
+> ระบบจริง (World App) ไม่มีตัวเลือกนี้และไม่มีปัญหานี้
 
 ---
 
 ## บทที่ 3 ซื้อ receivable (นักลงทุน)
 
-<!-- CH3 -->
+หลังยืนยันตัวตนแล้ว (บทที่ 2) กล่องซื้อในหน้า invoice จะแสดงราคาและปุ่มสำหรับซื้อ การซื้อมี 2 ธุรกรรม: อนุญาตให้ตลาดดึง mUSDC แล้วจึงซื้อ
+
+1. บรรทัด "Price 950.00 mUSDC (5.0% discount)" — ราคาที่จะจ่ายและส่วนลดจากยอดเต็ม
+2. กดปุ่ม **Approve mUSDC** แล้วกด Confirm ใน MetaMask — เป็นการอนุญาตให้สัญญา InvoiceMarket ดึง mUSDC เท่ากับราคาซื้อ
+   ระหว่างรอจะมีข้อความ `Approving mUSDC…`
+
+![ปุ่ม Approve mUSDC](manual/screenshots/03-01-approve.png)
+
+*ภาพที่ 11 — ราคาและปุ่ม Approve mUSDC หลังยืนยันตัวตนแล้ว*
+
+3. เมื่ออนุญาตเสร็จ ปุ่มจะเปลี่ยนเป็น **Buy for 950.00 mUSDC** กดปุ่มนี้แล้วกด Confirm ใน MetaMask (ระหว่างรอขึ้น `Buying…`)
+
+![ปุ่ม Buy](manual/screenshots/03-02-buy.png)
+
+*ภาพที่ 12 — ปุ่มซื้อ*
+
+เมื่อซื้อสำเร็จ SME ได้รับ 950 mUSDC ทันที และหน้า invoice จะอัปเดตเอง (ถ้ายังไม่เปลี่ยน ให้รีเฟรชหน้า)
+
+4. ป้าย **SETTLEMENT (ON-CHAIN)** เปลี่ยนเป็น `Funded`
+5. record `status` ใน ENS เปลี่ยนจาก `listed` เป็น `funded` (ป้าย ENS ACK ในภาพเป็น `acknowledged` เพราะฝ่ายบัญชียืนยันไว้ก่อนแล้วตามบทที่ 4)
+
+![invoice หลังถูกซื้อ](manual/screenshots/03-03-funded.png)
+
+*ภาพที่ 13 — invoice เปลี่ยนเป็น Funded*
+
+6. **State** เป็น `Funded`
+7. **Holder** เป็น address ของนักลงทุน (`0x6013…C131`) — นักลงทุนถือ invoice (token ERC-721) และจะได้รับยอดเต็ม 1,000 mUSDC เมื่อลูกหนี้จ่าย
+   กล่องด้านล่างเปลี่ยนเป็นกล่องชำระเงินสำหรับลูกหนี้ (บทที่ 5)
+
+![ผู้ถือ invoice หลังซื้อ](manual/screenshots/03-04-holder.png)
+
+*ภาพที่ 14 — ผู้ถือ invoice คือนักลงทุน*
+
+> **ถ้าซื้อไม่ได้** กล่องจะแสดงเหตุผลเป็นตัวแดง เช่น "You already hold the maximum of 3 open positions." (ถือครบ 3 ใบแล้ว),
+> "This invoice's ENS name is no longer live, so it can't be bought." (ชื่อหมดอายุแล้ว),
+> "This invoice's due date has passed." หรือข้อความ disputed (บทที่ 6.3)
 
 ---
 
@@ -249,7 +294,39 @@ wallet นี้ได้สิทธิ์แก้ข้อมูลของ 
 
 ## บทที่ 5 ลูกหนี้ชำระเงิน (settle) และชื่อ ENS ถูกถอน
 
-<!-- CH5 -->
+เมื่อถึงกำหนด ลูกหนี้จ่ายยอดเต็มผ่านหน้า invoice เงินจะไปถึงผู้ถือ invoice (นักลงทุน) โดยตรง
+ใครจะเป็นคนกดจ่ายก็ได้ แต่ปกติคือ wallet ของลูกหนี้ ซึ่งต้องมี mUSDC เท่ากับยอดเต็ม
+
+เชื่อมต่อ wallet ของลูกหนี้ แล้วเปิดหน้า invoice ที่สถานะเป็น `Funded`
+
+1. บรรทัด "Face value 1,000.00 mUSDC — held by 0x6013…C131" — ยอดที่ต้องจ่ายและผู้ที่จะได้รับเงิน
+2. กดปุ่ม **Approve mUSDC** แล้วกด Confirm ใน MetaMask — อนุญาตให้ตลาดดึง mUSDC เท่ากับยอดเต็ม (ระหว่างรอขึ้น `Approving mUSDC…`)
+
+![กล่องชำระเงิน](manual/screenshots/05-01-approve.png)
+
+*ภาพที่ 20 — กล่องชำระเงินของลูกหนี้*
+
+3. ปุ่มจะเปลี่ยนเป็น **Settle (pay 1,000.00 mUSDC)** กดแล้วกด Confirm ใน MetaMask (ระหว่างรอขึ้น `Settling…`)
+   ใต้ปุ่มเตือนไว้ว่า "Settling burns the receivable and unregisters the ENS name."
+
+![ปุ่ม Settle](manual/screenshots/05-02-settle.png)
+
+*ภาพที่ 21 — ปุ่ม Settle*
+
+เมื่อธุรกรรมสำเร็จ นักลงทุนได้รับ 1,000 mUSDC token ของ invoice ถูกทำลาย (burn) และชื่อ ENS ถูกถอนทันทีในธุรกรรมเดียวกัน
+รีเฟรชหน้า invoice จะเห็น
+
+4. ป้าย **SETTLEMENT (ON-CHAIN)** เป็น `Paid`
+5. "Name live on ENS: no — expired" — ชื่อ `inv-3.seikyu.eth` ไม่ resolve แล้ว แม้ยังไม่ถึงวันครบกำหนด
+6. record `status` เป็น `paid` — ข้อมูลเดิมยังอ่านย้อนหลังได้จาก resolver ของ invoice และด้านล่างของหน้าแสดงข้อความ
+   "This receivable has been settled in full."
+
+![invoice ที่ชำระแล้ว](manual/screenshots/05-03-paid.png)
+
+*ภาพที่ 22 — invoice ชำระครบและชื่อ ENS ถูกถอน*
+
+> **หมายเหตุ** หลังชำระแล้ว ช่อง Holder ในส่วน SETTLEMENT จะแสดง "— unsold" เพราะ token ถูกทำลายไปแล้ว
+> ไม่ได้แปลว่า invoice ไม่เคยถูกขาย (เป็นข้อความของแอปที่ยังไม่ได้แยกกรณีนี้)
 
 ---
 
@@ -264,7 +341,7 @@ wallet นี้ได้สิทธิ์แก้ข้อมูลของ 
 
 ![สถานะยกเลิกการยืนยัน](manual/screenshots/06-01-verify-cancelled.png)
 
-*ภาพที่ 20 — ยกเลิกการยืนยัน World ID แล้วกด Retry ได้*
+*ภาพที่ 23 — ยกเลิกการยืนยัน World ID แล้วกด Retry ได้*
 
 ### 6.2 ผู้ออกยกเลิก invoice
 
@@ -274,20 +351,20 @@ SME ยกเลิก invoice ได้เฉพาะตอนที่ยั�
 
 ![ปุ่ม Cancel invoice](manual/screenshots/06-06-cancel-button.png)
 
-*ภาพที่ 21 — ปุ่ม Cancel invoice (มองเห็นเฉพาะผู้ออก invoice)*
+*ภาพที่ 24 — ปุ่ม Cancel invoice (มองเห็นเฉพาะผู้ออก invoice)*
 
 2. เมื่อสำเร็จ ป้าย **SETTLEMENT (ON-CHAIN)** เปลี่ยนเป็น `Cancelled`
 3. ชื่อ ENS ถูกถอนทันที บรรทัดสถานะเปลี่ยนเป็น "Name live on ENS: no — expired"
 
 ![invoice ที่ถูกยกเลิก](manual/screenshots/06-07-cancelled.png)
 
-*ภาพที่ 22 — invoice ถูกยกเลิก*
+*ภาพที่ 25 — invoice ถูกยกเลิก*
 
 ส่วนล่างของหน้าแสดง State `Cancelled`, Holder `— unsold` และข้อความ "The issuer cancelled this invoice before it was sold."
 
 ![ส่วนล่างของ invoice ที่ถูกยกเลิก](manual/screenshots/06-08-cancelled-actions.png)
 
-*ภาพที่ 23 — ไม่มีปุ่มซื้อหลังยกเลิก*
+*ภาพที่ 26 — ไม่มีปุ่มซื้อหลังยกเลิก*
 
 > **หมายเหตุ** ถ้ามีผู้ซื้อไปแล้ว การยกเลิกจะไม่ผ่าน (ข้อความ "Cancel failed — the invoice may already be sold.")
 
@@ -299,13 +376,13 @@ SME ยกเลิก invoice ได้เฉพาะตอนที่ยั�
 
 ![invoice ที่ถูกโต้แย้ง](manual/screenshots/06-04-ack-blocked.png)
 
-*ภาพที่ 24 — ป้าย disputed บนหน้า invoice*
+*ภาพที่ 27 — ป้าย disputed บนหน้า invoice*
 
 2. กล่องซื้อไม่มีปุ่มใด ๆ มีเพียงข้อความสีแดง "The debtor marked this invoice “disputed” — purchases are blocked until it is re-acknowledged."
 
 ![กล่องซื้อถูกปิด](manual/screenshots/06-05-ack-blocked-panel.png)
 
-*ภาพที่ 25 — การซื้อถูกปิดจนกว่าจะได้รับการยืนยันใหม่*
+*ภาพที่ 28 — การซื้อถูกปิดจนกว่าจะได้รับการยืนยันใหม่*
 
 การปิดนี้ไม่ได้อยู่แค่บนหน้าเว็บ สัญญา InvoiceMarket อ่านค่า `ack` จาก ENS ทุกครั้งที่มีการซื้อ และปฏิเสธด้วย `PurchaseBlockedByAck` ถ้าเป็น `disputed`
 
@@ -316,7 +393,12 @@ World ID ให้รหัสประจำตัวแบบไม่ระ�
 ถ้าคนเดิมเชื่อมต่อ wallet ที่สองแล้วทำบทที่ 2 ซ้ำ เซิร์ฟเวอร์จะตอบกลับ `409 NULLIFIER_ALREADY_USED`
 และกล่องซื้อจะแสดง "This World ID is already linked to 0x… One investor wallet per person." พร้อมปุ่ม **Retry**
 
-<!-- F3-FIGURE -->
+1. ข้อความสีแดงบอก address ของ wallet ที่ผูกกับ World ID นี้ไว้แล้ว
+2. ปุ่ม **Retry** — กดซ้ำด้วย World ID เดิมจะได้ผลเหมือนเดิม
+
+![World ID ถูกผูกกับ wallet อื่นแล้ว](manual/screenshots/06-11-nullifier-used.png)
+
+*ภาพที่ 29 — นักลงทุน A2 (`0xC919…D9c8`) ใช้ World ID เดียวกับนักลงทุน A จึงถูกปฏิเสธ*
 
 ให้กลับไปใช้ wallet เดิมที่ยืนยันไว้แล้ว — ถ้าจำเป็นต้องย้าย wallet จริง ต้องให้ผู้ดูแลระบบ (owner ของสัญญา) ยกเลิกการผูกเดิมก่อน
 
@@ -331,18 +413,26 @@ World ID ให้รหัสประจำตัวแบบไม่ระ�
 
 ![invoice ที่หมดอายุโดยไม่มีผู้ซื้อ](manual/screenshots/06-09-expired-unsold.png)
 
-*ภาพที่ 26 — inv-2.seikyu.eth หลังครบกำหนดโดยไม่มีผู้ซื้อ*
+*ภาพที่ 30 — inv-2.seikyu.eth หลังครบกำหนดโดยไม่มีผู้ซื้อ*
 
 4. กล่องด้านล่างไม่มีปุ่มซื้อ มีข้อความ "Not sold before the due date — the ENS name stopped resolving; records remain readable through the invoice's resolver."
    ในหน้า **Home** invoice แบบนี้จะอยู่ในหมวด **ATTENTION**
 
 ![กล่องด้านล่างของ invoice ที่หมดอายุ](manual/screenshots/06-10-expired-unsold-actions.png)
 
-*ภาพที่ 27 — ไม่มีการซื้อขายหลังหมดอายุ*
+*ภาพที่ 31 — ไม่มีการซื้อขายหลังหมดอายุ*
 
 ### 6.6 เลยกำหนดแต่ยังไม่จ่าย (Overdue และปุ่ม Mark overdue)
 
-<!-- OVERDUE -->
+ถ้า invoice ถูกซื้อแล้ว (`Funded`) แต่ลูกหนี้ยังไม่จ่ายเมื่อเลยวันครบกำหนด ชื่อ ENS จะหมดอายุตามปกติ และป้ายสถานะจะเป็น `Overdue`
+กล่องสีเหลืองจะขึ้นว่า "Past due — the ENS name has expired; anyone can call markOverdue() to revive it with status=overdue."
+
+1. กดปุ่ม **Mark overdue** (ใครกดก็ได้) แล้วกด Confirm ใน MetaMask — ปุ่มเปลี่ยนเป็น `Marking…` แล้วเป็น `Marked overdue`
+2. ผลคือชื่อ ENS ถูกต่ออายุอีก 30 วันพร้อม record `status = overdue` เพื่อให้คนภายนอกเห็นบน ENS ว่า invoice นี้ค้างชำระ
+3. ลูกหนี้ยังจ่ายได้ตามบทที่ 5 ตามปกติ — กล่องชำระเงินยังอยู่ใต้กล่องสีเหลือง
+
+ส่วนนี้ไม่มีภาพประกอบ เพราะต้องรอให้ invoice ที่ถูกซื้อแล้วเลยกำหนดจริง ซึ่งไม่เกิดขึ้นระหว่างการถ่ายคู่มือ
+(ข้อความและชื่อปุ่มข้างต้นคัดลอกจากหน้าจอของแอป)
 
 ---
 
@@ -370,7 +460,18 @@ wallet ตัวอย่างที่ใช้ในคู่มือ
 
 ธุรกรรมจริงที่เกิดขึ้นระหว่างถ่ายภาพคู่มือ (เปิดดูบน Blockscout)
 
-<!-- TX-TABLE -->
+| ขั้นตอน | ธุรกรรม |
+|---|---|
+| ออก invoice `inv-3.seikyu.eth` (CREATE) | [`0xb5195264…e5aac7`](https://eth-sepolia.blockscout.com/tx/0xb5195264ea0f584d8719cf3f6dd9739d626966f51286aaeba8274cc460e5aac7) |
+| ฝ่ายบัญชียืนยัน `ack=acknowledged` (ACK) | [`0x7e68a92b…bce791`](https://eth-sepolia.blockscout.com/tx/0x7e68a92bde64eb7a50d09c4c447492be289de476d952bf0a3b6e80cad6bce791) |
+| ยืนยัน World ID ของนักลงทุน A (`InvestorVerified`, VERIFY) | [`0xde353f1a…00a38c`](https://eth-sepolia.blockscout.com/tx/0xde353f1a30fdf850010d72aadb34a5c194bee5128ad1e39e17803e392400a38c) |
+| นักลงทุน A อนุญาต mUSDC | [`0x347cb0a0…85bdc2`](https://eth-sepolia.blockscout.com/tx/0x347cb0a08a6b80c4658f824540e0d8bbf7d982a5aa813cc33b54d09d2c85bdc2) |
+| นักลงทุน A ซื้อ (BUY) | [`0x0d7925a9…ef382a`](https://eth-sepolia.blockscout.com/tx/0x0d7925a9cf6312b838db157d5f8d8751ad131f0cf5301befae6ac4022eef382a) |
+| ลูกหนี้อนุญาต mUSDC | [`0x63768f28…19de10`](https://eth-sepolia.blockscout.com/tx/0x63768f285573c5ebdc72b8d7488d071f55168ae651a08a7514d66bc2ec19de10) |
+| ลูกหนี้ชำระ (SETTLE) — token burn และถอนชื่อ ENS | [`0x5137876e…2de9cb`](https://eth-sepolia.blockscout.com/tx/0x5137876ee18d97cd1967685922c1f9842e0ce7319d92f36b583d9d50212de9cb) |
+| ออก invoice ใบที่สอง `inv-4.seikyu.eth` | [`0x9f6997c1…d4c0c8`](https://eth-sepolia.blockscout.com/tx/0x9f6997c1bd22c8d07d8803b4eb95145495cf6471a747ed2eb1492dc0c4d4c0c8) |
+| ฝ่ายบัญชีโต้แย้ง `inv-4` (`ack=disputed`) | [`0x2f470b24…869068`](https://eth-sepolia.blockscout.com/tx/0x2f470b242bf22a6b151a670f3d20b932135198ed8b8d480a7f98bebfbd869068) |
+| SME ยกเลิก `inv-4` | [`0xb1c8d9fd…d2a1b1`](https://eth-sepolia.blockscout.com/tx/0xb1c8d9fd0c6d9e7115f920ccc70d86f3315f92d52c211175822d4d13b8d2a1b1) |
 
 > **หมายเหตุ** ลิงก์ **View transaction →** และลิงก์ address ในแอปเปิดไปที่ Etherscan ส่วนตารางนี้ใช้ Blockscout
 > ซึ่งแสดง source code ของสัญญาครบทั้งสามตัว
@@ -379,7 +480,31 @@ wallet ตัวอย่างที่ใช้ในคู่มือ
 
 **ทำไมยืนยัน World ID ไม่ผ่าน**
 
-<!-- FAQ-VERIFY -->
+ดูข้อความสีแดงในกล่องซื้อ แล้วเทียบกับรายการนี้
+
+- "This World ID is already linked to 0x… One investor wallet per person." (`409 NULLIFIER_ALREADY_USED`) — World ID นี้ผูกกับ wallet อื่นแล้ว
+  ใช้ wallet เดิม หรือบน staging ให้สลับไปใช้ identity อื่นของ Simulator (ขั้นตอนด้านล่าง) และเลือก **Legacy v3 proof** ตามบทที่ 2
+- "This credential doesn't match what this action requires. …" (`422 CREDENTIAL_MISMATCH`) — credential ที่ส่งมาไม่ตรงกับที่ระบบตั้งไว้
+  ตรวจว่าเลือก **Human** ใน Simulator (หรือ credential ที่ World App ขอ)
+- "Verification cancelled — …" — ปิดหน้าต่าง World ID ก่อนเสร็จ กด **Retry** (บทที่ 6.1)
+- "Verification failed. Please try again." — ปัญหาฝั่งเซิร์ฟเวอร์หรือ World เช่น staging window ปิดอยู่ (ดูหัวข้อถัดไป) ลองใหม่ภายหลังหรือแจ้งผู้ดูแลระบบ
+- ไม่เห็นลิงก์ **Use the simulator** — หน้าต่างเบราว์เซอร์แคบเกินไป (บทที่ 2 ข้อ 2) หรือระบบตั้งเป็น production ซึ่งต้องใช้ World App
+
+**สลับ identity ใน World ID Simulator (staging)** — Simulator มี identity ทดสอบให้เลือก 5 ชุด (Identity #0 ถึง #4) ที่ทุกคนใช้ร่วมกัน
+และกดปุ่ม **+** เพื่อสร้างเพิ่มได้
+
+1. ในหน้าแรกของ Simulator กดรูปโปรไฟล์ (ปุ่ม Settings) มุมขวาบนของหน้าจอโทรศัพท์จำลอง
+2. กด **Switch test identity**
+
+![Settings ของ Simulator](manual/screenshots/06-02-sim-settings.png)
+
+*ภาพที่ 32 — หน้า Settings ของ World ID Simulator*
+
+3. กดเลือก identity ที่ต้องการ (ในภาพคือ Identity #1) — Simulator จะกลับไปหน้าแรกพร้อม identity ใหม่ จากนั้นเริ่มบทที่ 2 ใหม่ตั้งแต่ข้อ 1
+
+![รายการ identity ทดสอบ](manual/screenshots/06-03-sim-identities.png)
+
+*ภาพที่ 33 — เลือก identity ทดสอบ*
 
 **Staging window คืออะไร**
 ช่วงทดสอบ (staging) World ID จะรับหลักฐานจาก Simulator ก็ต่อเมื่อเจ้าของแอปเปิด "staging verification window" ไว้ใน World Developer Portal
