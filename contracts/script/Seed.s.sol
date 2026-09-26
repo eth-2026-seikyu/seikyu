@@ -10,12 +10,15 @@ import {MockUSDC} from "../src/MockUSDC.sol";
 ///      INVESTOR_A2, DEBTOR_ADDRESS, DEBTOR_AP_ADDRESS, optional DEPLOYMENTS_JSON (required off Sepolia).
 contract Seed is Script {
     uint256 internal constant SEPOLIA_CHAIN_ID = 11155111;
-    uint256 internal constant SME_ETH = 0.2 ether;
-    uint256 internal constant ACTOR_ETH = 0.05 ether;
+    uint256 internal constant SME_ETH = 0.05 ether;
+    uint256 internal constant ACTOR_ETH = 0.015 ether;
+    /// @dev Left on the deployer for the gas of the sends and mints.
+    uint256 internal constant GAS_RESERVE = 0.02 ether;
     uint256 internal constant USDC_GRANT = 100_000e6;
 
     function run() external {
         uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        address deployer = vm.addr(pk);
         address sme = vm.envAddress("SME_ADDRESS");
         address operator = vm.envAddress("OPERATOR_ADDRESS");
         address investorA = vm.envAddress("INVESTOR_A");
@@ -25,6 +28,15 @@ contract Seed is Script {
 
         MockUSDC usdc = MockUSDC(vm.parseJsonAddress(vm.readFile(_deploymentsPath()), ".mockUsdc"));
         require(address(usdc).code.length > 0, "Seed: .mockUsdc not deployed; run Deploy first");
+
+        uint256 toSend = _owed(sme, SME_ETH) + _owed(operator, ACTOR_ETH) + _owed(investorA, ACTOR_ETH)
+            + _owed(investorA2, ACTOR_ETH) + _owed(debtor, ACTOR_ETH) + _owed(debtorAP, ACTOR_ETH);
+        console2.log("deployer balance (wei):", deployer.balance);
+        console2.log("ETH to send (wei)     :", toSend);
+        require(
+            deployer.balance >= toSend + GAS_RESERVE,
+            "Seed: deployer balance < ETH to send + 0.02 ETH gas reserve; fund the deployer"
+        );
 
         vm.startBroadcast(pk);
         _sendEth(sme, SME_ETH);
@@ -42,9 +54,14 @@ contract Seed is Script {
         console2.log("mockUsdc        :", address(usdc));
     }
 
+    /// @dev What `_sendEth` will transfer to `to`.
+    function _owed(address to, uint256 amount) internal view returns (uint256) {
+        return to.balance >= amount ? 0 : amount;
+    }
+
     /// @dev Skips accounts that already hold `amount`, so a re-run does not send ETH twice.
     function _sendEth(address to, uint256 amount) internal {
-        if (to.balance >= amount) {
+        if (_owed(to, amount) == 0) {
             console2.log("skip ETH, already funded:", to);
             return;
         }
