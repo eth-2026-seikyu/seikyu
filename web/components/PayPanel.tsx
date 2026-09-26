@@ -7,6 +7,8 @@ import { useReadContract, useWaitForTransactionReceipt, useWriteContract } from 
 import { getAddresses } from "@/lib/addresses";
 import { invoiceMarketAbi, mockUsdcAbi } from "@/lib/generated";
 import type { InvoiceView } from "@/lib/invoices";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
 
 type PayState = "idle" | "approving" | "settling" | "settled" | "error";
 
@@ -60,14 +62,9 @@ function renderState(
               <span className="opacity-60">unknown</span>
             )}
           </p>
-          <button
-            type="button"
-            onClick={primaryAction}
-            disabled={ctx.busy || !ctx.holder}
-            className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
-          >
+          <Button onClick={primaryAction} disabled={ctx.busy || !ctx.holder} className="mt-3">
             {primaryLabel}
-          </button>
+          </Button>
           <p className="mt-2 text-xs opacity-60">
             Settling burns the receivable and unregisters the ENS name.
           </p>
@@ -97,13 +94,9 @@ function renderState(
           <p className="text-sm text-red-600 dark:text-red-400">
             Transaction failed. Please try again.
           </p>
-          <button
-            type="button"
-            onClick={primaryAction}
-            className="mt-2 inline-flex min-h-10 items-center justify-center rounded-full border border-black/[.08] px-4 py-1.5 text-xs font-medium dark:border-white/[.145]"
-          >
+          <Button variant="secondary" size="sm" onClick={primaryAction} className="mt-2">
             Retry
-          </button>
+          </Button>
         </div>
       );
   }
@@ -190,16 +183,16 @@ export default function PayPanel({
 
   if (!account) {
     return (
-      <div className="rounded-xl border border-dashed border-black/[.08] p-4 dark:border-white/[.145]">
+      <Card className="border-dashed">
         <p data-state="idle" className="text-sm opacity-70">
           Connect a wallet to settle this receivable.
         </p>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="rounded-xl border border-black/[.08] p-4 dark:border-white/[.145]">
+    <Card>
       {renderState(state, {
         holder,
         faceValueLabel: formatMoney(invoice.market.faceValue),
@@ -208,6 +201,6 @@ export default function PayPanel({
         onApprove: handleApprove,
         onSettle: handleSettle,
       })}
-    </div>
+    </Card>
   );
 }

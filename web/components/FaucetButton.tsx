@@ -5,6 +5,7 @@ import { formatUnits, zeroAddress, type Hex } from "viem";
 import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { getAddresses } from "@/lib/addresses";
 import { mockUsdcAbi } from "@/lib/generated";
+import { Button } from "./ui/Button";
 
 /** 10,000 mUSDC at 6 decimals — well under MockUSDC's 1,000,000e6 per-call cap. */
 const MINT_AMOUNT = 10_000_000_000n;
@@ -69,15 +70,15 @@ export default function FaucetButton() {
       {account && balance !== undefined && (
         <span className="opacity-70">Balance: {formatMoney(balance)} mUSDC</span>
       )}
-      <button
-        type="button"
+      <Button
+        variant="secondary"
+        size="sm"
         onClick={handleMint}
         disabled={minting || !account}
         title={!account ? "Connect a wallet first" : undefined}
-        className="inline-flex min-h-10 items-center justify-center rounded-full border border-black/[.08] px-4 py-1.5 text-xs font-medium disabled:opacity-50 dark:border-white/[.145]"
       >
         {minting ? "Minting…" : "Get 10,000 mUSDC"}
-      </button>
+      </Button>
     </div>
   );
 }

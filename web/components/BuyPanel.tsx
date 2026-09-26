@@ -14,6 +14,8 @@ import { useReadContract, useWaitForTransactionReceipt, useWriteContract } from 
 import { getAddresses } from "@/lib/addresses";
 import { invoiceMarketAbi, mockUsdcAbi } from "@/lib/generated";
 import type { InvoiceView } from "@/lib/invoices";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
 import { WorldVerifyButton } from "./WorldVerifyButton";
 
 type BuyState =
@@ -130,14 +132,13 @@ function renderState(
             Price {ctx.priceLabel} mUSDC{" "}
             <span className="opacity-60">({ctx.discountPct.toFixed(1)}% discount)</span>
           </p>
-          <button
-            type="button"
+          <Button
             onClick={ctx.needsApproval ? ctx.onApprove : ctx.onBuy}
             disabled={ctx.busy}
-            className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
+            className="mt-3"
           >
             {ctx.needsApproval ? "Approve mUSDC" : `Buy for ${ctx.priceLabel} mUSDC`}
-          </button>
+          </Button>
         </div>
       );
     }
@@ -347,7 +348,7 @@ export default function BuyPanel({
   }
 
   return (
-    <div className="rounded-xl border border-black/[.08] p-4 dark:border-white/[.145]">
+    <Card>
       {renderState(effectiveState, {
         account,
         verifiedLoading,
@@ -361,6 +362,6 @@ export default function BuyPanel({
         onApprove: handleApprove,
         onBuy: handleBuy,
       })}
-    </div>
+    </Card>
   );
 }

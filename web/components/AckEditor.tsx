@@ -14,6 +14,7 @@ import { getAddresses } from "@/lib/addresses";
 import { idFromLabel } from "@/lib/ens";
 import { RECORD_KEYS, ackViewOf, type RecordKey } from "@/lib/invoices";
 import { AckBadge } from "./StatusBadge";
+import { Button } from "./ui/Button";
 
 type AckAction = "acknowledged" | "disputed" | "";
 type AckWriteState = "idle" | "pending" | "confirmed" | "error";
@@ -326,30 +327,26 @@ export function AckEditor({ initialName }: { initialName?: string }) {
                   Acknowledge / dispute
                 </h2>
                 <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
+                  <Button
                     disabled={!isConnected || ackState === "pending"}
                     onClick={() => submitAck("acknowledged")}
-                    className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
                   >
                     Acknowledge
-                  </button>
-                  <button
-                    type="button"
+                  </Button>
+                  <Button
+                    variant="danger"
                     disabled={!isConnected || ackState === "pending"}
                     onClick={() => submitAck("disputed")}
-                    className="rounded-full border border-red-300 px-4 py-2 text-sm font-medium text-red-700 disabled:opacity-50 dark:border-red-900/50 dark:text-red-400"
                   >
                     Dispute
-                  </button>
-                  <button
-                    type="button"
+                  </Button>
+                  <Button
+                    variant="secondary"
                     disabled={!isConnected || ackState === "pending"}
                     onClick={() => submitAck("")}
-                    className="rounded-full border border-black/[.08] px-4 py-2 text-sm font-medium disabled:opacity-50 dark:border-white/[.145]"
                   >
                     Clear
-                  </button>
+                  </Button>
                 </div>
 
                 {ackState === "pending" && (
@@ -390,22 +387,20 @@ export function AckEditor({ initialName }: { initialName?: string }) {
                   Send the real tx anyway (for on-chain proof)
                 </label>
                 <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
                     disabled={!isConnected || negativePending === "amount"}
                     onClick={() => runNegativeDemo("amount")}
-                    className="rounded-full border border-black/[.08] px-4 py-2 text-sm font-medium disabled:opacity-50 dark:border-white/[.145]"
                   >
                     {negativePending === "amount" ? "Simulating…" : "Try to edit amount"}
-                  </button>
-                  <button
-                    type="button"
+                  </Button>
+                  <Button
+                    variant="secondary"
                     disabled={!isConnected || negativePending === "status"}
                     onClick={() => runNegativeDemo("status")}
-                    className="rounded-full border border-black/[.08] px-4 py-2 text-sm font-medium disabled:opacity-50 dark:border-white/[.145]"
                   >
                     {negativePending === "status" ? "Simulating…" : "Try to edit status"}
-                  </button>
+                  </Button>
                 </div>
 
                 {(["amount", "status"] as const).map((key) => {

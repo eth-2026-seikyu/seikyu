@@ -21,6 +21,7 @@ import {
 } from "wagmi";
 import { getAddresses } from "@/lib/addresses";
 import { invoiceMarketAbi } from "@/lib/generated";
+import { Button } from "./ui/Button";
 
 /** Mirrors `InvoiceMarket.MIN_TENOR` (see contracts/src/InvoiceMarket.sol). */
 const MIN_TENOR_SECONDS = 60;
@@ -387,7 +388,7 @@ export function IssueForm() {
         </a>
       )}
 
-      <button
+      <Button
         type="submit"
         disabled={
           !isConnected ||
@@ -396,7 +397,7 @@ export function IssueForm() {
           isPaused === true ||
           issuerIsContract
         }
-        className="inline-flex min-h-10 items-center justify-center self-start rounded-full bg-black px-5 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black"
+        className="self-start"
       >
         {isSubmitting
           ? "Confirm in wallet…"
@@ -405,7 +406,7 @@ export function IssueForm() {
             : isSuccess
               ? "Issued!"
               : "Issue invoice"}
-      </button>
+      </Button>
     </form>
   );
 }

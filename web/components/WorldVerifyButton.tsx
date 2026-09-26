@@ -13,6 +13,7 @@ import {
   worldEnvironment,
   type WorldVerifyState,
 } from "@/lib/world";
+import { Button } from "./ui/Button";
 
 type RpContext = {
   rp_id: string;
@@ -32,10 +33,6 @@ type WorldVerifyButtonProps = {
  * grep-based acceptance check depends on the literal attribute text
  * appearing in source — a dynamically computed value wouldn't satisfy it).
  */
-const PRIMARY_BUTTON =
-  "inline-flex min-h-10 items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-white dark:text-black";
-const RETRY_BUTTON =
-  "mt-2 inline-flex min-h-10 items-center justify-center rounded-full border border-black/[.08] px-4 py-1.5 text-xs font-medium dark:border-white/[.145]";
 const ERROR_TEXT = "text-sm text-red-600 dark:text-red-400";
 const MUTED_TEXT = "text-sm opacity-70";
 
@@ -44,9 +41,7 @@ function renderState(state: WorldVerifyState, message: string, onAction: () => v
     case "idle":
       return (
         <div data-state="idle">
-          <button type="button" onClick={onAction} className={PRIMARY_BUTTON}>
-            Verify with World ID
-          </button>
+          <Button onClick={onAction}>Verify with World ID</Button>
         </div>
       );
     case "open":
@@ -71,54 +66,54 @@ function renderState(state: WorldVerifyState, message: string, onAction: () => v
       return (
         <div data-state="cancelled">
           <p className={ERROR_TEXT}>{message}</p>
-          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
+          <Button variant="secondary" size="sm" onClick={onAction} className="mt-2">
             Retry
-          </button>
+          </Button>
         </div>
       );
     case "credential-unavailable":
       return (
         <div data-state="credential-unavailable">
           <p className={ERROR_TEXT}>{message}</p>
-          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
+          <Button variant="secondary" size="sm" onClick={onAction} className="mt-2">
             Retry
-          </button>
+          </Button>
         </div>
       );
     case "credential-mismatch":
       return (
         <div data-state="credential-mismatch">
           <p className={ERROR_TEXT}>{message}</p>
-          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
+          <Button variant="secondary" size="sm" onClick={onAction} className="mt-2">
             Retry
-          </button>
+          </Button>
         </div>
       );
     case "signal-mismatch":
       return (
         <div data-state="signal-mismatch">
           <p className={ERROR_TEXT}>{message}</p>
-          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
+          <Button variant="secondary" size="sm" onClick={onAction} className="mt-2">
             Retry
-          </button>
+          </Button>
         </div>
       );
     case "nullifier-used":
       return (
         <div data-state="nullifier-used">
           <p className={ERROR_TEXT}>{message}</p>
-          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
+          <Button variant="secondary" size="sm" onClick={onAction} className="mt-2">
             Retry
-          </button>
+          </Button>
         </div>
       );
     case "failed":
       return (
         <div data-state="failed">
           <p className={ERROR_TEXT}>{message}</p>
-          <button type="button" onClick={onAction} className={RETRY_BUTTON}>
+          <Button variant="secondary" size="sm" onClick={onAction} className="mt-2">
             Retry
-          </button>
+          </Button>
         </div>
       );
   }

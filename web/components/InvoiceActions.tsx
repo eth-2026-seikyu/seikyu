@@ -7,10 +7,10 @@ import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagm
 import { getAddresses } from "@/lib/addresses";
 import { invoiceMarketAbi } from "@/lib/generated";
 import type { InvoiceView } from "@/lib/invoices";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
 import BuyPanel from "./BuyPanel";
 import PayPanel from "./PayPanel";
-
-const BUTTON_TAP_TARGET = "min-h-10 inline-flex items-center justify-center";
 
 function formatDate(unixSeconds: bigint): string {
   return new Date(Number(unixSeconds) * 1000).toLocaleDateString(undefined, {
@@ -58,18 +58,18 @@ function CancelInvoiceButton({ id }: { id: bigint }) {
 
   return (
     <div data-state={state} className="mt-2">
-      <button
-        type="button"
+      <Button
+        variant="danger"
+        size="sm"
         onClick={handleCancel}
         disabled={state === "cancelling" || state === "cancelled"}
-        className={`rounded-full border border-red-300 px-4 py-1.5 text-xs font-medium text-red-700 disabled:opacity-50 dark:border-red-800 dark:text-red-400 ${BUTTON_TAP_TARGET}`}
       >
         {state === "cancelling"
           ? "Cancelling…"
           : state === "cancelled"
             ? "Cancelled"
             : "Cancel invoice"}
-      </button>
+      </Button>
       {state === "error" && (
         <p className="mt-1 text-xs text-red-600 dark:text-red-400">
           Cancel failed — the invoice may already be sold.
@@ -122,18 +122,19 @@ function MarkOverdueButton({ id }: { id: bigint }) {
 
   return (
     <div className="mt-3">
-      <button
-        type="button"
+      <Button
+        variant="secondary"
+        size="sm"
         onClick={handleMark}
         disabled={state === "marking" || state === "marked"}
-        className={`rounded-full border border-amber-400 px-4 py-1.5 text-xs font-medium text-amber-800 disabled:opacity-50 dark:border-amber-700 dark:text-amber-300 ${BUTTON_TAP_TARGET}`}
+        className="border-amber-400 text-amber-800 dark:border-amber-700 dark:text-amber-300"
       >
         {state === "marking"
           ? "Marking…"
           : state === "marked"
             ? "Marked overdue"
             : "Mark overdue"}
-      </button>
+      </Button>
       {state === "error" && (
         <p className="mt-1 text-xs text-red-600 dark:text-red-400">
           Failed to mark overdue — please try again.
@@ -144,11 +145,7 @@ function MarkOverdueButton({ id }: { id: bigint }) {
 }
 
 function Explanation({ text }: { text: string }) {
-  return (
-    <p className="rounded-xl border border-dashed border-black/[.08] p-4 text-sm opacity-70 dark:border-white/[.145]">
-      {text}
-    </p>
-  );
+  return <Card className="border-dashed text-sm opacity-70">{text}</Card>;
 }
 
 /**
