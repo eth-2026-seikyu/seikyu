@@ -59,6 +59,33 @@ export function allowLegacyProofsFor(preset: WorldPreset): boolean {
   return preset === "proofOfHuman" || preset === "orbLegacy";
 }
 
+export type WorldEnvironment = "staging" | "production";
+
+/**
+ * The World `environment` (`IDKitRequestConfig.environment`) the widget
+ * requests proofs for, and what /api/world/verify's step-6 check compares
+ * World's verify-response `environment` field against.
+ *
+ * Confirmed live (C0's simulator run, .omc/research/world-result-investorA.json):
+ * `environment: "staging"` makes the widget show the "Use the simulator"
+ * link; `"production"` shows only a real-World-App QR. World's own
+ * `/api/v4/verify` also enforces this server-side — it 403s with
+ * `environment_not_allowed` when staging isn't opened for the app (mapped
+ * to 422 VERIFICATION_FAILED like any other non-2xx, see step 5).
+ *
+ * Deliberately NOT added to web/lib/env.ts's publicEnv (that file is
+ * B0's) — read directly here instead, and used on BOTH the client
+ * (WorldVerifyButton) and the server (verify/route.ts, replacing a
+ * separate WORLD_ENV server var) so the two can never drift out of sync.
+ *
+ * Set via `NEXT_PUBLIC_WORLD_ENVIRONMENT` ("staging" | "production",
+ * default "staging"). Document this in web/.env.example if you can add to
+ * it — that file is B0's too, so the contract lives here instead.
+ */
+export function worldEnvironment(): WorldEnvironment {
+  return process.env.NEXT_PUBLIC_WORLD_ENVIRONMENT === "production" ? "production" : "staging";
+}
+
 /**
  * Expected `responses[0].identifier` value for the configured preset.
  *

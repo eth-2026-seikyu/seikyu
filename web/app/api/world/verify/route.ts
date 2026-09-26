@@ -8,6 +8,7 @@ import {
   hashSignalV4,
   marketAbi,
   normalizeNullifier,
+  worldEnvironment,
   type WorldErrorCode,
 } from "@/lib/world";
 
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
     return fail(422, "SIGNAL_MISMATCH");
   }
 
-  const { WORLD_RP_ID, WORLD_ENV } = serverEnv();
+  const { WORLD_RP_ID } = serverEnv();
   if (!WORLD_RP_ID) {
     return fail(503, "WORLD_NOT_CONFIGURED");
   }
@@ -113,8 +114,11 @@ export async function POST(request: Request) {
     });
   }
 
-  // 6. Environment must match ours (staging vs production).
-  if (worldBody.environment !== WORLD_ENV) {
+  // 6. Environment must match what we requested (staging vs production).
+  // Uses worldEnvironment() (lib/world.ts) — the SAME value passed as the
+  // `environment` prop on IDKitRequestWidget — rather than a separate
+  // server-only env var, so client and server can't drift out of sync.
+  if (worldBody.environment !== worldEnvironment()) {
     return fail(409, "ENV_MISMATCH");
   }
 

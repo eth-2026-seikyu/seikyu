@@ -10,6 +10,7 @@ import {
   buildPreset,
   messageFor,
   stateForErrorCode,
+  worldEnvironment,
   type WorldVerifyState,
 } from "@/lib/world";
 
@@ -238,6 +239,7 @@ export function WorldVerifyButton({ investor, onVerified }: WorldVerifyButtonPro
           app_id={appId as `app_${string}`}
           action={publicEnv.NEXT_PUBLIC_WORLD_ACTION}
           rp_context={rpContext}
+          environment={worldEnvironment()}
           allow_legacy_proofs={allowLegacyProofsFor(publicEnv.NEXT_PUBLIC_WORLD_PRESET)}
           preset={buildPreset(publicEnv, investor)}
           handleVerify={handleVerify}
