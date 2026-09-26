@@ -94,3 +94,4 @@ Baseline: T+0 = 2026-09-26 04:40 JST
 - 22:35 JST F1 0a634e9 (write buttons disabled off-Sepolia; raw-records caption) pushed → Vercel redeploy. L8 re-verifying U6/U7; L7 still shooting.
 - 23:00 JST L7 done (dff2e43, 26a06ef) pushed: 44 figures. Identity map now: #0→A2, #1→A, #2→DEBTOR_AP, #4→user wallet; ONLY #3 free (revokeVerification fallback exists). F1 0a634e9 + AI_USAGE 22987be pushed earlier. Awaiting L8 AC-U3.
 - 23:25 JST UX layer COMPLETE: 13be3ca accountant re-shoot (caption) → L8 AC-U3 PASS. PRD 30/33. Live: seikyu.xyz new UI. User told to record video (identity #3 + two fresh wallets).
+- 22:21 JST CORRECTION: the UX-phase entries above stamped 22:00–23:25 JST were estimated, not read from the clock; git author dates are authoritative (L1 cb48703 … planning refresh 7ca78e7 all landed between ~21:15 and 22:20 JST). Entries from here on use `date`.
