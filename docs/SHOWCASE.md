@@ -10,7 +10,7 @@ Japanese SMEs typically wait 60–120 days to get paid on an invoice. Seikyu let
 
 An SME issues an invoice in one transaction: it mints an ERC-721 receivable to escrow, deploys a dedicated ENSv2 Permissioned Resolver holding 7 text records (amount, currency, debtor, due date, status, token id, issuer), and registers `inv-<id>.<parent>.eth` in our own ENSv2 UserRegistry with `expiry` set to the invoice's due date. An 8th record, `ack`, is writable only by the debtor's accounts-payable wallet — a role granted through Enhanced Access Control that is scoped to that one field, on that one invoice.
 
-To buy, an investor must first pass a World ID Passport check. The proof is verified server-side, bound to the investor's wallet, and recorded on-chain as a nullifier — one person maps to one wallet, capped at 3 open positions. The market contract then checks ENS itself before allowing the purchase: the name must still be live, and the debtor's `ack` must not be `disputed`. Buying pays the SME immediately.
+To buy, an investor must first prove personhood with World ID (designed around Passport; the recorded demo runs the Proof of Human preset — see "World" below). The proof is verified server-side, bound to the investor's wallet, and recorded on-chain as a nullifier — one person maps to one wallet, capped at 3 open positions. The market contract then checks ENS itself before allowing the purchase: the name must still be live, and the debtor's `ack` must not be `disputed`. Buying pays the SME immediately.
 
 When the debtor pays in full, the current holder receives face value, the token burns, and the ENS name is unregistered in the same transaction — the receivable's on-chain identity retires with the debt. If the due date passes with no buyer, the name simply expires: no code path unregisters it, it just stops resolving.
 
@@ -35,7 +35,7 @@ Three facts we didn't expect going in:
 - Text records stay readable through the cached resolver after a name expires or is unregistered (path R), even though liveness correctly reports the name as gone (path L).
 
 ### World — Best Use of IDKit
-- Uses IDKit 4.3's Passport credential, chosen deliberately as the lowest-friction credential that still gives deterministic, one-document-per-identity uniqueness (Device and Selfie Check were rejected for failing that bar).
+- Designed around IDKit 4.3's Passport credential, chosen deliberately as the lowest-friction credential that still gives deterministic, one-document-per-identity uniqueness (Device and Selfie Check were rejected for failing that bar); a real Passport proof was verified live on Sepolia. The recorded demo runs the Proof of Human preset with legacy-v3 proofs allowed, because the staging Simulator's default v4 mode gives every test identity the same nullifier — only legacy mode yields distinct humans, which a one-person-one-wallet demo needs (details in `docs/WORLD_ID_DEBRIEF.md`).
 - The proof's signal is hashed and checked locally against the investor's wallet before the result is forwarded to `/api/v4/verify`, because World's API does not verify the signal itself.
 - Verification is recorded on-chain: a nullifier binds permanently to the first wallet that uses it, enforcing a real per-person exposure cap (3 open positions) instead of a client-side check.
 - Demoable failure paths with explicit UI states: cancelled verification (recoverable), nullifier reuse from a second wallet, and signal mismatch.
