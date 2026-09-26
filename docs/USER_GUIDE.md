@@ -113,13 +113,13 @@ invoice แต่ละใบจะมีชื่อ ENS ของตัวเ�
 6. **Price** — ราคาที่นักลงทุนต้องจ่าย (950.00 mUSDC)
 7. **Due date** — วันครบกำหนด
 8. **State** — `Listed` คือรอผู้ซื้อ
-9. **Holder** — ผู้ถือ invoice ตอนนี้ ขณะยังไม่มีผู้ซื้อ token จะอยู่ในสัญญา InvoiceMarket (`0x9Cf9…B875`) ซึ่งทำหน้าที่ escrow
+9. **Holder** — ผู้ถือ invoice ตอนนี้ ขณะยังไม่มีผู้ซื้อจะแสดง `— unsold` (token ถูกเก็บไว้ในสัญญา InvoiceMarket ซึ่งทำหน้าที่ escrow)
 10. กล่องสำหรับนักลงทุน — ปุ่ม **Verify with World ID** (บทที่ 2) หรือปุ่มซื้อ (บทที่ 3)
 11. ปุ่ม **Cancel invoice** — เห็นเฉพาะ wallet ผู้ออก invoice และเฉพาะตอนที่ยังไม่มีผู้ซื้อ (บทที่ 6)
 
 ![ส่วน Settlement ของหน้า invoice](manual/screenshots/01-04-invoice-settlement.png)
 
-*ภาพที่ 7 — ส่วน Settlement และปุ่มสำหรับนักลงทุน/ผู้ออก invoice*
+*ภาพที่ 7 — ส่วน Settlement และปุ่มสำหรับนักลงทุน/ผู้ออก invoice (ถ่ายจาก `inv-1.seikyu.eth` ซึ่งมีเงื่อนไขเดียวกัน เพราะ inv-3 ถูกขายไปแล้วตอนแอปปรับหน้าตาส่วนนี้)*
 
 > **หมายเหตุ** ส่งลิงก์หน้า invoice หรือชื่อ ENS ให้นักลงทุนและฝ่ายบัญชีของลูกหนี้ได้เลย ทุกคนเปิดหน้าเดียวกัน
 > แต่ปุ่มที่เห็นจะต่างกันตาม wallet ที่เชื่อมต่ออยู่
@@ -133,7 +133,7 @@ invoice แต่ละใบจะมีชื่อ ENS ของตัวเ�
 > **credential ที่ใช้** ระบบจริง (production) ออกแบบให้ใช้ credential แบบ **Passport** ซึ่งรับประกันความไม่ซ้ำในระดับเอกสาร (พาสปอร์ตหนึ่งเล่มต่อหนึ่ง wallet)
 > แต่ใน World ID Simulator ของ staging นั้น Passport เป็นเอกสารจำลองชุดเดียวที่ทุก identity ใช้ร่วมกัน (ได้ nullifier เดียวกันเสมอ)
 > ซึ่งถูกผูกกับ wallet อื่นไปแล้ว — เวอร์ชัน demo จึงตั้งค่าเป็น **Proof of Human** (ปุ่ม **Human** ใน Simulator, `NEXT_PUBLIC_WORLD_PRESET=proofOfHuman`)
-> ภาพในบทนี้ถ่ายจากเวอร์ชัน demo ข้อความในกล่องซื้อของแอปยังเขียนว่า "World ID Passport proof" ตามการออกแบบของระบบจริง
+> ข้อความในกล่องซื้อจะบอก credential ที่ระบบตั้งไว้ ภาพในบทนี้ถ่ายจากเวอร์ชัน demo จึงขึ้นว่า "World ID Proof of Human (Orb-backed uniqueness) proof"
 
 ทำครั้งเดียวต่อ wallet และระบบผูก "หนึ่งคนต่อหนึ่ง wallet" — คนเดียวกันใช้ wallet ที่สองยืนยันซ้ำไม่ได้ (ดูบทที่ 6.4)
 นักลงทุนหนึ่งคนถือ invoice ที่ยังไม่ปิดได้สูงสุด 3 ใบ
@@ -143,11 +143,11 @@ invoice แต่ละใบจะมีชื่อ ENS ของตัวเ�
 
 เชื่อมต่อ wallet ของนักลงทุน แล้วเปิดหน้า invoice ที่ต้องการซื้อ
 
-1. ในกล่องด้านล่างที่เขียนว่า "Buying a receivable requires a World ID Passport proof …" กดปุ่ม **Verify with World ID**
+1. ในกล่องด้านล่างที่เขียนว่า "Buying a receivable requires a World ID Proof of Human (Orb-backed uniqueness) proof …" กดปุ่ม **Verify with World ID**
 
 ![ปุ่ม Verify with World ID](manual/screenshots/02-01-buy-panel-verify.png)
 
-*ภาพที่ 8 — กล่องซื้อของนักลงทุนที่ยังไม่ได้ยืนยันตัวตน*
+*ภาพที่ 8 — กล่องซื้อของนักลงทุนที่ยังไม่ได้ยืนยันตัวตน (ภาพจาก `inv-1.seikyu.eth` ด้วย wallet นักลงทุน A2 — หน้าจอเหมือนกันทุก invoice ที่ยังเปิดขาย)*
 
 2. หน้าต่าง "Connect your World ID" จะเปิดขึ้น
    - staging: กดลิงก์ **Use the simulator** ใต้ QR code (ข้อความ "Testing in staging?") — Simulator จะเปิดในแท็บใหม่
@@ -322,15 +322,20 @@ wallet นี้ได้สิทธิ์แก้ข้อมูลของ 
 
 4. ป้าย **SETTLEMENT (ON-CHAIN)** เป็น `Paid`
 5. "Name live on ENS: no — expired" — ชื่อ `inv-3.seikyu.eth` ไม่ resolve แล้ว แม้ยังไม่ถึงวันครบกำหนด
-6. record `status` เป็น `paid` — ข้อมูลเดิมยังอ่านย้อนหลังได้จาก resolver ของ invoice และด้านล่างของหน้าแสดงข้อความ
-   "This receivable has been settled in full."
+6. record `status` เป็น `paid` — ข้อมูลเดิมยังอ่านย้อนหลังได้จาก resolver ของ invoice
 
 ![invoice ที่ชำระแล้ว](manual/screenshots/05-03-paid.png)
 
 *ภาพที่ 22 — invoice ชำระครบและชื่อ ENS ถูกถอน*
 
-> **หมายเหตุ** หลังชำระแล้ว ช่อง Holder ในส่วน SETTLEMENT จะแสดง "— unsold" เพราะ token ถูกทำลายไปแล้ว
-> ไม่ได้แปลว่า invoice ไม่เคยถูกขาย (เป็นข้อความของแอปที่ยังไม่ได้แยกกรณีนี้)
+เลื่อนลงมาที่ส่วน SETTLEMENT
+
+7. **State** เป็น `Paid` และ Holder แสดง `— paid out to the last holder` (token ถูกทำลายแล้ว เงินจ่ายให้ผู้ถือคนสุดท้ายไปแล้ว)
+8. กล่องด้านล่างไม่มีปุ่มใด ๆ แล้ว มีเพียงข้อความ "This receivable has been settled in full."
+
+![ส่วนล่างของ invoice ที่ชำระแล้ว](manual/screenshots/05-04-paid-actions.png)
+
+*ภาพที่ 23 — invoice ปิดแล้ว*
 
 ---
 
@@ -345,7 +350,7 @@ wallet นี้ได้สิทธิ์แก้ข้อมูลของ 
 
 ![สถานะยกเลิกการยืนยัน](manual/screenshots/06-01-verify-cancelled.png)
 
-*ภาพที่ 23 — ยกเลิกการยืนยัน World ID แล้วกด Retry ได้*
+*ภาพที่ 24 — ยกเลิกการยืนยัน World ID แล้วกด Retry ได้*
 
 ### 6.2 ผู้ออกยกเลิก invoice
 
@@ -355,20 +360,20 @@ SME ยกเลิก invoice ได้เฉพาะตอนที่ยั�
 
 ![ปุ่ม Cancel invoice](manual/screenshots/06-06-cancel-button.png)
 
-*ภาพที่ 24 — ปุ่ม Cancel invoice (มองเห็นเฉพาะผู้ออก invoice)*
+*ภาพที่ 25 — ปุ่ม Cancel invoice (มองเห็นเฉพาะผู้ออก invoice)*
 
 2. เมื่อสำเร็จ ป้าย **SETTLEMENT (ON-CHAIN)** เปลี่ยนเป็น `Cancelled`
 3. ชื่อ ENS ถูกถอนทันที บรรทัดสถานะเปลี่ยนเป็น "Name live on ENS: no — expired"
 
 ![invoice ที่ถูกยกเลิก](manual/screenshots/06-07-cancelled.png)
 
-*ภาพที่ 25 — invoice ถูกยกเลิก*
+*ภาพที่ 26 — invoice ถูกยกเลิก*
 
 ส่วนล่างของหน้าแสดง State `Cancelled`, Holder `— unsold` และข้อความ "The issuer cancelled this invoice before it was sold."
 
 ![ส่วนล่างของ invoice ที่ถูกยกเลิก](manual/screenshots/06-08-cancelled-actions.png)
 
-*ภาพที่ 26 — ไม่มีปุ่มซื้อหลังยกเลิก*
+*ภาพที่ 27 — ไม่มีปุ่มซื้อหลังยกเลิก*
 
 > **หมายเหตุ** ถ้ามีผู้ซื้อไปแล้ว การยกเลิกจะไม่ผ่าน (ข้อความ "Cancel failed — the invoice may already be sold.")
 
@@ -380,13 +385,13 @@ SME ยกเลิก invoice ได้เฉพาะตอนที่ยั�
 
 ![invoice ที่ถูกโต้แย้ง](manual/screenshots/06-04-ack-blocked.png)
 
-*ภาพที่ 27 — ป้าย disputed บนหน้า invoice*
+*ภาพที่ 28 — ป้าย disputed บนหน้า invoice*
 
 2. กล่องซื้อไม่มีปุ่มใด ๆ มีเพียงข้อความสีแดง "The debtor marked this invoice “disputed” — purchases are blocked until it is re-acknowledged."
 
 ![กล่องซื้อถูกปิด](manual/screenshots/06-05-ack-blocked-panel.png)
 
-*ภาพที่ 28 — การซื้อถูกปิดจนกว่าจะได้รับการยืนยันใหม่*
+*ภาพที่ 29 — การซื้อถูกปิดจนกว่าจะได้รับการยืนยันใหม่*
 
 การปิดนี้ไม่ได้อยู่แค่บนหน้าเว็บ สัญญา InvoiceMarket อ่านค่า `ack` จาก ENS ทุกครั้งที่มีการซื้อ และปฏิเสธด้วย `PurchaseBlockedByAck` ถ้าเป็น `disputed`
 
@@ -402,7 +407,7 @@ World ID ให้รหัสประจำตัวแบบไม่ระ�
 
 ![World ID ถูกผูกกับ wallet อื่นแล้ว](manual/screenshots/06-11-nullifier-used.png)
 
-*ภาพที่ 29 — นักลงทุน A2 (`0xC919…D9c8`) ใช้ World ID เดียวกับนักลงทุน A จึงถูกปฏิเสธ*
+*ภาพที่ 30 — นักลงทุน A2 (`0xC919…D9c8`) ใช้ World ID เดียวกับนักลงทุน A จึงถูกปฏิเสธ*
 
 ให้กลับไปใช้ wallet เดิมที่ยืนยันไว้แล้ว — ถ้าจำเป็นต้องย้าย wallet จริง ต้องให้ผู้ดูแลระบบ (owner ของสัญญา) ยกเลิกการผูกเดิมก่อน
 
@@ -417,14 +422,14 @@ World ID ให้รหัสประจำตัวแบบไม่ระ�
 
 ![invoice ที่หมดอายุโดยไม่มีผู้ซื้อ](manual/screenshots/06-09-expired-unsold.png)
 
-*ภาพที่ 30 — inv-2.seikyu.eth หลังครบกำหนดโดยไม่มีผู้ซื้อ*
+*ภาพที่ 31 — inv-2.seikyu.eth หลังครบกำหนดโดยไม่มีผู้ซื้อ*
 
 4. กล่องด้านล่างไม่มีปุ่มซื้อ มีข้อความ "Not sold before the due date — the ENS name stopped resolving; records remain readable through the invoice's resolver."
    ในหน้า **Home** invoice แบบนี้จะอยู่ในหมวด **ATTENTION**
 
 ![กล่องด้านล่างของ invoice ที่หมดอายุ](manual/screenshots/06-10-expired-unsold-actions.png)
 
-*ภาพที่ 31 — ไม่มีการซื้อขายหลังหมดอายุ*
+*ภาพที่ 32 — ไม่มีการซื้อขายหลังหมดอายุ*
 
 ### 6.6 เลยกำหนดแต่ยังไม่จ่าย (Overdue และปุ่ม Mark overdue)
 
@@ -502,13 +507,13 @@ wallet ตัวอย่างที่ใช้ในคู่มือ
 
 ![Settings ของ Simulator](manual/screenshots/06-02-sim-settings.png)
 
-*ภาพที่ 32 — หน้า Settings ของ World ID Simulator*
+*ภาพที่ 33 — หน้า Settings ของ World ID Simulator*
 
 3. กดเลือก identity ที่ต้องการ (ในภาพคือ Identity #1) — Simulator จะกลับไปหน้าแรกพร้อม identity ใหม่ จากนั้นเริ่มบทที่ 2 ใหม่ตั้งแต่ข้อ 1
 
 ![รายการ identity ทดสอบ](manual/screenshots/06-03-sim-identities.png)
 
-*ภาพที่ 33 — เลือก identity ทดสอบ*
+*ภาพที่ 34 — เลือก identity ทดสอบ*
 
 **Staging window คืออะไร**
 ช่วงทดสอบ (staging) World ID จะรับหลักฐานจาก Simulator ก็ต่อเมื่อเจ้าของแอปเปิด "staging verification window" ไว้ใน World Developer Portal
