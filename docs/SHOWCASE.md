@@ -6,7 +6,7 @@ Seikyu turns unpaid invoices into ERC-721 receivables that World ID–verified i
 
 ## Long description
 
-Japanese SMEs typically wait 60–120 days to get paid on an invoice. Seikyu lets a supplier sell that receivable today instead of waiting.
+Small suppliers everywhere wait weeks or months — often on net-60 or net-90 terms — to get paid on an invoice. Seikyu (請求, Japanese for "invoice") lets a supplier sell that receivable today instead of waiting.
 
 An SME issues an invoice in one transaction: it mints an ERC-721 receivable to escrow, deploys a dedicated ENSv2 Permissioned Resolver holding 7 text records (amount, currency, debtor, due date, status, token id, issuer), and registers `inv-<id>.<parent>.eth` in our own ENSv2 UserRegistry with `expiry` set to the invoice's due date. An 8th record, `ack`, is writable only by the debtor's accounts-payable wallet — a role granted through Enhanced Access Control that is scoped to that one field, on that one invoice.
 

@@ -1,10 +1,10 @@
 # Seikyu (請求)
 
-Seikyu lets Japanese SMEs sell unpaid invoices to World ID–verified investors, with every invoice living as an ENSv2 name that expires on its due date.
+Seikyu (請求, Japanese for "invoice") lets SMEs sell unpaid invoices to World ID–verified investors, with every invoice living as an ENSv2 name that expires on its due date.
 
 Built for ETHGlobal Tokyo 2026, targeting **ENS Best Use of ENSv2**, **World Best Use of IDKit**, and **Curvegrid Best RWA Tokenization**.
 
-1. **One-sentence summary**: Seikyu lets Japanese SMEs sell unpaid invoices to World ID–verified investors, with every invoice living as an ENSv2 name that expires on its due date.
+1. **One-sentence summary**: Seikyu (請求, Japanese for "invoice") lets SMEs sell unpaid invoices to World ID–verified investors, with every invoice living as an ENSv2 name that expires on its due date.
 
 2. **How we used MultiBaas**: Not used — evaluated for the activity feed, cut at the time-box; contracts are indexed by direct RPC reads.
 

@@ -7,7 +7,7 @@ unless noted. `$PARENT` = the registered parent label (see `contracts/deployment
 
 | Time | Screen / route | Action | What it proves | Prize bullet |
 |---|---|---|---|---|
-| 0:00–0:20 | Title slide / voiceover, no app on screen | State the problem: Japanese SMEs are stuck on 60–120 day payment terms, and paper promissory notes (約束手形) are being phased out. | Context: why a tradeable, expiring receivable matters | — |
+| 0:00–0:20 | Title slide / voiceover, no app on screen | State the problem: small suppliers everywhere wait weeks or months on net-60 / net-90 terms, and the receivable is locked up until the debtor pays. | Context: why a tradeable, expiring receivable matters | — |
 | 0:20–0:50 | `/issue` → `/invoice/inv-N.$PARENT` | SME fills the issue form and signs **one transaction**. Redirect lands on the invoice detail page: **8 ENS records** read live off the stored resolver, a countdown to `expiry = dueDate`, and links out to Etherscan and the ENS app. | One tx mints the ERC-721 receivable, deploys a per-invoice Permissioned Resolver, and registers `inv-<id>.$PARENT.eth` with `expiry = dueDate` | ENS — hierarchy (parent → per-invoice subname), expiring names, one resolver per invoice |
 | 0:50–1:25 | `/invoice/[name]` Buy panel | Investor clicks **Buy** → World ID widget opens → click **Cancel** (F1, `data-state="cancelled"`) → click **Retry** → complete the **Human (Proof of Human)** flow in the World ID Simulator, with the Simulator's **"Legacy v3 proof"** toggle on → server verifies and emits `InvestorVerified` → click **Buy** again → the invoice's ENS `status` record flips to `funded`. (Recorded with `proofOfHuman` + Legacy v3, not Passport — the Simulator's default v4 mode shares one signer across every identity for either credential, so it can't support more than one investor wallet on staging; Legacy v3 mode is the one that actually gives each identity its own nullifier. See the pre-recording checklist and `docs/WORLD_ID_DEBRIEF.md`. Production's default credential is Passport — the live Passport `InvestorVerified` tx is cited there.) | World ID gates real purchases; a cancelled verification is recoverable, not a dead end | World — World ID–verified purchase, `InvestorVerified` recorded on-chain |
 | 1:25–1:45 | Same Buy panel, second MetaMask wallet | The same person switches to a **second wallet** and tries to verify with the same World ID identity → server returns `409 NULLIFIER_ALREADY_USED`, UI shows `data-state="nullifier-used"` ("already linked to 0x…"); a direct on-chain `setVerified` call would revert `NullifierAlreadyUsed`. | One human maps to one wallet — enforced by an on-chain nullifier, not app-side trust | World — deterministic uniqueness (F3) |
@@ -19,7 +19,7 @@ Total: 3:00.
 
 ## Talk track (read over each segment, ≤ 40 words, for a non-crypto judge)
 
-**0:00 — Problem.** "In Japan, small suppliers often wait two to four months to get paid on an invoice, while paper promissory notes are being phased out. Seikyu lets a supplier sell that unpaid invoice today, to a verified investor, for cash now."
+**0:00 — Problem.** "Small suppliers everywhere wait weeks or months to get paid on an invoice — net-60, net-90, sometimes longer. Seikyu — 請求, Japanese for 'invoice' — lets a supplier sell that unpaid invoice today, to a verified investor, for cash now."
 
 **0:20 — Issue.** "One signature turns an invoice into a tradeable asset. Behind the scenes we mint a token and register a unique web name for it — a name that automatically expires on the day the debt is due."
 

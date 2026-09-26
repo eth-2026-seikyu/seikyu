@@ -13,7 +13,7 @@ Sell unpaid invoices as ENSv2 names that expire on their due date, to World ID-v
 
 ## Description
 
-Japanese SMEs typically wait 60–120 days to get paid on an invoice. Seikyu (請求, "invoice") lets a supplier sell that receivable today instead of waiting — and makes the invoice itself a first-class on-chain object with an ENS identity that lives exactly as long as the debt does.
+Small suppliers everywhere wait weeks or months — often on net-60 or net-90 terms — to get paid on an invoice. Seikyu (請求, Japanese for "invoice") lets a supplier sell that receivable today instead of waiting — and makes the invoice itself a first-class on-chain object with an ENS identity that lives exactly as long as the debt does.
 
 Issuing an invoice is one transaction: it mints an ERC-721 receivable into escrow, deploys a dedicated ENSv2 Permissioned Resolver holding seven text records (amount, currency, debtor, due date, status, token id, issuer), and registers inv-<id>.seikyu.eth in our own ENSv2 UserRegistry with the name's expiry set to the invoice's due date. An eighth record, ack, can only be written by the debtor's accounts-payable wallet — a role granted through the resolver's Enhanced Access Control and scoped to that one key on that one invoice, so the debtor acknowledges or disputes the invoice on ENS itself.
 
