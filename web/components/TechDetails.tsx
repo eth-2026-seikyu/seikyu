@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { Address } from "viem";
 import { LiveCountdown } from "@/components/InvoiceCard";
-import { RECORD_KEYS, type InvoiceRecords } from "@/lib/invoices";
+import { RECORD_KEYS, type DisplayState, type InvoiceRecords } from "@/lib/invoices";
 
 function etherscanAddress(address: Address): string {
   return `https://sepolia.etherscan.io/address/${address}`;
@@ -22,12 +22,14 @@ export default function TechDetails({
   countdownTarget,
   records,
   resolver,
+  displayState,
 }: {
   name: string;
   live: boolean;
   countdownTarget: bigint;
   records: InvoiceRecords;
   resolver: Address;
+  displayState: DisplayState;
 }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
 
@@ -65,7 +67,13 @@ export default function TechDetails({
 
         <p className="mt-3 text-sm opacity-70">
           Name live on ENS: {live ? "yes" : "no"} —{" "}
-          <LiveCountdown dueDateSeconds={countdownTarget} live={live} />
+          {!live && displayState === "Paid" ? (
+            <span className="text-xs opacity-60">retired when the invoice was paid</span>
+          ) : !live && displayState === "Cancelled" ? (
+            <span className="text-xs opacity-60">retired when the invoice was withdrawn</span>
+          ) : (
+            <LiveCountdown dueDateSeconds={countdownTarget} live={live} />
+          )}
         </p>
 
         <section className="mt-6">

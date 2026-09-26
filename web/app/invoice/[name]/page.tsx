@@ -102,6 +102,10 @@ export default async function InvoiceDetailPage({
             <dd>
               {realHolder ? (
                 <AddressChip address={realHolder} />
+              ) : displayState === "Paid" ? (
+                <span className="opacity-60">— paid out (token retired)</span>
+              ) : displayState === "Cancelled" ? (
+                <span className="opacity-60">— withdrawn (token retired)</span>
               ) : (
                 <span className="opacity-60">— not sold yet</span>
               )}
@@ -124,6 +128,7 @@ export default async function InvoiceDetailPage({
         countdownTarget={countdownTarget}
         records={records}
         resolver={resolver}
+        displayState={displayState}
       />
     </div>
   );
