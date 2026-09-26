@@ -1,12 +1,11 @@
 // Chapter 3 — the verified investor approves mUSDC and buys the receivable.
-import { BASE, settle, shot, openAs, connect, wallet, unionClip, dropClip, nextTx, saveState, loadState } from "./common.mjs";
+import { BASE, settle, shot, openAs, connect, wallet, panelClip, topCardClip, dropClip, nextTx, saveState, loadState } from "./common.mjs";
 
 const { invoice } = loadState();
 const { browser, page, account } = await openAs("INVESTOR_A");
 await page.goto(`${BASE}/invoice/${invoice}`);
 await settle(page, 900);
 await connect(page, account);
-const panelClip = () => unionClip(page, ["main dl > div:has(dt:text-is('Price'))", "#actions"], { padX: 24, padY: 4 });
 
 if (!loadState().buyTx) {
   const approve = page.getByRole("button", { name: "Approve mUSDC" });
@@ -15,10 +14,10 @@ if (!loadState().buyTx) {
   await settle(page, 600);
   await shot(page, "03-01-approve", {
     highlights: [
-      { selector: "#actions p:has-text('Price')", n: 1 },
+      { selector: "#actions p:has-text('Sale price')", n: 1 },
       { selector: '#actions button:has-text("Approve mUSDC")', n: 2 },
     ],
-    clipTo: await panelClip(),
+    clipTo: await panelClip(page),
     clipPad: 8,
   });
   await dropClip(page);
@@ -30,7 +29,7 @@ if (!loadState().buyTx) {
   await settle(page, 600);
   await shot(page, "03-02-buy", {
     highlights: [{ selector: '#actions button:has-text("Buy for")', n: 3 }],
-    clipTo: await panelClip(),
+    clipTo: await panelClip(page),
     clipPad: 8,
   });
   await dropClip(page);
@@ -46,23 +45,18 @@ for (let i = 0; i < 10; i++) {
   await settle(page, 800);
   if (await page.locator("main span[data-state='Funded']").isVisible().catch(() => false)) break;
 }
+// Plain-language redesign (L5): the settlement badge and the "Current owner"
+// row both live in the top Card's `dl` now — no more separate ENS
+// `tr[data-record='status']` highlight needed for this (the collapsed
+// Technical details already got its own dedicated figure in chapter 1).
 await shot(page, "03-03-funded", {
-  highlights: [
-    { selector: "main span[data-state='Funded']", n: 4 },
-    { selector: "main tr[data-record='status']", n: 5, pad: 2 },
-  ],
-  clipTo: await unionClip(page, ["main h1", "main section:has(table)"], { padX: 24, padY: 16 }),
+  highlights: [{ selector: "main span[data-state='Funded']", n: 4 }],
+  clipTo: await topCardClip(page),
 });
 await dropClip(page);
-await page.locator("#actions").scrollIntoViewIfNeeded();
-await settle(page, 500);
 await shot(page, "03-04-holder", {
-  highlights: [
-    { selector: "main dl > div:has(dt:text-is('State'))", n: 6 },
-    { selector: "main dl > div:has(dt:text-is('Holder'))", n: 7 },
-  ],
-  clipTo: await panelClip(),
-  clipPad: 8,
+  highlights: [{ selector: "main dl > div:has(dt:text-is('Current owner'))", n: 5 }],
+  clipTo: await topCardClip(page),
 });
 await dropClip(page);
 await browser.close();

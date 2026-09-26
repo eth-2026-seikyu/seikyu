@@ -1,9 +1,16 @@
 // Chapter 6.4 — the same person (simulator Identity #1, already bound to investor A)
-// tries to verify a second wallet (investor A2): the server answers 409.
-import { BASE, settle, shot, openAs, connect, saveState } from "./common.mjs";
+// tries to verify a second wallet: the server answers 409.
+//
+// Investor A2 is now also verified on-chain from earlier capture runs (it
+// successfully bound its own identity at some point after the original F3
+// capture), so it can no longer demonstrate the "not yet verified" collision
+// either — this uses the debtor's wallet as a stand-in second wallet for the
+// same re-shoot reason documented in 02-verify.mjs.
+import { BASE, settle, shot, openAs, connect, saveState, loadState } from "./common.mjs";
 
-const OPEN_INVOICE = process.env.F3_INVOICE ?? "inv-1.seikyu.eth";
-const { browser, context, page, account } = await openAs("INVESTOR_A2", { width: 1280, height: 860 });
+const OPEN_INVOICE = process.env.F3_INVOICE ?? loadState().invoice ?? "inv-1.seikyu.eth";
+const F3_ROLE = process.env.F3_ROLE ?? "DEBTOR";
+const { browser, context, page, account } = await openAs(F3_ROLE, { width: 1280, height: 860 });
 const setup = await context.newPage();
 await setup.goto("https://simulator.worldcoin.org/");
 await setup.getByRole("button", { name: "Settings" }).click();

@@ -49,8 +49,12 @@ export const sentTxs = [];
 /**
  * Install the provider into a context. Must run before the first navigation
  * of any page that should see the wallet.
+ *
+ * `chainId` (hex string, default Sepolia `0xaa36a7`) lets a capture script
+ * fake a wrong-network wallet cheaply — e.g. `"0x1"` for mainnet — to
+ * photograph `ChainGuard`'s banner without a real chain switch.
  */
-export async function installWallet(context, role, { origin } = {}) {
+export async function installWallet(context, role, { origin, chainId = "0xaa36a7" } = {}) {
   const account = accountFor(role);
   const wallet = createWalletClient({ account, chain: sepolia, transport: http(RPC_URL) });
 
@@ -102,7 +106,7 @@ export async function installWallet(context, role, { origin } = {}) {
   });
 
   await context.addInitScript(
-    ({ address, origin }) => {
+    ({ address, origin, chainId }) => {
       if (origin && location.origin !== origin) return;
       if (window.top !== window) return;
 
@@ -131,7 +135,7 @@ export async function installWallet(context, role, { origin } = {}) {
       const provider = {
         isMetaMask: true,
         isManualTestWallet: true,
-        chainId: "0xaa36a7",
+        chainId,
         on(event, fn) {
           (listeners[event] ??= []).push(fn);
           return provider;
@@ -147,9 +151,9 @@ export async function installWallet(context, role, { origin } = {}) {
         async request({ method, params }) {
           switch (method) {
             case "eth_chainId":
-              return "0xaa36a7";
+              return chainId;
             case "net_version":
-              return "11155111";
+              return String(parseInt(chainId, 16));
             case "eth_accounts":
               // Like MetaMask: nothing until this origin has been approved once.
               return authorized() ? [address] : [];
@@ -203,7 +207,7 @@ export async function installWallet(context, role, { origin } = {}) {
       announce();
       setTimeout(() => emit("connect", { chainId: "0xaa36a7" }), 0);
     },
-    { address: account.address, origin: origin ?? null },
+    { address: account.address, origin: origin ?? null, chainId },
   );
 
   return account;

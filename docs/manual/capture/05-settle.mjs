@@ -1,12 +1,11 @@
 // Chapter 5 — the debtor pays face value; the token burns and the ENS name is unregistered.
-import { BASE, settle, shot, openAs, connect, wallet, unionClip, dropClip, nextTx, saveState, loadState } from "./common.mjs";
+import { BASE, settle, shot, openAs, connect, wallet, panelClip, topCardClip, dropClip, nextTx, saveState, loadState } from "./common.mjs";
 
 const { invoice } = loadState();
 const { browser, page, account } = await openAs("DEBTOR");
 await page.goto(`${BASE}/invoice/${invoice}`);
 await settle(page, 900);
 await connect(page, account);
-const panelClip = () => unionClip(page, ["main dl > div:has(dt:text-is('Price'))", "#actions"], { padX: 24, padY: 4 });
 
 if (!loadState().settleTx) {
   const approve = page.getByRole("button", { name: "Approve mUSDC" });
@@ -18,7 +17,7 @@ if (!loadState().settleTx) {
       { selector: "#actions p:has-text('Face value')", n: 1 },
       { selector: '#actions button:has-text("Approve mUSDC")', n: 2 },
     ],
-    clipTo: await panelClip(),
+    clipTo: await panelClip(page),
     clipPad: 8,
   });
   await dropClip(page);
@@ -30,7 +29,7 @@ if (!loadState().settleTx) {
   await settle(page, 600);
   await shot(page, "05-02-settle", {
     highlights: [{ selector: '#actions button:has-text("Settle (pay")', n: 3 }],
-    clipTo: await panelClip(),
+    clipTo: await panelClip(page),
     clipPad: 8,
   });
   await dropClip(page);
@@ -46,23 +45,21 @@ for (let i = 0; i < 10; i++) {
   await settle(page, 800);
   if (await page.locator("main span[data-state='Paid']").isVisible().catch(() => false)) break;
 }
+// Plain-language redesign (L5): Paid status now reads straight off the top
+// Card's badge; the ENS-liveness/records detail lives behind the (already
+// separately captured) collapsed Technical details disclosure.
 await shot(page, "05-03-paid", {
-  highlights: [
-    { selector: "main span[data-state='Paid']", n: 4 },
-    { selector: "main p:has-text('Name live on ENS')", n: 5 },
-    { selector: "main tr[data-record='status']", n: 6, pad: 2 },
-  ],
-  clipTo: await unionClip(page, ["main h1", "main section:has(table)"], { padX: 24, padY: 16 }),
+  highlights: [{ selector: "main span[data-state='Paid']", n: 4 }],
+  clipTo: await topCardClip(page),
 });
 await dropClip(page);
 await page.locator("#actions").scrollIntoViewIfNeeded();
 await settle(page, 500);
+// InvoiceActions' Paid-state `Explanation` card (L6) renders its text as a
+// plain child, not inside a `<p>`, so the whole actions box is the target.
 await shot(page, "05-04-paid-actions", {
-  highlights: [
-    { selector: "main dl > div:has(dt:text-is('State'))", n: 7 },
-    { selector: "#actions p", n: 8 },
-  ],
-  clipTo: await panelClip(),
+  highlights: [{ selector: "#actions", n: 7 }],
+  clipTo: await panelClip(page),
   clipPad: 8,
 });
 await dropClip(page);

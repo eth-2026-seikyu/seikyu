@@ -1,10 +1,29 @@
 // Chapter 1 — the SME issues an invoice. Creates the invoice every later chapter uses.
-import { BASE, settle, shot, describe, openAs, connect, wallet, unionClip, dropClip, nextTx, saveState, loadState } from "./common.mjs";
+import {
+  BASE,
+  settle,
+  shot,
+  describe,
+  openAs,
+  connect,
+  wallet,
+  unionClip,
+  dropClip,
+  nextTx,
+  saveState,
+  loadState,
+  openTechDetails,
+  topCardClip,
+  panelClip,
+} from "./common.mjs";
 
 const DEBTOR = "0xb6359D76E104a9fF007c979d5b18b2804578E72B";
 const ACCOUNTANT = "0xe1D7a414963005BdCeecA0da42a50A3FFF7d9aDe";
 
-const { browser, page, account } = await openAs("SME");
+// Tall viewport: the opened Technical details disclosure (8-row table +
+// link + resolver) is taller than the default 780px and a non-fullPage clip
+// can't capture content below the fold.
+const { browser, page, account } = await openAs("SME", { height: 1500 });
 // Re-runnable: once the invoice exists, only the detail-page figures are retaken.
 const issued = loadState().invoice;
 if (!issued) {
@@ -74,32 +93,58 @@ await settle(page, 1500);
 console.log("INVOICE", loadState().invoice);
 
 console.log(JSON.stringify(await describe(page), null, 1));
+// Plain-language redesign (L5): the page's top Card carries the Status/
+// Debtor's-response badges plus a single settlement `dl` (Amount owed /
+// Sale price / Due / Supplier / Debtor company / Current owner) — the old
+// separate "Price/Due date/State/Holder" grid and the always-visible ENS
+// records table are gone from this view (the latter is now inside a closed
+// `[data-testid=tech-details]`, captured separately below).
 await shot(page, "01-03-invoice-detail", {
   highlights: [
     { selector: "main h1", n: 1 },
     { selector: "main span[data-state='Open']", n: 2 },
     { selector: "main span[data-state='none']", n: 3 },
-    { selector: "main p:has-text('Name live on ENS')", n: 4 },
-    { selector: "main section:has(table)", n: 5, pad: 4 },
+    { selector: "main dl > div:has(dt:text-is('Amount owed'))", n: 4 },
+    { selector: "main dl > div:has(dt:text-is('Sale price'))", n: 5 },
   ],
-  clipTo: await unionClip(page, ["main h1", "main section:has(table)"], { padX: 24, padY: 20, fullWidth: false }),
+  clipTo: await topCardClip(page),
+});
+await dropClip(page);
+
+// New key screen (L7): the Technical details disclosure, closed by default,
+// then opened to show the 8-row ENS records table, the ENS-app link, and the
+// resolver link (plan AC-U4) — this is where the old "Name live on ENS" line
+// and records table moved to.
+await page.locator("[data-testid=tech-details]").scrollIntoViewIfNeeded();
+await settle(page, 400);
+await shot(page, "01-05-tech-details-closed", {
+  highlights: [{ selector: "[data-testid=tech-details] summary", n: 1 }],
+  clipTo: "[data-testid=tech-details]",
+  clipPad: 28,
+});
+await openTechDetails(page);
+await page.locator("[data-testid=tech-details]").scrollIntoViewIfNeeded();
+await settle(page, 400);
+await shot(page, "01-06-tech-details-open", {
+  highlights: [
+    { selector: "[data-testid=tech-details] a:has-text('View on ENS app')", n: 1 },
+    { selector: "[data-testid=tech-details] p:has-text('Name live on ENS')", n: 2 },
+    { selector: "[data-testid=tech-details] table", n: 3, pad: 4 },
+  ],
+  clipTo: "[data-testid=tech-details]",
+  clipPad: 28,
 });
 await dropClip(page);
 
 await page.locator("#actions").scrollIntoViewIfNeeded();
 await settle(page, 600);
-// The Settlement grid's first row (Issuer/Debtor/Face value) overlaps at desktop
-// widths — an app layout bug — so the crop starts at the Price row.
 await shot(page, "01-04-invoice-settlement", {
   highlights: [
-    { selector: "main dl > div:has(dt:text-is('Price'))", n: 6 },
-    { selector: "main dl > div:has(dt:text-is('Due date'))", n: 7 },
-    { selector: "main dl > div:has(dt:text-is('State'))", n: 8 },
-    { selector: "main dl > div:has(dt:text-is('Holder'))", n: 9 },
+    { selector: "[data-testid=role-banner]", n: 6 },
     { selector: "#actions button:has-text('Verify with World ID')", n: 10 },
     { selector: "#actions button:has-text('Cancel invoice')", n: 11 },
   ],
-  clipTo: await unionClip(page, ["main dl > div:has(dt:text-is('Price'))", "#actions"], { padX: 24, padY: 4 }),
+  clipTo: await panelClip(page),
   clipPad: 8,
 });
 await dropClip(page);

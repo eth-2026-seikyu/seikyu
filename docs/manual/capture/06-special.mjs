@@ -1,7 +1,21 @@
 // Chapter 6 (and the pending-state figure of chapter 1): a second invoice that the
 // debtor's accountant disputes, which blocks buying, and which the issuer then cancels.
 // Also photographs inv-2 (issued with the "+10 minutes" preset, never sold) after expiry.
-import { BASE, settle, shot, openAs, connect, wallet, unionClip, dropClip, nextTx, saveState, loadState } from "./common.mjs";
+import {
+  BASE,
+  settle,
+  shot,
+  openAs,
+  connect,
+  wallet,
+  unionClip,
+  dropClip,
+  nextTx,
+  saveState,
+  loadState,
+  panelClip,
+  topCardClip,
+} from "./common.mjs";
 
 const DEBTOR = "0xb6359D76E104a9fF007c979d5b18b2804578E72B";
 const ACCOUNTANT = "0xe1D7a414963005BdCeecA0da42a50A3FFF7d9aDe";
@@ -9,7 +23,10 @@ const EXPIRED = "inv-2.seikyu.eth";
 
 // A. SME issues the second invoice — this run also supplies figure 01-02 (pending).
 if (!loadState().invoice2) {
-  const { browser, page, account } = await openAs("SME");
+  // Taller viewport: at the default 780px, the submit button sits partially
+  // below the fold once the "View transaction" link appears above it, and a
+  // non-fullPage clip can't capture what's off-screen.
+  const { browser, page, account } = await openAs("SME", { height: 950 });
   await page.goto(`${BASE}/issue`);
   await settle(page, 900);
   await connect(page, account);
@@ -29,7 +46,10 @@ if (!loadState().invoice2) {
       { selector: "form a:has-text('View transaction')", n: 8 },
       { selector: "form button[type=submit]", n: 9 },
     ],
-    clipTo: await unionClip(page, ["form fieldset", "form button[type=submit]"], { padX: 16, padY: 16 }),
+    clipTo: await unionClip(page, ["form a:has-text('View transaction')", "form button[type=submit]"], {
+      padX: 24,
+      padY: 40,
+    }),
   });
   await dropClip(page);
   const createTx2 = await nextTx(page, before, "CREATE2");
@@ -76,18 +96,18 @@ if (!loadState().cancelTx) {
   await connect(page, account);
   await page.locator("#actions [data-state='ack-blocked']").waitFor({ timeout: 30_000 });
   await settle(page, 600);
+  // Plain-language redesign (L5): the disputed ack badge sits in the top
+  // Card next to the settlement badge, not next to the "Name live" line
+  // (that moved into the collapsed Technical details).
   await shot(page, "06-04-ack-blocked", {
-    highlights: [
-      { selector: "main span[data-state='disputed']", n: 1 },
-      { selector: "#actions [data-state='ack-blocked']", n: 2 },
-    ],
-    clipTo: await unionClip(page, ["main h1", "main span[data-state='disputed']", "main p:has-text('Name live on ENS')"], { padX: 24, padY: 16 }),
+    highlights: [{ selector: "main span[data-state='disputed']", n: 1 }],
+    clipTo: await topCardClip(page),
   });
   await dropClip(page);
   await page.locator("#actions").scrollIntoViewIfNeeded();
   await shot(page, "06-05-ack-blocked-panel", {
     highlights: [{ selector: "#actions [data-state='ack-blocked'] p", n: 2 }],
-    clipTo: await unionClip(page, ["main dl > div:has(dt:text-is('Price'))", "#actions"], { padX: 24, padY: 4 }),
+    clipTo: await panelClip(page),
     clipPad: 8,
   });
   await dropClip(page);
@@ -106,7 +126,7 @@ if (!loadState().cancelTx) {
   await settle(page, 500);
   await shot(page, "06-06-cancel-button", {
     highlights: [{ selector: '#actions button:has-text("Cancel invoice")', n: 1 }],
-    clipTo: await unionClip(page, ["main dl > div:has(dt:text-is('Price'))", "#actions"], { padX: 24, padY: 4 }),
+    clipTo: await panelClip(page),
     clipPad: 8,
   });
   await dropClip(page);
@@ -127,16 +147,14 @@ if (!loadState().cancelTx) {
     if (await page.locator("main span[data-state='Cancelled']").isVisible().catch(() => false)) break;
   }
   await shot(page, "06-07-cancelled", {
-    highlights: [
-      { selector: "main span[data-state='Cancelled']", n: 2 },
-      { selector: "main p:has-text('Name live on ENS')", n: 3 },
-    ],
-    clipTo: await unionClip(page, ["main h1", "main p:has-text('Name live on ENS')"], { padX: 24, padY: 16 }),
+    highlights: [{ selector: "main span[data-state='Cancelled']", n: 2 }],
+    clipTo: await topCardClip(page),
   });
   await dropClip(page);
   await page.locator("#actions").scrollIntoViewIfNeeded();
   await shot(page, "06-08-cancelled-actions", {
-    clipTo: await unionClip(page, ["main dl > div:has(dt:text-is('Price'))", "#actions"], { padX: 24, padY: 4 }),
+    highlights: [{ selector: "#actions", n: 3 }],
+    clipTo: await panelClip(page),
     clipPad: 8,
   });
   await dropClip(page);
@@ -149,18 +167,14 @@ if (!loadState().cancelTx) {
   await page.goto(`${BASE}/invoice/${EXPIRED}`);
   await settle(page, 1200);
   await shot(page, "06-09-expired-unsold", {
-    highlights: [
-      { selector: "main span[data-state='Expired-unsold']", n: 1 },
-      { selector: "main p:has-text('Name live on ENS')", n: 2 },
-      { selector: "main tr[data-record='status']", n: 3, pad: 2 },
-    ],
-    clipTo: await unionClip(page, ["main h1", "main section:has(table)"], { padX: 24, padY: 16 }),
+    highlights: [{ selector: "main span[data-state='Expired-unsold']", n: 1 }],
+    clipTo: await topCardClip(page),
   });
   await dropClip(page);
   await page.locator("#actions").scrollIntoViewIfNeeded();
   await shot(page, "06-10-expired-unsold-actions", {
     highlights: [{ selector: "#actions [data-state='expired-unsold']", n: 4 }],
-    clipTo: await unionClip(page, ["main dl > div:has(dt:text-is('Price'))", "#actions"], { padX: 24, padY: 4 }),
+    clipTo: await panelClip(page),
     clipPad: 8,
   });
   await dropClip(page);

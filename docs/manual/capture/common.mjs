@@ -36,8 +36,9 @@ export function saveState(patch) {
 
 /** A 1000×780 browser whose page carries the given role's wallet. */
 export async function openAs(role, opts = {}) {
-  const { browser, context, page } = await kit.launch({ width: 1000, height: 780, ...opts });
-  const account = await wallet.installWallet(context, role, { origin: BASE });
+  const { chainId, ...launchOpts } = opts;
+  const { browser, context, page } = await kit.launch({ width: 1000, height: 780, ...launchOpts });
+  const account = await wallet.installWallet(context, role, { origin: BASE, chainId });
   return { browser, context, page, account };
 }
 
@@ -146,4 +147,43 @@ export async function nextTx(page, before, label) {
   await wallet.waitReceipt(tx.hash);
   console.log(`${label}_TX ${tx.hash}`);
   return tx.hash;
+}
+
+/**
+ * Opens the invoice detail page's `<details data-testid="tech-details">`
+ * (closed by default since the L5 plain-language redesign — the ENS
+ * name-liveness line and the 8-row records table live inside it) and waits
+ * for the records table to actually be populated. A no-op if it's already
+ * open. Every script that needs `tr[data-record=...]`, the "Name live on
+ * ENS" line, the ENS-app link, or the resolver link must call this first.
+ */
+export async function openTechDetails(page) {
+  const details = page.locator("[data-testid=tech-details]");
+  const isOpen = await details.evaluate((el) => el.open).catch(() => false);
+  if (!isOpen) {
+    await details.locator("summary").click();
+  }
+  await page.locator("[data-testid=tech-details] tr[data-record]").first().waitFor({ timeout: 15_000 });
+}
+
+/**
+ * Crop spanning the invoice detail page's plain-language summary: the `<h1>`
+ * ENS name down through the single settlement `<dl>` (Amount owed / Sale
+ * price / Due / Supplier / Debtor company / Current owner) that replaced the
+ * old four-row "Price/Due date/State/Holder" grid in the L5 redesign.
+ */
+export function topCardClip(page, opts = {}) {
+  return unionClip(page, ["main h1", "main dl"], { padX: 24, padY: 16, ...opts });
+}
+
+/**
+ * Crop spanning the per-role `RoleBanner` (introduced in L5, sits directly
+ * above `#actions`) through the actions panel itself. Replaces the old
+ * `main dl > div:has(dt:text-is('Price'))` + `#actions` union: the
+ * Price/Due/State/Holder rows that used to sit right above the actions no
+ * longer exist as a separate grid (they moved into the top Card next to the
+ * badges), so the banner is what now gives the actions panel its context.
+ */
+export function panelClip(page, opts = {}) {
+  return unionClip(page, ["[data-testid=role-banner]", "#actions"], { padX: 24, padY: 8, ...opts });
 }

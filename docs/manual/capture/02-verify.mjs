@@ -1,15 +1,25 @@
-// Chapter 2 — investor A proves personhood with World ID (staging simulator).
-// The credential chip follows NEXT_PUBLIC_WORLD_PRESET: "Human" for proofOfHuman, "Passport" for passport.
-// Also captures the F1 "cancelled" state used in chapter 6. Captured at 1280 wide:
-// below ~1024px IDKit switches to its mobile sheet, which hides "Use the simulator".
+// Chapter 2 — a not-yet-verified investor proves personhood with World ID
+// (staging simulator). The credential chip follows NEXT_PUBLIC_WORLD_PRESET:
+// "Human" for proofOfHuman, "Passport" for passport. Also captures the F1
+// "cancelled" state used in chapter 6. Captured at 1280 wide: below ~1024px
+// IDKit switches to its mobile sheet, which hides "Use the simulator".
+//
+// Investor A and Investor A2 are both already verified on-chain from earlier
+// capture runs (`isVerified` never goes back to false), so BuyPanel can never
+// show either of them the "not-verified" branch again. This re-shoot uses the
+// debtor's accountant wallet (DEBTOR_AP) as a stand-in "not yet verified"
+// investor purely to re-photograph the verify UI — see USER_GUIDE.md's note
+// on this substitution. Override with VERIFY_ROLE if a different wallet is
+// still unverified by the time this runs.
 import path from "node:path";
-import { BASE, settle, shot, openAs, connect, wallet, unionClip, dropClip, markBoxes, saveState, loadState } from "./common.mjs";
+import { BASE, settle, shot, openAs, connect, wallet, panelClip, unionClip, dropClip, markBoxes, saveState, loadState } from "./common.mjs";
 
 const VIEM = path.resolve(import.meta.dirname, "../../../web/node_modules/viem/_esm/index.js");
 const { parseAbi, parseEventLogs } = await import(VIEM);
 
 const { invoice } = loadState();
-const { browser, context, page, account } = await openAs("INVESTOR_A", { width: 1280, height: 860 });
+const VERIFY_ROLE = process.env.VERIFY_ROLE ?? "DEBTOR_AP";
+const { browser, context, page, account } = await openAs(VERIFY_ROLE, { width: 1280, height: 860 });
 const verifyResponses = [];
 page.on("request", (r) => {
   if (!r.url().includes("/api/world/verify")) return;
@@ -33,7 +43,7 @@ await settle(page, 500);
 
 await shot(page, "02-01-buy-panel-verify", {
   highlights: [{ selector: '#actions button:has-text("Verify with World ID")', n: 1 }],
-  clipTo: await unionClip(page, ["main dl > div:has(dt:text-is('Price'))", "#actions"], { padX: 24, padY: 4 }),
+  clipTo: await panelClip(page),
   clipPad: 8,
 });
 await dropClip(page);
@@ -50,9 +60,10 @@ await shot(page, "06-01-verify-cancelled", {
   clipTo: "#actions",
 });
 
-// The simulator ships five shared test identities; the default (#4) is already
-// bound to another wallet on this app, so investor A uses Identity #1.
-const SIM_IDENTITY = process.env.SIM_IDENTITY ?? "Identity #1";
+// The simulator ships five shared test identities; #0, #1, and #4 are already
+// bound to other wallets from earlier capture runs, and #3 stays reserved for
+// the pitch video (never consumed here) — so this fresh-verify demo uses #2.
+const SIM_IDENTITY = process.env.SIM_IDENTITY ?? "Identity #2";
 {
   const setup = await context.newPage();
   await setup.goto("https://simulator.worldcoin.org/");
