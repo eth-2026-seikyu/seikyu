@@ -49,7 +49,7 @@ Three facts we didn't expect going in:
 
 - Live app: https://seikyu.xyz
 - Repository: https://github.com/eth-2026-seikyu/seikyu
-- Demo video: <!-- FILL-VIDEO -->
+- Demo video (2:59): https://github.com/eth-2026-seikyu/seikyu/releases/download/v1.0-tokyo2026/seikyu-demo.mp4
 - User guide (Thai, with screenshots): [`docs/USER_GUIDE.md`](USER_GUIDE.md)
 
 ## Contract addresses (Sepolia)

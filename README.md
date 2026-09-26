@@ -119,7 +119,7 @@ There are **two mock USDCs**: ENS's `ensMockUsdc` above (parent registration onl
 ## Live demo + video
 
 - Live demo: https://seikyu.xyz (Vercel, Sepolia)
-- Video (≤ 3:00): <!-- FILL-VIDEO -->
+- Video (2:59): https://github.com/eth-2026-seikyu/seikyu/releases/download/v1.0-tokyo2026/seikyu-demo.mp4 (also attached to the ETHGlobal entry)
 - Demo script: [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md)
 - User guide (Thai): [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — 33 screenshots captured from the live Sepolia deployment (issue, verify, buy, accountant ack/dispute, settle, cancel)
 - Live on-chain flow so far (full feature-by-feature tx table: [`docs/ENS_INTEGRATION.md`](docs/ENS_INTEGRATION.md)):
