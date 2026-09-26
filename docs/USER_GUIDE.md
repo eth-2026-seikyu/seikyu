@@ -129,8 +129,12 @@ invoice แต่ละใบจะมีชื่อ ENS ของตัวเ�
 ## บทที่ 2 ยืนยันตัวตนด้วย World ID (นักลงทุน)
 
 ก่อนซื้อ invoice ได้ นักลงทุนต้องพิสูจน์ด้วย World ID ว่าเป็นมนุษย์ที่ไม่ซ้ำกับใคร
-ระบบที่ใช้ถ่ายคู่มือนี้ตั้งค่า credential เป็น **Human** (Proof of Human, `NEXT_PUBLIC_WORLD_PRESET=proofOfHuman`)
-— ข้อความในกล่องซื้อของแอปยังเขียนว่า "World ID Passport proof" อยู่ ให้ยึดตาม credential ที่ Simulator/World App ขอจริง
+
+> **credential ที่ใช้** ระบบจริง (production) ออกแบบให้ใช้ credential แบบ **Passport** ซึ่งรับประกันความไม่ซ้ำในระดับเอกสาร (พาสปอร์ตหนึ่งเล่มต่อหนึ่ง wallet)
+> แต่ใน World ID Simulator ของ staging นั้น Passport เป็นเอกสารจำลองชุดเดียวที่ทุก identity ใช้ร่วมกัน (ได้ nullifier เดียวกันเสมอ)
+> ซึ่งถูกผูกกับ wallet อื่นไปแล้ว — เวอร์ชัน demo จึงตั้งค่าเป็น **Proof of Human** (ปุ่ม **Human** ใน Simulator, `NEXT_PUBLIC_WORLD_PRESET=proofOfHuman`)
+> ภาพในบทนี้ถ่ายจากเวอร์ชัน demo ข้อความในกล่องซื้อของแอปยังเขียนว่า "World ID Passport proof" ตามการออกแบบของระบบจริง
+
 ทำครั้งเดียวต่อ wallet และระบบผูก "หนึ่งคนต่อหนึ่ง wallet" — คนเดียวกันใช้ wallet ที่สองยืนยันซ้ำไม่ได้ (ดูบทที่ 6.4)
 นักลงทุนหนึ่งคนถือ invoice ที่ยังไม่ปิดได้สูงสุด 3 ใบ
 
