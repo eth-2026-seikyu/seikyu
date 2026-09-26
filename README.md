@@ -99,8 +99,8 @@ Seikyu's own contracts, live on Sepolia (from `contracts/deployments/sepolia.jso
 
 | Contract | Address | Deployed by |
 |---|---|---|
-| Our `UserRegistry` | `0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67` | `script/DeployUserRegistry.s.sol` ([tx](https://sepolia.etherscan.io/tx/0xd2bba84501953caf250623987fbdbf8cea6129dce0d80e92f70c2dd757ac213c)) |
-| Parent name | `seikyu.eth` | `script/RegisterParent.s.sol` (commit [tx](https://sepolia.etherscan.io/tx/0x9e31c31403cca6412055a4847b244987a59e0d05a702964afc035b4951b73c2f), register [tx](https://sepolia.etherscan.io/tx/0x7b31788bd5f7bef84a84530cdec3c289d7b1e13ad051319f500eda5ea067b913), block 11784477, fee 8,000,021 ENS-mUSDC) |
+| Our `UserRegistry` | `0xA9DFC9d1D5EA96b5Ade09d0E9B84944965B4eD67` | `script/DeployUserRegistry.s.sol` ([tx](https://eth-sepolia.blockscout.com/tx/0xd2bba84501953caf250623987fbdbf8cea6129dce0d80e92f70c2dd757ac213c)) |
+| Parent name | `seikyu.eth` | `script/RegisterParent.s.sol` (commit [tx](https://eth-sepolia.blockscout.com/tx/0x9e31c31403cca6412055a4847b244987a59e0d05a702964afc035b4951b73c2f), register [tx](https://eth-sepolia.blockscout.com/tx/0x7b31788bd5f7bef84a84530cdec3c289d7b1e13ad051319f500eda5ea067b913), block 11784477, fee 8,000,021 ENS-mUSDC) |
 | `InvoiceRegistrar` | `0x628701e9A322B019e4aFe31A077f393644D748eF` | `script/Deploy.s.sol` |
 | `InvoiceMarket` | `0x9Cf9989AfC0196720aa0A64F61a614CFB548B875` | `script/Deploy.s.sol` |
 | Our MockUSDC (`mUSDC`) | `0x6B41ADF3e9A858136C28dfAC2432Eb2356E5451D` | `script/Deploy.s.sol` |
@@ -116,6 +116,12 @@ There are **two mock USDCs**: ENS's `ensMockUsdc` above (parent registration onl
 - Live demo: <!-- FILL-H5: demo URL -->
 - Video (≤ 3:00): <!-- FILL-VIDEO -->
 - Demo script: [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md)
+- Live on-chain flow so far (full feature-by-feature tx table: [`docs/ENS_INTEGRATION.md`](docs/ENS_INTEGRATION.md)):
+  - [`createInvoice` → inv-1.seikyu.eth](https://eth-sepolia.blockscout.com/tx/0x0a0d4954e2115ebe18cf86461d50f3d136d2979dd5f4892aa21bbfc2f16b184b) (due in 7 days)
+  - [`createInvoice` → inv-2.seikyu.eth](https://eth-sepolia.blockscout.com/tx/0x4e089388900ad4349a5905b45fcf5669ab1fc2ef8eb972a09c25b81752dbb21f) (the +10-minute expiry demo name)
+  - [accountant `setText(ack="acknowledged")` on inv-1](https://eth-sepolia.blockscout.com/tx/0xc118b4106a306f511e3f49ccba78be1647b36cf31485630cb34aea217c6adedb) — `amount`/`status` edits from the same wallet were rejected as simulated reverts (`EACUnauthorizedAccountRoles`, never broadcast — see `web/scripts/eac-negative.ts` output)
+  - `check-ens.ts inv-1.seikyu.eth`: all 8 records readable via the stored resolver, `RESOLVES: true`, `LIVE_STATE: REGISTERED`
+  - Buy / settle / expiry / `markOverdue` / `Harden` transactions: pending, to follow
 
 ## Gas & tests
 
