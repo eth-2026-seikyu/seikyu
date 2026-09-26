@@ -11,6 +11,9 @@
   --ok: #15803d;
   --slide-w: 1280px;
   --slide-h: 720px;
+  --pad-t: 50px;
+  --pad-x: 60px;
+  --pad-b: 44px;
 }
 
 * { box-sizing: border-box; }
@@ -39,7 +42,7 @@ html, body {
   inset: 0;
   display: none;
   flex-direction: column;
-  padding: 54px 64px 48px;
+  padding: var(--pad-t) var(--pad-x) var(--pad-b);
   background: var(--paper);
   overflow: hidden;
 }
@@ -66,7 +69,7 @@ h1 {
 }
 
 h2 {
-  font-size: 44px;
+  font-size: 40px;
   line-height: 1.1;
   letter-spacing: -.018em;
   margin: 0 0 22px;
@@ -74,11 +77,10 @@ h2 {
 }
 
 .lede {
-  font-size: 27px;
+  font-size: 26px;
   line-height: 1.42;
   color: var(--muted);
   margin: 0;
-  max-width: 24ch;
 }
 
 .slide.center .lede { max-width: 34ch; }
@@ -92,11 +94,10 @@ ul {
 }
 
 li {
-  font-size: 24px;
+  font-size: 23px;
   line-height: 1.38;
   padding-left: 22px;
   position: relative;
-  max-width: 30ch;
 }
 
 li::before {
@@ -122,21 +123,54 @@ code, .mono {
 
 /* ---- layout ---- */
 
+/* Text sits in a fixed left column; the screenshot gets a panel that bleeds to
+   the slide's top, bottom and right edges. Bleeding past the padding is what
+   makes the screenshots big enough to read from the back of a room — the
+   negative offsets cancel .slide's padding, so they track the variables. */
 .body {
+  --panel-left: 566px;
   flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 44px;
-  align-items: center;
+  display: block;
   min-height: 0;
 }
 
-.body.wide { grid-template-columns: 0.82fr 1.18fr; }
-.body.text-only { grid-template-columns: 1fr; }
+.body.wide { --panel-left: 496px; }
+.body:has(> .pair) { --panel-left: 500px; }
+
+.body > .col {
+  width: calc(var(--panel-left) - var(--pad-x) - 44px);
+}
+
+.body:not(.stack):not(.text-only) > figure,
+.body:not(.stack):not(.text-only) > .pair {
+  /* Offsets resolve against .slide's padding box, which is the full 1280x720 —
+     so 0 already means the slide edge, no padding to cancel. */
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: var(--panel-left);
+  margin: 0;
+  padding: 22px 24px;
+  background: #f1f0ec;
+  border-left: 1px solid var(--line);
+}
+
+/* No image panel to make room for, so the text gets the whole slide. Also
+   applies to a plain .body that simply has no figure, so a text slide never
+   sits squeezed beside an empty panel. */
+.body.text-only { display: grid; grid-template-columns: 1fr; align-items: center; }
+
+.body.text-only > .col,
+.body:not(.stack):not(:has(> figure)):not(:has(> .pair)) > .col {
+  width: auto;
+  max-width: 62ch;
+}
 
 /* Text above, a full-width banner image below — for wide, short screenshots
    that would be unreadable squeezed into a half column. */
 .body.stack {
+  display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 26px;
@@ -163,9 +197,10 @@ figure img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 1px solid #d8d7d2;
+  border-radius: 8px;
   background: #fff;
+  box-shadow: 0 2px 10px rgba(15, 17, 21, .07);
 }
 
 figcaption {
@@ -177,7 +212,7 @@ figcaption {
 .pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
   height: 100%;
   align-items: center;
 }
