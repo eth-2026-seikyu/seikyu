@@ -452,6 +452,19 @@ World ID ให้รหัสประจำตัวแบบไม่ระ�
 
 *ภาพที่ 34 — กล่อง Overdue พร้อมปุ่ม Mark overdue และกล่องชำระเงิน*
 
+เมื่อธุรกรรม Mark overdue สำเร็จ ให้รีเฟรชหน้า invoice บรรทัดสถานะจะเป็น "Name live on ENS: yes" อีกครั้ง — ชื่อ ENS กลับมาใช้งานได้
+(ใน inv-7 ชื่อได้อายุใหม่ถึงเวลา Unix `1793010720`) ส่วนป้าย SETTLEMENT ยังเป็น `Overdue` และ State ยังเป็น `Funded` เพราะยังไม่มีการจ่ายเงิน
+
+6. record `dueDate` ยังเป็นวันครบกำหนดเดิม (`1790417526`) — การต่ออายุไม่ได้แก้วันครบกำหนดของหนี้
+7. record `status` เปลี่ยนจาก `funded` เป็น `overdue` — ใครดูชื่อนี้บน ENS ก็เห็นว่า invoice ค้างชำระ
+
+![ENS records หลัง Mark overdue](manual/screenshots/06-14-overdue-after-records.png)
+
+*ภาพที่ 35 — inv-7.seikyu.eth หลัง Mark overdue: status เป็น overdue*
+
+> **อย่ากด Mark overdue ซ้ำ** หลังต่ออายุแล้ว หน้า invoice ยังแสดงกล่องสีเหลืองและปุ่ม **Mark overdue** อยู่
+> แต่การกดซ้ำจะไม่ผ่าน (ชื่อยังใช้งานได้อยู่ สัญญาปฏิเสธด้วย `NameStillLive`) และจะขึ้นว่า "Failed to mark overdue — please try again."
+
 > **อายุใหม่ของชื่อ** `markOverdue()` ต่ออายุชื่อ ENS ออกไปอีก **30 วันนับจากเวลาที่กด** (ค่าคงที่ `OVERDUE_EXTENSION` ในสัญญา InvoiceMarket)
 > ไม่ใช่นับจากวันครบกำหนดเดิม และเขียน `status = overdue` เพื่อให้คนภายนอกเห็นบน ENS ว่า invoice นี้ค้างชำระ
 > ถ้าลูกหนี้ชำระ (บทที่ 5) หลังจากนั้น ระบบจะถอนชื่อ ENS ทันทีเหมือนกรณีปกติ และ `status` จะเป็น `paid`
@@ -494,6 +507,7 @@ wallet ตัวอย่างที่ใช้ในคู่มือ
 | ออก invoice ใบที่สอง `inv-4.seikyu.eth` | [`0x9f6997c1…d4c0c8`](https://eth-sepolia.blockscout.com/tx/0x9f6997c1bd22c8d07d8803b4eb95145495cf6471a747ed2eb1492dc0c4d4c0c8) |
 | ฝ่ายบัญชีโต้แย้ง `inv-4` (`ack=disputed`) | [`0x2f470b24…869068`](https://eth-sepolia.blockscout.com/tx/0x2f470b242bf22a6b151a670f3d20b932135198ed8b8d480a7f98bebfbd869068) |
 | SME ยกเลิก `inv-4` | [`0xb1c8d9fd…d2a1b1`](https://eth-sepolia.blockscout.com/tx/0xb1c8d9fd0c6d9e7115f920ccc70d86f3315f92d52c211175822d4d13b8d2a1b1) |
+| Mark overdue ให้ `inv-7.seikyu.eth` (ต่ออายุชื่อ 30 วัน, `status=overdue`) | [`0x87e44abb…e410b8`](https://eth-sepolia.blockscout.com/tx/0x87e44abb349f6825cee73ce6e43d2d2a0aad017b90ab64a9c20f2b8b20e410b8) |
 
 > **หมายเหตุ** ลิงก์ **View transaction →** และลิงก์ address ในแอปเปิดไปที่ Etherscan ส่วนตารางนี้ใช้ Blockscout
 > ซึ่งแสดง source code ของสัญญาครบทั้งสามตัว
@@ -520,13 +534,13 @@ wallet ตัวอย่างที่ใช้ในคู่มือ
 
 ![Settings ของ Simulator](manual/screenshots/06-02-sim-settings.png)
 
-*ภาพที่ 35 — หน้า Settings ของ World ID Simulator*
+*ภาพที่ 36 — หน้า Settings ของ World ID Simulator*
 
 3. กดเลือก identity ที่ต้องการ (ในภาพคือ Identity #1) — Simulator จะกลับไปหน้าแรกพร้อม identity ใหม่ จากนั้นเริ่มบทที่ 2 ใหม่ตั้งแต่ข้อ 1
 
 ![รายการ identity ทดสอบ](manual/screenshots/06-03-sim-identities.png)
 
-*ภาพที่ 36 — เลือก identity ทดสอบ*
+*ภาพที่ 37 — เลือก identity ทดสอบ*
 
 **Staging window คืออะไร**
 ช่วงทดสอบ (staging) World ID จะรับหลักฐานจาก Simulator ก็ต่อเมื่อเจ้าของแอปเปิด "staging verification window" ไว้ใน World Developer Portal

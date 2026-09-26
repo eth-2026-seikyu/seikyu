@@ -15,6 +15,22 @@ const markVisible = await page.getByRole("button", { name: "Mark overdue" }).isV
 console.log("OVERDUE", JSON.stringify({ status, live, markVisible }));
 const suffix = status.trim() === "overdue" ? "after" : "before";
 
+if (suffix === "after") {
+  // After markOverdue the app still shows "expires in expired" (countdown uses the
+  // original dueDate) and a stale "Mark overdue" box (a second call reverts NameStillLive).
+  // Those are app bugs, so the "after" figure is cropped to the ENS records only.
+  await shot(page, "06-14-overdue-after-records", {
+    highlights: [
+      { selector: "main tr[data-record='dueDate']", n: 6, pad: 2 },
+      { selector: "main tr[data-record='status']", n: 7, pad: 2 },
+    ],
+    clipTo: await unionClip(page, ["main h2:has-text('ENS records')", "main section:has(table)"], { padX: 24, padY: 16 }),
+  });
+  await dropClip(page);
+  await browser.close();
+  process.exit(0);
+}
+
 await shot(page, `06-12-overdue-${suffix}`, {
   highlights: [
     { selector: "main span[data-state='Overdue']", n: 1 },
