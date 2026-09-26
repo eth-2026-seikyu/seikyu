@@ -35,9 +35,9 @@ export function DueRelative({ dueDate }: { dueDate: bigint }) {
 }
 
 /**
- * Per-role "what can I do here" banner (plan §4 card L5, §5 hint table).
- * Rendered outside `#actions` (risk #4: capture 02 highlights the first
- * `#actions [data-state] p`, so nothing here ever carries `data-state`).
+ * Per-role "what can I do here" banner. Rendered outside `#actions`: the
+ * screenshot scripts highlight the first `#actions [data-state] p`, so
+ * nothing here ever carries `data-state`.
  *
  * wagmi's `ssr: true` config always starts disconnected on the server and on
  * first client paint, so this only renders real content after mount (risk

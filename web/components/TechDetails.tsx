@@ -10,7 +10,7 @@ function etherscanAddress(address: Address): string {
 }
 
 /**
- * The ENS-judge material (plan §2: "move, never delete"), collapsed by
+ * The ENS technical material — moved out of the way, never deleted — collapsed by
  * default behind a native `<details>` (no JS toggle library) so the plain
  * summary above it is what a first-time visitor sees. Auto-opens when the
  * page is loaded with `#ens` in the URL so a direct link can still land

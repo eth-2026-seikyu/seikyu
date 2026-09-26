@@ -26,7 +26,7 @@ function remaining(targetSeconds: bigint, nowMs: number): string {
  * for that case (safe to render on the server too).
  *
  * Kept exported with unchanged behaviour — `app/invoice/[name]/page.tsx`
- * imports it directly for the ENS-technical countdown (plan §4 card L4).
+ * imports it directly for the ENS-technical countdown.
  */
 export function LiveCountdown({
   dueDateSeconds,
@@ -54,9 +54,9 @@ export function LiveCountdown({
 }
 
 /**
- * Plain-language "Due …" text for a card (plan §2 "Dates": always
- * `market.dueDate`, never `ensExpiry` — after a revival the ENS expiry runs
- * ahead of the real due date). Client-rendered like `LiveCountdown` because
+ * Plain-language "Due …" text for a card: always `market.dueDate`, never
+ * `ensExpiry` — after a revival the ENS expiry runs ahead of the real due
+ * date. Client-rendered like `LiveCountdown` because
  * the relative phrase depends on the viewer's clock and the home page is ISR.
  */
 function DueLabel({ dueDate }: { dueDate: bigint }) {

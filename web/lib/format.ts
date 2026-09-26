@@ -1,4 +1,4 @@
-// Plain-language formatting helpers (plan §2 "Money"/"Dates", §4 card L1).
+// Plain-language formatting helpers for money, dates and addresses.
 // Pure functions so date math is testable and can run client-side (the home
 // page is ISR `revalidate=15` and the server TZ isn't the viewer's TZ).
 import type { AckView, DisplayState } from "@/lib/invoices";
@@ -151,7 +151,7 @@ const PLAIN_STATE: Record<DisplayState, string> = {
   Cancelled: "Withdrawn by supplier",
 };
 
-/** Plain-language label for an invoice's `displayState` (plan §3 vocabulary). */
+/** Plain-language label for an invoice's `displayState`. */
 export function plainState(state: DisplayState): string {
   return PLAIN_STATE[state];
 }
@@ -163,7 +163,7 @@ const PLAIN_ACK: Record<AckView, string> = {
   invalid: "Unreadable (buying blocked)",
 };
 
-/** Plain-language label for an invoice's `ackView` (plan §3 vocabulary). */
+/** Plain-language label for an invoice's `ackView`. */
 export function plainAck(ack: AckView): string {
   return PLAIN_ACK[ack];
 }

@@ -1,8 +1,8 @@
-// Plain-language role detection (plan §2 "Role detection is additive", §4 card
-// L1). Pure function: given an invoice and the connected address, return
-// every matching role. Issuer+holder and debtor+holder are real combinations
-// (plan §1 fact F3 — `settle()`/`buy()` don't exclude issuer/debtor), so this
-// returns an array, never a single value.
+// Plain-language role detection. Pure function: given an invoice and the
+// connected address, return every matching role. Issuer+holder and
+// debtor+holder are real combinations, because `settle()` and `buy()` don't
+// exclude the issuer or the debtor, so this returns an array, never a single
+// value.
 import type { InvoiceView } from "@/lib/invoices";
 
 export type Role = "supplier" | "debtor" | "owner";
@@ -13,7 +13,7 @@ const ROLE_LABELS: Record<Role, string> = {
   owner: "Current owner (investor)",
 };
 
-/** Plain label for a detected role (plan §3 vocabulary). */
+/** Plain label for a detected role. */
 export function roleLabel(role: Role): string {
   return ROLE_LABELS[role];
 }

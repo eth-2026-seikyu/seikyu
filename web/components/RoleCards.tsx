@@ -5,15 +5,14 @@ import { GLOSSARY } from "@/lib/copy";
 /**
  * Mirrors `ui/Button`'s primary/default look (rounded-full, min-h-11 tap
  * target, focus ring) for an anchor tag — `Button` only renders a native
- * `<button>`, so a real `<Link>` needs its own class string to look the same
- * (plan §4 card L4: "Button-styled `<Link>`").
+ * `<button>`, so a real `<Link>` needs its own class string to look the same.
  */
 const CTA_CLASSNAME =
   "mt-auto inline-flex min-h-11 items-center justify-center rounded-full bg-black px-4 py-2 text-center text-sm font-medium text-white cursor-pointer transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-black/50 dark:bg-white dark:text-black dark:focus-visible:ring-white/50 dark:focus-visible:ring-offset-black";
 
 /**
  * Investor card sentence, hard-coded here rather than pulled from
- * `GLOSSARY.owner` (lib/copy.ts, owned by lane L1): that entry describes the
+ * `GLOSSARY.owner` in lib/copy.ts: that entry describes the
  * *outcome* of already being an owner ("Receives the amount owed when the
  * debtor pays"), not the action a prospective investor takes to get there.
  */

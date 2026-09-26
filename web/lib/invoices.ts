@@ -1,6 +1,5 @@
-// Frozen shared types for the Seikyu web app (plan §2.7). Lane B1 adds the
-// data functions (`listInvoices`, `getInvoice`) below these types; other lanes
-// import only from this module.
+// Shared invoice types and the chain reads behind them. Components import
+// `InvoiceView` and the `listInvoices`/`getInvoice` helpers from here only.
 import { createPublicClient, fallback, http, keccak256, toHex, type Address } from "viem";
 import { sepolia } from "viem/chains";
 import { getAddresses } from "@/lib/addresses";

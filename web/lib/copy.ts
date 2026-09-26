@@ -1,6 +1,6 @@
-// Plain-language vocabulary, tooltips and per-role hints (plan §3, §5; card
-// L1). Single source of truth — components import from here instead of
-// hard-coding copy. Wording rules (plan §2): never "escrow" (the market pays
+// Plain-language vocabulary, tooltips and per-role hints. Single source of
+// truth — components import from here instead of hard-coding copy. Wording
+// rules: never "escrow" (the market pays
 // the supplier/owner directly, it never holds funds in between), never
 // "guaranteed" (the Overdue state exists), and every page keeps one visible
 // "test money on a test network" sentence.
@@ -32,7 +32,7 @@ export const TERMS = {
 export const TEST_MONEY_NOTICE =
   "This app uses test money on a test network — nothing here has real value.";
 
-/** Tap/focus tooltips (plan §3's "Tooltip / helper" column), keyed for `<Term>`. */
+/** Tap/focus tooltips, keyed for `<Term>`. */
 export const GLOSSARY: Record<string, { term: string; help: string }> = {
   supplier: {
     term: "Supplier",
@@ -68,14 +68,13 @@ export const GLOSSARY: Record<string, { term: string; help: string }> = {
   },
 };
 
-/** Shown when no wallet is connected at all (plan §5 row "none (disconnected)"). */
+/** Shown when no wallet is connected at all. */
 export const DISCONNECTED_HINT = "Connect a wallet to see what you can do here.";
 
 /**
- * Shown when a wallet is connected but matches none of the invoice's roles
- * (plan §5 row "none (connected, no role)"). Only the Open state has bespoke
- * copy; closed states fall back to the plain state sentence, matching the
- * "any" row's rule of no actions promised once an invoice is closed.
+ * Shown when a wallet is connected but matches none of the invoice's roles.
+ * Only the Open state has bespoke copy; closed states fall back to the plain
+ * state sentence, so no action is promised once an invoice is closed.
  */
 export function noRoleHint(invoice: Pick<InvoiceView, "displayState">): string {
   if (invoice.displayState === "Open") {
@@ -91,8 +90,8 @@ const MULTI_ROLE_NOUN: Record<Role, string> = {
 };
 
 /**
- * One banner sentence listing every role a wallet matches (plan §5 row
- * "multiple"), e.g. "You're the supplier and the current owner."
+ * One banner sentence listing every role a wallet matches, e.g.
+ * "You're the supplier and the current owner."
  */
 export function multiRoleBanner(roles: Role[]): string {
   const nouns = roles.map((role) => MULTI_ROLE_NOUN[role]);
@@ -113,7 +112,7 @@ export interface RoleHintFormatters {
 }
 
 /**
- * The per-role next-step hint for a single matched role (plan §5). When an
+ * The per-role next-step hint for a single matched role. When an
  * invoice matches more than one role, call this once per role and/or use
  * `multiRoleBanner` for the combined sentence — this function only knows
  * about one role at a time so it stays simple to test.

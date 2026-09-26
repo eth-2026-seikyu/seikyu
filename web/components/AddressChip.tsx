@@ -42,9 +42,9 @@ async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 /**
- * Short address (`0x1234…abcd`) with a copy button and a link to Blockscout
- * (plan §4 card L5). Used for the plain-language "Supplier" / "Debtor
- * company" / "Current owner" rows on the invoice detail page.
+ * Short address (`0x1234…abcd`) with a copy button and a link to Blockscout.
+ * Used for the plain-language "Supplier" / "Debtor company" / "Current owner"
+ * rows on the invoice detail page.
  */
 export default function AddressChip({ address }: { address: Address }) {
   const [copied, setCopied] = useState(false);

@@ -66,7 +66,8 @@ export type WorldEnvironment = "staging" | "sandbox" | "production";
  * requests proofs for, and what /api/world/verify's step-6 check compares
  * World's verify-response `environment` field against.
  *
- * Confirmed live (C0's simulator run, .omc/research/world-result-investorA.json):
+ * Confirmed live against the simulator
+ * (docs/planning/research/world-result-investorA.json):
  * `environment: "staging"` makes the widget show the "Use the simulator"
  * link; `"production"` shows only a real-World-App QR. `"sandbox"` is a
  * third option (World ID Sandbox phone app) verified on the SAME production
@@ -77,15 +78,14 @@ export type WorldEnvironment = "staging" | "sandbox" | "production";
  * 422 VERIFICATION_FAILED with World's `code`/`detail` passed through like
  * any other non-2xx, see step 5).
  *
- * Deliberately NOT added to web/lib/env.ts's publicEnv (that file is
- * B0's) — read directly here instead, and used on BOTH the client
+ * Deliberately NOT added to web/lib/env.ts's publicEnv — read directly
+ * here instead, and used on BOTH the client
  * (WorldVerifyButton) and the server (verify/route.ts, replacing a
  * separate WORLD_ENV server var) so the two can never drift out of sync.
  *
  * Set via `NEXT_PUBLIC_WORLD_ENVIRONMENT` ("staging" | "sandbox" |
  * "production", default "staging" for the simulator demo). Document this in
- * web/.env.example if you can add to it — that file is B0's too, so the
- * contract lives here instead.
+ * web/.env.example; the authoritative contract for it lives here.
  */
 export function worldEnvironment(): WorldEnvironment {
   const raw = process.env.NEXT_PUBLIC_WORLD_ENVIRONMENT;
@@ -102,7 +102,7 @@ export function worldEnvironment(): WorldEnvironment {
  * for the demo rather than surfacing World's own error for it.
  *
  * Server-only secret — deliberately NOT added to web/lib/env.ts's
- * serverEnv() (that file is B0's); read directly via
+ * serverEnv(); read directly via
  * `process.env.WORLD_STAGING_VERIFICATION_TOKEN` here instead. Set it in
  * web/.env.local (see web/.env.example).
  */
@@ -126,8 +126,8 @@ export function stagingVerificationToken(): string | undefined {
  *   Orb response and the v4 proofOfHuman response share the same identifier
  *   string. (An earlier pass here guessed "orb" from a WebFetch summary of
  *   World's public docs page — that contradicts the actual installed SDK's
- *   type comments and is NOT used; independently corroborated by C0's spike,
- *   see .omc/research/spike-world.md "Identifier values".)
+ *   type comments and is NOT used; independently corroborated by our own
+ *   spike, see docs/planning/research/spike-world.md "Identifier values".)
  * - "selfie": `SelfieCheckResponseItemV4.identifier` is a literal type in
  *   dist/index.d.ts: `identifier: "selfie"`.
  */

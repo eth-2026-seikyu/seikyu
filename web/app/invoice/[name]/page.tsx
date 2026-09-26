@@ -30,7 +30,7 @@ export default async function InvoiceDetailPage({
   // `ensExpiry` reflects a `markOverdue` revival past the original due date;
   // fall back to `dueDate` when it isn't available. This is only for the
   // ENS-liveness countdown inside Technical details — the plain "Due" field
-  // below always uses `market.dueDate` (plan §2: never `ensExpiry` there, or
+  // below always uses `market.dueDate` — never `ensExpiry` there, or
   // a revived overdue invoice would misleadingly read "due in 30 days").
   const countdownTarget = ensExpiry ?? dueDateSeconds;
 

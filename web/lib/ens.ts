@@ -11,7 +11,7 @@
 // correct after expiry because it never touches the registry.
 // Path L (`isLive`) asks the InvoiceRegistrar directly for the same reason.
 //
-// See `.omc/research/spike-ens-read.md` for how path R's calldata layout was
+// See `docs/planning/research/spike-ens-read.md` for how path R's calldata layout was
 // verified against a live PermissionedResolver proxy on an anvil Sepolia fork.
 import {
   type Address,
@@ -168,7 +168,7 @@ export async function readRecords(resolver: Address, name: string): Promise<Invo
  * Path-R fallback: read all 8 records in one call via the InvoiceRegistrar's
  * own `recordsOf(id)` mirror, bypassing the resolver entirely. Only used if
  * the resolver read-multicall route (above) turns out unusable — see the
- * kill rule in `.omc/research/spike-ens-read.md`.
+ * kill rule in `docs/planning/research/spike-ens-read.md`.
  */
 export async function readRecordsFromRegistrar(
   name: string,

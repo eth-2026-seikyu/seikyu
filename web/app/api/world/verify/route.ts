@@ -70,7 +70,7 @@ export async function POST(request: Request) {
   // World's verify API. A v4 response with no `signal_hash` at all (e.g. a
   // proof built without a signal) is treated as a mismatch — fail closed —
   // rather than falling back to sending a bare `signal` alongside the
-  // forwarded result. See .omc/research/spike-world.md "## U-7 signal
+  // forwarded result. See docs/planning/research/spike-world.md "## U-7 signal
   // binding" for this decision.
   const expectedSignalHash = hashSignalV4(investor as Address);
   const actualSignalHash = response0.signal_hash;
