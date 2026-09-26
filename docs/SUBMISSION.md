@@ -13,15 +13,15 @@ Sell unpaid invoices as ENSv2 names that expire on their due date, to World ID-v
 
 ## Description
 
-Small suppliers everywhere wait weeks or months — often on net-60 or net-90 terms — to get paid on an invoice. Seikyu (請求, Japanese for "invoice") lets a supplier sell that receivable today instead of waiting — and makes the invoice itself a first-class on-chain object with an ENS identity that lives exactly as long as the debt does.
+Small suppliers often wait 60 or 90 days to get paid on an invoice. Seikyu (請求, Japanese for "invoice") lets a supplier sell that receivable now. The invoice itself is an ENS name that expires on the due date, so the on-chain record lives for as long as the debt does and no longer.
 
-Issuing an invoice is one transaction: it mints an ERC-721 receivable into escrow, deploys a dedicated ENSv2 Permissioned Resolver holding seven text records (amount, currency, debtor, due date, status, token id, issuer), and registers inv-<id>.seikyu.eth in our own ENSv2 UserRegistry with the name's expiry set to the invoice's due date. An eighth record, ack, can only be written by the debtor's accounts-payable wallet — a role granted through the resolver's Enhanced Access Control and scoped to that one key on that one invoice, so the debtor acknowledges or disputes the invoice on ENS itself.
+Issuing is one transaction. It mints an ERC-721 receivable into escrow, deploys an ENSv2 Permissioned Resolver for that invoice with seven text records (amount, currency, debtor, due date, status, token id, issuer), and registers inv-<id>.seikyu.eth in our own ENSv2 UserRegistry with the name's expiry set to the due date. An eighth record, ack, can only be written by the debtor's accounts-payable wallet. That permission is granted through the resolver's Enhanced Access Control and scoped to one key on one invoice, so the debtor acknowledges or disputes the invoice on ENS itself.
 
-To buy, an investor first proves personhood with World ID. The proof is verified server-side, bound to the investor's wallet address through the signal, and recorded on-chain as a nullifier — one human maps to one wallet, capped at three open positions. The market contract then checks ENS before allowing the purchase: the name must still be live and the debtor's ack must not be "disputed". Buying pays the SME immediately, at a discount.
+Before buying, an investor verifies with World ID. The proof is checked server-side, tied to the investor's wallet through the signal, and stored on-chain as a nullifier, so one person gets one wallet and at most three open positions. The market contract then reads ENS before it allows the purchase: the name must still be live and ack must not be "disputed". The supplier receives the discounted price in the same transaction.
 
-When the debtor pays in full, the current holder receives face value, the token burns, and the ENS name is unregistered in the same transaction — the receivable's identity retires with the debt. If the due date passes unsold, the name simply expires. If it was sold but is unpaid, anyone can mark it overdue, which renews the name for 30 days so the record stays live while the debt is collected.
+When the debtor pays in full, the current holder receives face value, the token burns, and the ENS name is unregistered in the same transaction. If the due date passes with no sale, the name expires. If the invoice was sold and is still unpaid, anyone can mark it overdue; that renews the name for 30 days so the record stays readable while the debt is collected.
 
-Everything runs on Sepolia against the pinned ENSv2 contracts: seven invoices covering every lifecycle state are live at https://seikyu.xyz, and the full lifecycle is covered by 46 Foundry fork tests.
+All of this runs on Sepolia against the pinned ENSv2 contracts. Seven invoices covering every lifecycle state are live at https://seikyu.xyz, and 46 Foundry fork tests cover the full lifecycle.
 
 ## How it's made
 
