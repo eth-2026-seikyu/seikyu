@@ -8,6 +8,7 @@ import {
   hashSignalV4,
   marketAbi,
   normalizeNullifier,
+  stagingVerificationToken,
   worldEnvironment,
   type WorldErrorCode,
 } from "@/lib/world";
@@ -84,12 +85,24 @@ export async function POST(request: Request) {
     return fail(503, "WORLD_NOT_CONFIGURED");
   }
 
-  // 5. Forward the result to World for verification.
+  // 5. Forward the result to World for verification. Staging/sandbox proofs
+  // require an `x-staging-verification-token` header once a human has
+  // opened a staging window for the app in World's portal — production
+  // doesn't need it. See stagingVerificationToken() in lib/world.ts.
+  const worldHeaders: Record<string, string> = { "content-type": "application/json" };
+  if (worldEnvironment() !== "production") {
+    const stagingToken = stagingVerificationToken();
+    if (!stagingToken) {
+      return fail(503, "STAGING_TOKEN_MISSING");
+    }
+    worldHeaders["x-staging-verification-token"] = stagingToken;
+  }
+
   let worldResponse: Response;
   try {
     worldResponse = await fetch(`https://developer.world.org/api/v4/verify/${WORLD_RP_ID}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: worldHeaders,
       body: JSON.stringify(result),
     });
   } catch {

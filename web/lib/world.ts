@@ -93,6 +93,24 @@ export function worldEnvironment(): WorldEnvironment {
 }
 
 /**
+ * The `x-staging-verification-token` header value World's
+ * `/api/v4/verify/{rp_id}` requires on staging/sandbox proofs (NOT
+ * production) once a human has opened a staging verification window for
+ * the app in World's developer portal. A staging/sandbox request missing
+ * this header gets rejected by World itself; /api/world/verify checks for
+ * it up front instead and returns a clearer `503 STAGING_TOKEN_MISSING`
+ * for the demo rather than surfacing World's own error for it.
+ *
+ * Server-only secret — deliberately NOT added to web/lib/env.ts's
+ * serverEnv() (that file is B0's); read directly via
+ * `process.env.WORLD_STAGING_VERIFICATION_TOKEN` here instead. Set it in
+ * web/.env.local (see web/.env.example).
+ */
+export function stagingVerificationToken(): string | undefined {
+  return process.env.WORLD_STAGING_VERIFICATION_TOKEN;
+}
+
+/**
  * Expected `responses[0].identifier` value for the configured preset.
  *
  * Sources (all from `@worldcoin/idkit-core` v4.3.0):
@@ -168,7 +186,8 @@ export type WorldErrorCode =
   | "WORLD_API_UNAVAILABLE"
   | "ENV_MISMATCH"
   | "NULLIFIER_ALREADY_USED"
-  | "OPERATOR_TX_FAILED";
+  | "OPERATOR_TX_FAILED"
+  | "STAGING_TOKEN_MISSING";
 
 /** UI states for WorldVerifyButton — these double as its `data-state` value. */
 export type WorldVerifyState =
