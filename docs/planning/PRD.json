@@ -393,7 +393,7 @@
       "card": "C4",
       "lane": "C",
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "dependsOn": [
         "US-018"
       ],
@@ -403,7 +403,7 @@
         "docs/DEMO_SCRIPT.md contains timed table 0:00–3:00 and AC-19 checklist (happy path, F1, F3/F5, EAC revert, disputed blocks buy, name gone after settle, Expired-unsold)",
         "docs/SHOWCASE.md contains live URL, repo URL, contract addresses from deployments/sepolia.json"
       ],
-      "notes": "Drafted by C4 (c8c2853): timed table, talk track, checklists, showcase text; 8 FILL markers (URLs/addresses/video) to fill after deploy + H4/H5"
+      "notes": "Drafted by C4 (c8c2853): timed table, talk track, checklists, showcase text; 8 FILL markers (URLs/addresses/video) to fill after deploy + H4/H5 | DONE: FILL-VIDEO filled with release asset https://github.com/eth-2026-seikyu/seikyu/releases/download/v1.0-tokyo2026/seikyu-demo.mp4; no FILL- markers remain"
     },
     {
       "id": "US-022",
@@ -426,7 +426,7 @@
       "card": "V2",
       "lane": "verify",
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "dependsOn": [
         "US-016",
         "US-019",
@@ -442,14 +442,14 @@
         "AC-14a/b/c/d: 0, 0, 0, CLEAN",
         "AC-18: gh repo view $GH_REPO visibility → PUBLIC; LICENSE_OK"
       ],
-      "notes": "V2 PASS 19/22; AC-18 PASS since 19:48 JST (repo PUBLIC); AC-15 PASS 20:05 JST (https://seikyu.xyz); AC-19 video manual"
+      "notes": "V2 PASS 19/22; AC-18 PASS since 19:48 JST (repo PUBLIC); AC-15 PASS 20:05 JST (https://seikyu.xyz); AC-19 video manual | DONE: AC-15 live, AC-18 public, AC-19 video 2:59.7 reviewed frame-by-frame by lead (14-frame contact sheets ×2) — all checklist beats except F3 (cut by user) present"
     },
     {
       "id": "US-024",
       "card": "A6/C6/C5",
       "lane": "stretch",
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "dependsOn": [
         "CP6 passed"
       ],
@@ -460,7 +460,7 @@
         "If C6 not done: README items 2/5 say 'evaluated, not used, because …'",
         "AC-19 (manual): video ≤ 3:00 per DEMO_SCRIPT checklist"
       ],
-      "notes": "A6 DONE (46/46) + markOverdue LIVE on inv-7 (tx 0x87e44abb349f6825cee73ce6e43d2d2a0aad017b90ab64a9c20f2b8b20e410b8; revived with status overdue, expiry 1793010720 = +30d). C6 MultiBaas: not used (README states). C5 video: PENDING (human)."
+      "notes": "A6 DONE (46/46) + markOverdue LIVE on inv-7 (tx 0x87e44abb349f6825cee73ce6e43d2d2a0aad017b90ab64a9c20f2b8b20e410b8; revived with status overdue, expiry 1793010720 = +30d). C6 MultiBaas: not used (README states). C5 video: PENDING (human). | DONE: video produced and attached to the ETHGlobal entry by the user (02:10 JST 27 Sep)"
     },
     {
       "id": "US-025",
@@ -603,6 +603,22 @@
         "home lists 7 invoices; inv-7 renders unchanged"
       ],
       "notes": "added 21:50 JST during UX execution | DONE 5d5dcba; lead re-probed: home 5/5, invoice 8 serial + 8 parallel all 200; temp-copy production build OK"
+    },
+    {
+      "id": "US-034",
+      "card": "V1",
+      "lane": "VIDEO",
+      "priority": 34,
+      "passes": true,
+      "title": "Demo video produced by agents (Playwright recording + TTS + Blender VSE)",
+      "description": "User chose agent-made video with TTS narration + captions (00:45 JST 27 Sep).",
+      "acceptanceCriteria": [
+        "Six scenes recorded on https://www.seikyu.xyz with real txs (inv-15/16/17), World ID via Simulator identity #3 (verify 200, isVerified true)",
+        "Narration WAVs fit their windows; captions use product spelling (Seikyu/ENS)",
+        "Blender-rendered MP4 1920x1080 H.264+AAC, duration ≤ 180 s, no black gaps, key beats visible: issue, F1 cancel/retry, simulator, buy, ack/EAC denied, dispute blocked, settle, expiry, GitHub, live URL",
+        "Lead reviewed ≥ 6 frames + audio track; user approves before upload"
+      ],
+      "notes": "clips+audio in scratchpad/video; assembler assemble.py; Blender 5.2 headless render | DONE: user accepted the Samantha cut (cancelled Evan), uploaded it in the ETHGlobal form; release v1.0-tokyo2026 carries the MP4"
     }
   ]
 }
