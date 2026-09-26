@@ -59,7 +59,7 @@ export function allowLegacyProofsFor(preset: WorldPreset): boolean {
   return preset === "proofOfHuman" || preset === "orbLegacy";
 }
 
-export type WorldEnvironment = "staging" | "production";
+export type WorldEnvironment = "staging" | "sandbox" | "production";
 
 /**
  * The World `environment` (`IDKitRequestConfig.environment`) the widget
@@ -68,22 +68,28 @@ export type WorldEnvironment = "staging" | "production";
  *
  * Confirmed live (C0's simulator run, .omc/research/world-result-investorA.json):
  * `environment: "staging"` makes the widget show the "Use the simulator"
- * link; `"production"` shows only a real-World-App QR. World's own
- * `/api/v4/verify` also enforces this server-side — it 403s with
- * `environment_not_allowed` when staging isn't opened for the app (mapped
- * to 422 VERIFICATION_FAILED like any other non-2xx, see step 5).
+ * link; `"production"` shows only a real-World-App QR. `"sandbox"` is a
+ * third option (World ID Sandbox phone app) verified on the SAME production
+ * endpoint (`https://developer.world.org/api/v4/verify/{rp_id}` — no
+ * separate sandbox endpoint), per World's docs. World's own `/api/v4/verify`
+ * also enforces this server-side — it 403s with `environment_not_allowed`
+ * when the requested environment isn't opened for the app (mapped to
+ * 422 VERIFICATION_FAILED with World's `code`/`detail` passed through like
+ * any other non-2xx, see step 5).
  *
  * Deliberately NOT added to web/lib/env.ts's publicEnv (that file is
  * B0's) — read directly here instead, and used on BOTH the client
  * (WorldVerifyButton) and the server (verify/route.ts, replacing a
  * separate WORLD_ENV server var) so the two can never drift out of sync.
  *
- * Set via `NEXT_PUBLIC_WORLD_ENVIRONMENT` ("staging" | "production",
- * default "staging"). Document this in web/.env.example if you can add to
- * it — that file is B0's too, so the contract lives here instead.
+ * Set via `NEXT_PUBLIC_WORLD_ENVIRONMENT` ("staging" | "sandbox" |
+ * "production", default "staging" for the simulator demo). Document this in
+ * web/.env.example if you can add to it — that file is B0's too, so the
+ * contract lives here instead.
  */
 export function worldEnvironment(): WorldEnvironment {
-  return process.env.NEXT_PUBLIC_WORLD_ENVIRONMENT === "production" ? "production" : "staging";
+  const raw = process.env.NEXT_PUBLIC_WORLD_ENVIRONMENT;
+  return raw === "production" || raw === "sandbox" ? raw : "staging";
 }
 
 /**
