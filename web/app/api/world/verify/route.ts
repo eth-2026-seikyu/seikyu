@@ -4,7 +4,7 @@ import { z } from "zod";
 import { publicEnv, serverEnv } from "@/lib/env";
 import { marketAddress, operatorWallet, publicClient } from "@/lib/server/chain";
 import {
-  expectedIdentifier,
+  expectedIdentifiers,
   hashSignalV4,
   marketAbi,
   normalizeNullifier,
@@ -52,7 +52,8 @@ export async function POST(request: Request) {
 
   // 3. Credential identifier must match the configured preset. See
   // `expectedIdentifier` in lib/world.ts for the per-preset source citations.
-  if (response0.identifier !== expectedIdentifier(publicEnv)) {
+  const identifier = response0.identifier;
+  if (typeof identifier !== "string" || !expectedIdentifiers(publicEnv).includes(identifier)) {
     return fail(422, "CREDENTIAL_MISMATCH");
   }
 

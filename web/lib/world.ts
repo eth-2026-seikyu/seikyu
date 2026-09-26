@@ -131,16 +131,25 @@ export function stagingVerificationToken(): string | undefined {
  * - "selfie": `SelfieCheckResponseItemV4.identifier` is a literal type in
  *   dist/index.d.ts: `identifier: "selfie"`.
  */
-export function expectedIdentifier(env: PublicEnv): string {
+export function expectedIdentifiers(env: PublicEnv): readonly string[] {
   switch (env.NEXT_PUBLIC_WORLD_PRESET) {
     case "passport":
-      return "passport";
+      return ["passport"];
     case "proofOfHuman":
     case "orbLegacy":
-      return "proof_of_human";
+      // v4 responses carry "proof_of_human"; a legacy v3 fallback proof
+      // (`protocol_version: "3.0"`, produced when `allow_legacy_proofs` is on,
+      // e.g. the World Simulator's "Legacy v3 proof" mode) carries "orb".
+      // Both are the Orb-backed uniqueness credential, so both are accepted.
+      return ["proof_of_human", "orb"];
     case "selfieCheck":
-      return "selfie";
+      return ["selfie"];
   }
+}
+
+/** First accepted identifier for the configured preset (v4 shape). */
+export function expectedIdentifier(env: PublicEnv): string {
+  return expectedIdentifiers(env)[0];
 }
 
 /**
