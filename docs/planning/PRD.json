@@ -461,6 +461,148 @@
         "AC-19 (manual): video ≤ 3:00 per DEMO_SCRIPT checklist"
       ],
       "notes": "A6 DONE (46/46) + markOverdue LIVE on inv-7 (tx 0x87e44abb349f6825cee73ce6e43d2d2a0aad017b90ab64a9c20f2b8b20e410b8; revived with status overdue, expiry 1793010720 = +30d). C6 MultiBaas: not used (README states). C5 video: PENDING (human)."
+    },
+    {
+      "id": "US-025",
+      "card": "L1",
+      "lane": "UX",
+      "priority": 25,
+      "passes": true,
+      "title": "UX L1: shared helpers lib/format.ts, lib/roles.ts, lib/copy.ts",
+      "description": "UX L1: shared helpers lib/format.ts, lib/roles.ts, lib/copy.ts",
+      "acceptanceCriteria": [
+        "web/lib/format.ts exports formatMoney (6-dec: 1,000 whole / 970.50 fractional), formatDueDate (absolute en-US Asia/Tokyo + \"JST\", relative incl. minutes and \"N days past due\"), shortAddress",
+        "web/lib/roles.ts exports rolesFor(invoice,address) returning every matching role among supplier/debtor/owner",
+        "web/lib/copy.ts holds the §3 vocabulary as constants; no \"escrow\" anywhere",
+        "web/scripts/format-check.ts prints 6 cases correctly; pnpm exec tsc --noEmit passes"
+      ],
+      "notes": "UX plan card L1 — .omc/plans/ux-plain-language-roles.md | DONE cb48703 (lead re-ran format-check 6/6, tsc/lint clean)"
+    },
+    {
+      "id": "US-026",
+      "card": "L2",
+      "lane": "UX",
+      "priority": 26,
+      "passes": true,
+      "title": "UX L2: style base — Geist font bug fixed, Button/Card primitives, class migration",
+      "description": "UX L2: style base — Geist font bug fixed, Button/Card primitives, class migration",
+      "acceptanceCriteria": [
+        "web/app/globals.css no longer sets font-family: Arial",
+        "web/components/ui/Button.tsx and Card.tsx exist (≥44px tap, cursor-pointer, focus ring, disabled opacity)",
+        "Copy-pasted button classes in InvoiceActions/WorldVerifyButton/BuyPanel/PayPanel/FaucetButton/AckEditor/IssueForm migrated without changing any button text or data-state",
+        "tsc + lint pass; data-state set identical to HEAD"
+      ],
+      "notes": "UX plan card L2 — .omc/plans/ux-plain-language-roles.md | DONE 338e706 (lead verified: Arial override gone, frozen labels present, data-state unchanged)"
+    },
+    {
+      "id": "US-027",
+      "card": "L3",
+      "lane": "UX",
+      "priority": 27,
+      "passes": true,
+      "title": "UX L3: header nav by role + chain guard + no-wallet message",
+      "description": "UX L3: header nav by role + chain guard + no-wallet message",
+      "acceptanceCriteria": [
+        "Nav labels: For suppliers (/issue), For investors (/#for-sale), For debtors (/accountant); brand link to /",
+        "Testnet pill reads \"Test network · no real money\"",
+        "header-connect-button shows \"No browser wallet found\" when connectors[0] is undefined; disconnect requires a confirm step",
+        "ChainGuard client island: chainId≠11155111 shows switch banner using useSwitchChain; exports useOnSepolia(); PW with eth_chainId 0x1 → banner visible"
+      ],
+      "notes": "UX plan card L3 — .omc/plans/ux-plain-language-roles.md | DONE 6011c14 (useAccount().chainId used because useChainId() is clamped to the configured chain; header is 2 explicit rows; lead reviewed wrong-chain screenshot)"
+    },
+    {
+      "id": "US-028",
+      "card": "L4",
+      "lane": "UX",
+      "priority": 28,
+      "passes": true,
+      "title": "UX L4: home page role cards + plain copy",
+      "description": "UX L4: home page role cards + plain copy",
+      "acceptanceCriteria": [
+        "Home h1 plain; three [data-role-card] cards (Supplier→/issue, Investor→first Open invoice else #for-sale, Debtor→/accountant) render even with zero invoices",
+        "Sections #for-sale/#attention/#closed; one visible test-money disclosure",
+        "375px: scrollWidth ≤ 375"
+      ],
+      "notes": "UX plan card L4 — .omc/plans/ux-plain-language-roles.md | DONE 489d6a1 (amended once for investor-card copy; lead reviewed home-1280 screenshot)"
+    },
+    {
+      "id": "US-029",
+      "card": "L5",
+      "lane": "UX",
+      "priority": 29,
+      "passes": true,
+      "title": "UX L5: invoice detail — plain summary, RoleBanner, TechDetails",
+      "description": "UX L5: invoice detail — plain summary, RoleBanner, TechDetails",
+      "acceptanceCriteria": [
+        "Summary shows Amount owed / Sale price / Due (from market.dueDate, not ensExpiry) / Supplier / Debtor / Owner as AddressChips with copy feedback",
+        "RoleBanner (outside #actions) lists all matched roles with per-role hints per plan §5; disconnected → connect prompt; link to /accountant?name=",
+        "[data-testid=tech-details] closed by default; contains main h1.font-mono, View on ENS app, Name live on ENS line, 8 tr[data-record], resolver; opens on #ens",
+        "Exactly one main span[data-state=Funded] on inv-5; inv-7 shows \"N days past due\""
+      ],
+      "notes": "UX plan card L5 — .omc/plans/ux-plain-language-roles.md | DONE 606d185 (20/20 PW checks; lead reviewed inv-7 debtor screenshot; inv-5 is Paid so Overdue inv-7 used for single-badge check)"
+    },
+    {
+      "id": "US-030",
+      "card": "L6",
+      "lane": "UX",
+      "priority": 30,
+      "passes": true,
+      "title": "UX L6: panels/forms plain copy (no state-machine edits)",
+      "description": "UX L6: panels/forms plain copy (no state-machine edits)",
+      "acceptanceCriteria": [
+        "BuyPanel/PayPanel show Step 1 of 2 / Step 2 of 2 helpers; verify intro \"one-time one-person check\"; cap message plain",
+        "InvoiceActions plain state text for Expired-unsold/Cancelled/Overdue",
+        "IssueForm/AckEditor: no NEXT_PUBLIC_* names or EIP/ERC jargon in visible text; script-matched labels/prefixes unchanged; Japanese labels removed",
+        "FaucetButton caption \"Free test money\", button text unchanged",
+        "data-state set identical to HEAD; frozen button labels unchanged"
+      ],
+      "notes": "UX plan card L6 — .omc/plans/ux-plain-language-roles.md | DONE febe99c (data-state 27 values identical; jargon greps empty)"
+    },
+    {
+      "id": "US-031",
+      "card": "L7",
+      "lane": "UX",
+      "priority": 31,
+      "passes": true,
+      "title": "UX L7: capture scripts updated, figures re-shot, guide prose updated",
+      "description": "UX L7: capture scripts updated, figures re-shot, guide prose updated",
+      "acceptanceCriteria": [
+        "docs/manual/capture scripts open tech-details before highlighting tr[data-record]; 00→07 run green on localhost:3021",
+        "Changed figures regenerated; 38 figures referenced in order, <400KB",
+        "USER_GUIDE.md and DEMO_SCRIPT.md prose match new labels"
+      ],
+      "notes": "UX plan card L7 — .omc/plans/ux-plain-language-roles.md | DONE dff2e43 + 26a06ef: 44 figures (6 new incl. tech-details + wrong-network), Simulator identity #2 consumed (bound to DEBTOR_AP), inv-8/9/10 created for lifecycle, inv-11/12/13 small Open invoices left as marketplace filler; L8 to confirm AC-U3"
+    },
+    {
+      "id": "US-032",
+      "card": "L8",
+      "lane": "UX",
+      "priority": 32,
+      "passes": true,
+      "title": "UX L8: independent verification AC-U1…U11 + live redeploy evidence",
+      "description": "UX L8: independent verification AC-U1…U11 + live redeploy evidence",
+      "acceptanceCriteria": [
+        "Verifier (not the implementer) records PASS for AC-U1…U11 with command output",
+        "https://seikyu.xyz 200 with 7 invoices after deploy; verify route 400 on {}",
+        "docs/AI_USAGE.md table covers web/components/ui and new components; docs/planning refreshed"
+      ],
+      "notes": "UX plan card L8 — .omc/plans/ux-plain-language-roles.md | DONE: verifier L8 PASS AC-U1,U2,U4–U11,S1,S2; U6/U7 after F1 0a634e9; U3 PASS after accountant re-shoot 13be3ca (lead viewed 04-01: caption present). AI_USAGE row 22987be; PLAN-UX copied."
+    },
+    {
+      "id": "US-033",
+      "card": "R1",
+      "lane": "UX",
+      "priority": 33,
+      "passes": true,
+      "title": "R1: RPC multicall batching + fallback endpoints (home 500s under load)",
+      "description": "Dev log showed 429 from thirdweb default RPC after publicnode rate-limited; 4/5 home requests returned 500.",
+      "acceptanceCriteria": [
+        "lib/invoices.ts client has batch.multicall enabled and a fallback list without the chain default RPC",
+        "10 sequential + 10 parallel requests to / and /invoice/inv-1 all 200 on :3021",
+        "no new 429/HttpRequestError lines in dev log after the change",
+        "home lists 7 invoices; inv-7 renders unchanged"
+      ],
+      "notes": "added 21:50 JST during UX execution | DONE 5d5dcba; lead re-probed: home 5/5, invoice 8 serial + 8 parallel all 200; temp-copy production build OK"
     }
   ]
 }
