@@ -3,6 +3,7 @@ import { formatUnits, type Address } from "viem";
 import { AckBadge, SettlementBadge } from "@/components/StatusBadge";
 import { LiveCountdown } from "@/components/InvoiceCard";
 import InvoiceActions from "@/components/InvoiceActions";
+import { getAddresses } from "@/lib/addresses";
 import { getInvoice, RECORD_KEYS } from "@/lib/invoices";
 
 function etherscanAddress(address: Address): string {
@@ -36,6 +37,16 @@ export default async function InvoiceDetailPage({
   const { name, records, market, resolver, live, displayState, ackView } = invoice;
   const dueDateSeconds = BigInt(records.dueDate);
   const ensAppUrl = `https://sepolia.app.ens.domains/${name}`;
+
+  // Before a sale, `ownerOf(id)` is the market contract itself (it
+  // self-custodies the token via `_mint(address(this), id)` in
+  // `createInvoice`) — that's not a real "holder" from a reader's
+  // perspective, so treat it the same as no holder at all.
+  const { market: marketAddress } = getAddresses();
+  const realHolder =
+    market.holder && market.holder.toLowerCase() !== marketAddress?.toLowerCase()
+      ? market.holder
+      : null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -106,67 +117,73 @@ export default async function InvoiceDetailPage({
         <h2 className="text-sm font-semibold uppercase tracking-wide opacity-60">
           Settlement
         </h2>
-        <dl className="mt-3 grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
-          <div>
+        <dl className="mt-3 grid grid-cols-1 gap-y-4 text-sm md:grid-cols-2 md:gap-x-6">
+          <div className="min-w-0">
             <dt className="text-xs opacity-60">Issuer</dt>
             <dd>
               <a
                 href={etherscanAddress(market.issuer)}
                 target="_blank"
                 rel="noreferrer"
-                className="font-mono text-xs hover:underline"
+                className="break-all font-mono text-xs hover:underline"
               >
                 {market.issuer}
               </a>
             </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-xs opacity-60">Debtor</dt>
             <dd>
               <a
                 href={etherscanAddress(market.debtor)}
                 target="_blank"
                 rel="noreferrer"
-                className="font-mono text-xs hover:underline"
+                className="break-all font-mono text-xs hover:underline"
               >
                 {market.debtor}
               </a>
             </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-xs opacity-60">Face value</dt>
             <dd>
               {formatMoney(market.faceValue)} {records.currency}
             </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-xs opacity-60">Price</dt>
             <dd>
               {formatMoney(market.price)} {records.currency}
             </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-xs opacity-60">Due date</dt>
             <dd>{formatDate(market.dueDate)}</dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-xs opacity-60">State</dt>
             <dd>{market.state}</dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-xs opacity-60">Holder</dt>
             <dd>
-              {market.holder ? (
+              {realHolder ? (
                 <a
-                  href={etherscanAddress(market.holder)}
+                  href={etherscanAddress(realHolder)}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-mono text-xs hover:underline"
+                  className="break-all font-mono text-xs hover:underline"
                 >
-                  {market.holder}
+                  {realHolder}
                 </a>
               ) : (
-                <span className="opacity-60">— unsold</span>
+                <span className="opacity-60">
+                  {displayState === "Paid"
+                    ? "— paid out to the last holder"
+                    : displayState === "Cancelled"
+                      ? "— cancelled"
+                      : "— unsold"}
+                </span>
               )}
             </dd>
           </div>

@@ -29,6 +29,25 @@ type BuyState =
   | "due-passed"
   | "paused";
 
+/**
+ * User-facing name for the World ID credential the market is currently
+ * configured to require, keyed off `NEXT_PUBLIC_WORLD_PRESET` (see
+ * `web/lib/env.ts#worldPresetSchema` — default "passport"). Read literally
+ * so Next.js can inline it into the client bundle; kept local to this
+ * component rather than added to `@/lib/world` (owned by C1).
+ */
+const CREDENTIAL_LABEL: Record<string, string> = {
+  passport: "World ID Passport (document-level uniqueness)",
+  proofOfHuman: "World ID Proof of Human (Orb-backed uniqueness)",
+  orbLegacy: "World ID Proof of Human (Orb-backed uniqueness)",
+  selfieCheck: "World ID Selfie Check",
+};
+
+function credentialLabel(): string {
+  const preset = process.env.NEXT_PUBLIC_WORLD_PRESET;
+  return (preset && CREDENTIAL_LABEL[preset]) || CREDENTIAL_LABEL.passport;
+}
+
 /** Records/market amounts are stored as integers with 6 decimals (like USDC). */
 function formatMoney(raw: bigint): string {
   const formatted = formatUnits(raw, 6);
@@ -144,8 +163,8 @@ function renderState(
       return (
         <div data-state="not-verified">
           <p className="text-sm opacity-80">
-            Buying a receivable requires a World ID Passport proof (one wallet per person, max 3
-            open positions).
+            Buying a receivable requires a {credentialLabel()} proof (one wallet per person, max
+            3 open positions).
           </p>
           <div className="mt-3">
             {ctx.account && (
