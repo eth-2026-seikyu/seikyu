@@ -2,11 +2,11 @@
   "active": true,
   "iteration": 5,
   "max_iterations": 100,
-  "current_phase": "agent work complete; awaiting user: repo PUBLIC (AC-18), Vercel URL (AC-15/FILL-H5), video (AC-19/FILL-VIDEO), submit",
+  "current_phase": "agent work complete; repo PUBLIC done (AC-18 PASS 19:48 JST); awaiting user: Vercel URL (AC-15/FILL-H5), video (AC-19/FILL-VIDEO), submit",
   "plan_path": "/Users/ikhalas/Documents/side-projects/eth-2026/.omc/plans/invoice-rwa-tokyo2026.md",
   "prd_path": "/Users/ikhalas/Documents/side-projects/eth-2026/.omc/state/sessions/d808efe5-001b-4ff7-9e68-da96b33804e6/prd.json",
   "prd_passed": "20/24",
-  "repo": "https://github.com/eth-2026-seikyu/seikyu (PRIVATE)",
+  "repo": "https://github.com/eth-2026-seikyu/seikyu (PUBLIC)",
   "staging_window_expires": "2026-09-27T08:26Z",
   "critic_for_completion": "architect",
   "_meta": {

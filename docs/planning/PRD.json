@@ -309,7 +309,7 @@
         "AC-15: curl -s $DEMO_URL | grep -oE 'inv-[0-9]+\\.' | sort -u | wc -l → ≥ 1",
         "AC-7 on live: check-ens.ts inv-1.$PARENT → 8 records, RESOLVES: true, LIVE_STATE: REGISTERED"
       ],
-      "notes": "Repo https://github.com/eth-2026-seikyu/seikyu exists (user session), pushed; VISIBILITY PRIVATE → must be PUBLIC for AC-18; Vercel (H5) not yet → AC-15 pending; cleanup+build done"
+      "notes": "Repo https://github.com/eth-2026-seikyu/seikyu exists (user session), pushed; visibility PUBLIC since 19:48 JST (gh repo edit, user-approved) → AC-18 PASS (unauth 200 + raw README readable); Vercel (H5) not yet → AC-15 pending; cleanup+build done"
     },
     {
       "id": "US-017",
@@ -442,7 +442,7 @@
         "AC-14a/b/c/d: 0, 0, 0, CLEAN",
         "AC-18: gh repo view $GH_REPO visibility → PUBLIC; LICENSE_OK"
       ],
-      "notes": "V2 PASS 19/22; AC-18 currently FAILS (repo PRIVATE); AC-15 pending Vercel; AC-19 video manual"
+      "notes": "V2 PASS 19/22; AC-18 PASS since 19:48 JST (repo PUBLIC); AC-15 pending Vercel; AC-19 video manual"
     },
     {
       "id": "US-024",
