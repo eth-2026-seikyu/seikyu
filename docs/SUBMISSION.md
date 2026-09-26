@@ -47,34 +47,34 @@ Everything the AI was told is in the repo: the plan, the 24-story PRD, the resea
 
 ## Partner prizes — "How are you using this Protocol / API?"
 
-Track: **Building from Scratch** · Submission type: **Top 10 Finalist & Partner Prizes** · Partners: World, ENS, Curvegrid (max 3). Proof links are pinned to commit `323d4f8c41a9`.
+Track: **Building from Scratch**. Submission type: **Top 10 Finalist & Partner Prizes**. Partners: World, ENS, Curvegrid. Proof links are pinned to commit `323d4f8c41a9`.
 
 ### World — $15,000
 
-**Reason.** Every purchase is gated by World ID: the investor proves personhood with IDKit 4.3's request widget (Proof of Human on staging; a real Passport proof was also verified live), our route hashes the proof's signal against the buyer's wallet before calling `/api/v4/verify`, and the operator records the nullifier on-chain so one human maps to one investor wallet (max 3 open positions). The cancel/retry path and the nullifier-reuse rejection are real, demoable states, not mocks.
+**Reason.** Nobody can buy an invoice without passing World ID first. The buy panel opens IDKit 4.3's request widget; our API route checks the proof's signal against the buyer's wallet, forwards it to `/api/v4/verify`, and an operator wallet writes the nullifier to the market contract. From then on that person is tied to that one wallet, with a cap of three open positions. Cancelling the widget, retrying, and reusing a nullifier from a second wallet all show real states in the UI. The demo runs Proof of Human on staging; we also verified one real Passport proof on Sepolia.
 
 **Proof.** https://github.com/eth-2026-seikyu/seikyu/blob/323d4f8c41a9/web/app/api/world/verify/route.ts#L75-L108 (widget: https://github.com/eth-2026-seikyu/seikyu/blob/323d4f8c41a9/web/components/WorldVerifyButton.tsx#L245)
 
 **Ease of use.** 6/10.
 
-**Feedback.** (1) `/api/v4/verify` does not check the proof's signal, so the docs should say plainly that the RP must compare `signal_hash` itself — we only found this by reading the SDK. (2) The staging verification token is obtainable only through the Developer Portal's MCP endpoint and expires after 24 h; it should be in the portal UI and the docs. (3) In the Simulator's default World ID 4.0 mode every test identity shares one nullifier, so a one-person-one-wallet demo is impossible unless you flip "Legacy v3 proof" — and that legacy proof carries `identifier: "orb"`, which contradicts the SDK's type comments. Full notes: docs/WORLD_ID_DEBRIEF.md.
+**Feedback.** `/api/v4/verify` does not check the signal. We only learned that by reading the SDK; the docs should say the RP has to compare `signal_hash` itself. The staging verification token can only be fetched through the Developer Portal's MCP endpoint and dies after 24 hours; please put it in the portal UI. In the Simulator's default World ID 4.0 mode all five test identities produce the same nullifier, so you cannot demo "one person, one wallet" without switching on "Legacy v3 proof", and that legacy proof reports `identifier: "orb"` while the SDK's type comments say `proof_of_human`. Details in docs/WORLD_ID_DEBRIEF.md.
 
 ### ENS — $10,000
 
-**Reason.** Each invoice is a real ENSv2 subname (`inv-<id>.seikyu.eth`) registered in our own UserRegistry with `expiry = dueDate`, with a dedicated Permissioned Resolver per invoice holding 8 text records; the debtor's accountant gets an Enhanced Access Control setter role scoped to the `ack` key only, and the market contract checks ENS liveness and the `ack` record before allowing a purchase. Paying the invoice unregisters the name in the same transaction; records stay readable off the stored resolver after expiry.
+**Reason.** Every invoice is an ENSv2 subname, `inv-<id>.seikyu.eth`, registered in our own UserRegistry with the expiry set to the invoice's due date. Each one gets its own Permissioned Resolver with eight text records. The debtor's accountant holds an Enhanced Access Control setter role that covers only the `ack` key on that one name. Before a purchase goes through, the market contract asks ENS whether the name is still live and whether `ack` is `disputed`. Paying the invoice unregisters the name in the same transaction. After expiry the records are still readable from the stored resolver.
 
 **Proof.** https://github.com/eth-2026-seikyu/seikyu/blob/323d4f8c41a9/contracts/src/InvoiceRegistrar.sol#L91-L97 (market gate: https://github.com/eth-2026-seikyu/seikyu/blob/323d4f8c41a9/contracts/src/InvoiceMarket.sol#L177-L182)
 
 **Ease of use.** 5/10.
 
-**Feedback.** (1) The `contracts-v2` main branch API differs from what is deployed on Sepolia; the deployment tag (`sepolia-deployment-2026-09-15`) should be the documented entry point. (2) PermissionedResolver setter roles are scoped by record key only, not by name, so isolating one record on one name requires a resolver per name — worth stating in the docs. (3) The deployed resolver has no `text()` getter; reads must go through UniversalResolver `resolve` + multicall. (4) After expiry `unregister` reverts `LabelExpired` while `renew` revives the name with its resolver storage intact — useful behaviour, but undocumented. Full notes: docs/ENS_INTEGRATION.md.
+**Feedback.** The `contracts-v2` main branch does not match what is deployed on Sepolia; we lost time until we pinned the `sepolia-deployment-2026-09-15` tag, and it should be the documented starting point. Setter roles on PermissionedResolver are scoped by record key, not by name, so giving one party one record on one name means a resolver per name. The deployed resolver has no `text()` getter, so reads go through UniversalResolver `resolve` plus multicall. After a name expires, `unregister` reverts with `LabelExpired` but `renew` brings it back with its resolver storage intact. That is useful and nowhere in the docs. Details in docs/ENS_INTEGRATION.md.
 
 ### Curvegrid — $3,000
 
-**Reason.** An ERC-721 receivable represents one real invoice end to end: minted on issue, transferable only to a World ID–verified investor with a per-person position cap enforced in the `_update` hook, and burned on settlement in the same transaction that pays the current owner and retires the invoice's ENS identity — programmable, self-settling RWA tokenization, live on Sepolia with 46 fork tests. MultiBaas was evaluated for the activity feed and time-boxed out; the app reads state by direct RPC (disclosed in the README).
+**Reason.** One ERC-721 token stands for one invoice for its whole life. It is minted when the supplier lists, it can only move to a World ID–verified investor, the `_update` hook enforces a per-person cap, and it is burned by the same transaction that pays the current owner and retires the invoice's ENS name. It runs on Sepolia with 46 fork tests. We looked at MultiBaas for the activity feed and dropped it to make the time-box; the app reads state over plain RPC, and the README says so.
 
 **Proof.** https://github.com/eth-2026-seikyu/seikyu/blob/323d4f8c41a9/contracts/src/InvoiceMarket.sol#L196-L204 (transfer controls: https://github.com/eth-2026-seikyu/seikyu/blob/323d4f8c41a9/contracts/src/InvoiceMarket.sol#L235)
 
-**Ease of use.** Not rated — MultiBaas was not used (leave the stars empty or rate the docs only).
+**Ease of use.** Not rated. We did not use MultiBaas.
 
-**Feedback.** What would have got us onto MultiBaas inside a hackathon time-box: a 15-minute quick-start for indexing a custom ERC-721's events on Sepolia into a REST/webhook feed, with a copy-paste Next.js example.
+**Feedback.** A fifteen-minute quick-start that indexes a custom ERC-721's events on Sepolia into a REST or webhook feed, with a Next.js example to copy, would have got us onto MultiBaas inside a hackathon.
