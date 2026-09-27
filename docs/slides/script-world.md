@@ -12,6 +12,8 @@ Seikyu is a marketplace for unpaid invoices: a business gets paid today, an inve
 
 **If they ask:** why legacy v3 for the demo? — the Simulator's default World ID 4.0 mode shares one nullifier across all five test identities, so legacy v3 is the only way to demo one-person-one-wallet.
 
+**If they ask:** what does the name mean? — 請求, *seikyū*, is Japanese for a claim, a demand for payment; add 書 for document and 請求書 is the invoice itself. We named it for the claim, because the claim is the part that changes hands.
+
 ## 2. The problem
 
 Thirty seconds of context first. A supplier finishes the work today and gets paid in sixty to ninety days — payroll doesn't wait that long. The fix is to let someone with cash buy that debt at a discount. But open that to strangers and you inherit a new problem: one person with fifty wallets looks like fifty buyers, and any per-person limit you write is theatre.

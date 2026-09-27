@@ -11,6 +11,8 @@ Seikyu is a marketplace for unpaid invoices — a business gets paid today, an i
 
 **If they ask:** Why pin to a tag instead of tracking main? Because main's contract API doesn't match what's live on Sepolia — we needed something stable to build against.
 
+**If they ask:** what does the name mean? — 請求, *seikyū*, is Japanese for a claim, a demand for payment; add 書 for document and 請求書 is the invoice itself. We named it for the claim, because the claim is the part that changes hands.
+
 ## 2. The problem
 
 Quick context. A supplier delivers today and is paid in sixty to ninety days. Nobody else will buy that debt, because nobody outside the deal can check it's real. And the due date — the one fact that decides everything — is a column in somebody's database. It expires nothing, and it gates nothing.

@@ -12,6 +12,8 @@ Seikyu is a marketplace for unpaid invoices: a business gets paid today, an inve
 
 **If they ask:** why ERC-721 and not ERC-20? — each invoice is unique and non-fungible, so one asset gets exactly one token, not a fungible share.
 
+**If they ask:** what does the name mean? — 請求, *seikyū*, is Japanese for a claim, a demand for payment; add 書 for document and 請求書 is the invoice itself. We named it for the claim, because the claim is the part that changes hands.
+
 ## 2. The problem
 
 Quick context first. A supplier delivers today and gets paid in sixty to ninety days. That receivable is a real asset worth real money, and it lives in a spreadsheet — which means it can be sold twice, and a buyer can't audit it without trusting whoever keeps the sheet.
