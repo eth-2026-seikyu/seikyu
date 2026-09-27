@@ -10,8 +10,9 @@ network, so they work with no wifi. Each deck has a matching speaker script.
 | [`ens.html`](ens.html) | ENS booth | 10 slides · 2–3 min | [`script-ens.md`](script-ens.md) |
 | [`curvegrid.html`](curvegrid.html) | Curvegrid booth (RWA) | 9 slides · 2–3 min | [`script-curvegrid.md`](script-curvegrid.md) |
 
-Every deck opens the same way — the problem, then the fix, then one diagram of
-the whole deal — so nobody has to already understand invoice factoring. Each
+Every deck opens the same way — one line saying what Seikyu is, then the
+problem, the fix, and one diagram of the whole deal — so nobody has to already
+understand invoice factoring. Each
 script says which of those slides to drop when you are short on time.
 
 ## Presenting

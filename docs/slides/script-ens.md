@@ -7,7 +7,7 @@ knows Seikyu, say one sentence of slide 3 and jump to the diagram on slide 4.
 
 ## 1. Seikyu on ENSv2
 
-Seikyu turns unpaid invoices into ENS names. We're built on ENSv2, pinned to the Sepolia deployment tag from mid-September, because the current `contracts-v2` main branch has a different API than what's actually deployed. Every invoice is a subname under `seikyu.eth`, and its expiry is the invoice's due date — a real economic primitive, not a label.
+Seikyu is a marketplace for unpaid invoices — a business gets paid today, an investor buys the debt at a discount. What makes that possible is ENS: the invoice *is* the name. We're built on ENSv2, pinned to the Sepolia deployment tag from mid-September, because the current `contracts-v2` main branch has a different API than what's actually deployed. Every invoice is a subname under `seikyu.eth`, and its expiry is the invoice's due date — a real economic primitive, not a label.
 
 **If they ask:** Why pin to a tag instead of tracking main? Because main's contract API doesn't match what's live on Sepolia — we needed something stable to build against.
 

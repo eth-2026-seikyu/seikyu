@@ -8,7 +8,7 @@ knows Seikyu, say one sentence of slide 3 and jump to the diagram on slide 4.
 
 ## 1. A receivable that lives and dies on-chain.
 
-Seikyu turns an unpaid invoice into a single ERC-721 token that represents that real-world asset for its entire life. It's minted when a supplier lists the invoice, transferred exactly once to a verified investor, and burned the moment the debt is settled. The token's life mirrors the asset's life.
+Seikyu is a marketplace for unpaid invoices: a business gets paid today, an investor buys the debt at a discount and collects in full on the due date. Each invoice becomes a single ERC-721 token that represents that real-world asset for its entire life. It's minted when a supplier lists the invoice, transferred exactly once to a verified investor, and burned the moment the debt is settled. The token's life mirrors the asset's life.
 
 **If they ask:** why ERC-721 and not ERC-20? — each invoice is unique and non-fungible, so one asset gets exactly one token, not a fungible share.
 

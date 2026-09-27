@@ -83,7 +83,21 @@ h2 {
   margin: 0;
 }
 
-.slide.center .lede { max-width: 34ch; }
+.slide.center .lede { max-width: 820px; text-wrap: balance; }
+
+/* The one line that says what Seikyu is. Sits between the name and the
+   detail, so a judge knows what they are looking at before slide two. */
+.hook {
+  font-size: 34px;
+  line-height: 1.25;
+  font-weight: 640;
+  letter-spacing: -.015em;
+  margin: 0 0 18px;
+  max-width: 900px;
+  text-wrap: balance;
+}
+
+.slide.center .hook { margin-bottom: 20px; }
 
 ul {
   margin: 0;

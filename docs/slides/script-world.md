@@ -8,7 +8,7 @@ knows Seikyu, say one sentence of slide 3 and jump to the diagram on slide 4.
 
 ## 1. Buying a receivable requires one real human.
 
-Seikyu lets a supplier sell an unpaid invoice to an investor at a discount. Before that purchase happens, we require World ID — proof the buyer is one real human, not just a wallet. We use IDKit 4.3 with the Proof of Human preset, allowing legacy v3 proofs for this demo.
+Seikyu is a marketplace for unpaid invoices: a business gets paid today, an investor buys the debt at a discount and collects in full on the due date. Before that purchase can happen, we require World ID — proof the buyer is one real human, not just a wallet. IDKit 4.3, Proof of Human preset, legacy v3 proofs allowed for this demo.
 
 **If they ask:** why legacy v3 for the demo? — the Simulator's default World ID 4.0 mode shares one nullifier across all five test identities, so legacy v3 is the only way to demo one-person-one-wallet.
 

@@ -16,8 +16,10 @@ drop 3, 7 and 12 — the story still closes.
 
 ## 1 — Seikyu 請求 *(0:00–0:10)*
 
-"Seikyu — Japanese for invoice. A supplier can sell an unpaid invoice today
-instead of waiting to be paid. It's live on Sepolia right now."
+"Seikyu — Japanese for invoice. In one sentence: get paid today for an invoice
+that isn't due for sixty days. It's a marketplace for unpaid invoices, where
+each invoice becomes an ENS name anyone can check — and it's live on Sepolia
+right now."
 
 ## 2 — The problem *(0:10–0:28)*
 
