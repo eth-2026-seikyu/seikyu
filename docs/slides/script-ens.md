@@ -1,68 +1,69 @@
 # Seikyu — ENS partner deck script
 
-Speaker notes for `ens.html`, one section per slide. ~2–3 minutes total.
+Notes for `ens.html`, one section per slide. ~30 spoken words each — these are
+prompts, not a read-aloud. The slide carries the detail; you say the point.
+About two minutes at a booth pace.
 
-Slides 2–4 set up the problem before the ENSv2 detail. If the judge already
-knows Seikyu, say one sentence of slide 3 and jump to the diagram on slide 4.
+Slides 2–4 are the setup. If the judge already knows Seikyu, skip to slide 4.
 
 ## 1. Seikyu on ENSv2
 
-Seikyu is a marketplace for unpaid invoices — a business gets paid today, an investor buys the debt at a discount. What makes that possible is ENS: the invoice *is* the name. We're built on ENSv2, pinned to the Sepolia deployment tag from mid-September, because the current `contracts-v2` main branch has a different API than what's actually deployed. Every invoice is a subname under `seikyu.eth`, and its expiry is the invoice's due date — a real economic primitive, not a label.
+A marketplace for unpaid invoices, where the invoice *is* the ENS name. Every invoice is a subname under `seikyu.eth`, and its expiry is the due date. Built on ENSv2, pinned to the September Sepolia deployment tag.
 
-**If they ask:** Why pin to a tag instead of tracking main? Because main's contract API doesn't match what's live on Sepolia — we needed something stable to build against.
+**If they ask:** why pin to a tag? — main's contract API no longer matches what's deployed on Sepolia, and we needed something stable to build against.
 
-**If they ask:** what does the name mean? — 請求, *seikyū*, is Japanese for a claim, a demand for payment; add 書 for document and 請求書 is the invoice itself. We named it for the claim, because the claim is the part that changes hands.
+**If they ask:** what does the name mean? — 請求, *seikyū*, is Japanese for a claim, a demand for payment; add 書, document, and 請求書 is the invoice. We named it for the claim — that's the part that changes hands.
 
 ## 2. The problem
 
-Quick context. A supplier delivers today and is paid in sixty to ninety days. Nobody else will buy that debt, because nobody outside the deal can check it's real. And the due date — the one fact that decides everything — is a column in somebody's database. It expires nothing, and it gates nothing.
+A supplier is paid sixty to ninety days after the work is done. Nobody else will buy that debt, because nobody outside the deal can check it. And the due date — the fact that decides everything — is a column in someone's database. It expires nothing.
 
-**If they ask:** who would buy it today? — factoring houses do, at a steep discount, after manual verification that only scales for large invoices.
+**If they ask:** who buys these today? — factoring houses, at a steep discount, after manual checks that only pay off on large invoices.
 
 ## 3. The invoice is the name, and the due date is the expiry
 
-In Seikyu the invoice *is* the ENS name. Eight text records anyone can read without an account or an API key. The debtor's own accountant confirms the debt on-chain, writing one record and nothing else. And the name stops resolving the day the debt falls due — no cleanup job, no cron, no drift.
+Eight text records, readable without an account or an API key. The debtor's accountant confirms on-chain, writing one record and nothing else. And the name stops resolving the day the debt falls due — no cleanup job, no drift.
 
-**If they ask:** why not just store a dueDate field? — because then liveness is our claim; here it's ENS's, and anyone can check it.
+**If they ask:** why not just a dueDate field? — then liveness is our claim. Here it's ENS's, and anyone can check it.
 
 ## 4. Where the name lives and dies
 
-The whole flow in one picture. The orange lane is the ENS name: created with one signature when the supplier lists, written to by the debtor when they confirm, and retired in the same transaction that settles the debt. Everything else — the purchase, the payout — hangs off that name's state.
+Orange is the name: created with one signature at listing, written to by the debtor when they confirm, retired in the same transaction that settles. Everything else hangs off its state.
 
-**If they ask:** what if it's never settled? — the name expires on the due date, and `renew` revives it for thirty days with its records intact.
+**If they ask:** what if it's never settled? — it expires on the due date, and `renew` revives it for thirty days with its records intact.
 
 ## 5. Expiry is an economic primitive, not a label
 
-We deploy our own `UserRegistry` through ENS's VerifiableFactory under `seikyu.eth`. Every invoice becomes a subname — `inv-15.seikyu.eth` — and its ENS expiry is set to the invoice's actual due date. When the debt is due, the name expires. That's not cosmetic: liveness itself becomes the source of truth for whether an invoice is still active.
+Our own `UserRegistry`, deployed through VerifiableFactory under `seikyu.eth`. `inv-15.seikyu.eth` expires exactly when the debt is due — so liveness, not a status column, is the source of truth.
 
-**If they ask:** Could you use a plain database expiry instead? Sure, but then liveness wouldn't be verifiable on-chain by anyone without trusting us.
+**If they ask:** why not a database expiry? — then nobody can verify liveness without trusting us.
 
 ## 6. One resolver per invoice — by force, not choice
 
-The deployed resolver scopes setter roles by `keccak256` of the record key alone, not by name. That means we can't grant a debtor's accountant write access to just the `ack` field on one invoice without also handing them `ack` on every invoice we've ever issued. So every invoice gets its own PermissionedResolver proxy, holding eight text records: amount, currency, debtor, dueDate, status, ack, tokenId, issuer.
+The deployed resolver scopes setter roles by `keccak256` of the key alone, never by name. Granting an accountant `ack` on one invoice would grant it on all of them. Hence one PermissionedResolver proxy per invoice, eight records each.
 
-**If they ask:** Isn't a resolver per invoice expensive? It's one proxy deploy, and today it's the only way to isolate permissions per name.
+**If they ask:** isn't a resolver per invoice expensive? — one proxy deploy, and today it's the only way to isolate permissions per name.
 
 ## 7. Confirm the debt, touch nothing else
 
-The debtor's accounts-payable wallet only holds an Enhanced Access Control role scoped to the `ack` key. If they try to edit the amount instead, it reverts on-chain with `EACUnauthorizedAccountRoles` — we'll show that live. Confirm `ack`, and the invoice badge flips to "Confirmed by debtor." They can attest to the debt; they can't touch the terms.
+The debtor's AP wallet holds an EAC role scoped to `ack`. Editing the amount reverts with `EACUnauthorizedAccountRoles` — we can show that live. They can attest to the debt; they can't touch the terms.
 
-**If they ask:** What if the debtor disputes it instead? They write `ack` as disputed, and that's the exact status that gates the sale.
+**If they ask:** and if they dispute instead? — they write `ack` as disputed, and that status gates the sale.
 
 ## 8. A disputed invoice cannot be bought
 
-`InvoiceMarket.buy()` checks `REGISTRAR.isLive(id)` on the invoice's ENS name, and separately refuses when the debtor's `ack` reads disputed. If it's disputed, the purchase reverts — no investor can buy a receivable the debtor has contested. ENS state is directly gating real money moving, not just informing a UI.
+`buy()` checks `REGISTRAR.isLive(id)`, and separately refuses when `ack` reads disputed. ENS state gates the money directly — it isn't just informing the UI.
 
-**If they ask:** Can the debtor dispute after it's already sold? Yes, that's a separate flow — this gate is specifically pre-purchase.
+**If they ask:** can they dispute after it's sold? — that's a separate flow; this gate is pre-purchase.
 
 ## 9. The name retires; the record doesn't
 
-Settlement calls `closeInvoice`: it pays the investor, burns the token, and unregisters the name — one transaction. Liveness and records are two separate paths — liveness reads the registry, records read the resolver cached at registration. So even after a name's gone, records stay readable, because the registry alone returns `address(0)` for it.
+`closeInvoice` pays the investor, burns the token and unregisters the name, in one transaction. Liveness reads the registry; records read the resolver cached at registration — so the records outlive the name.
 
-**If they ask:** Doesn't returning `address(0)` break the record read? No — the registrar cached the actual resolver address at registration, so record reads don't depend on the registry's live pointer.
+**If they ask:** doesn't the registry return `address(0)`? — it does, which is exactly why the registrar cached the resolver address at registration.
 
 ## 10. The deploy tag should be the docs entry point
 
-Four quick notes. The deployment tag should be the documented entry point — main's already diverged. Key-scoped setter roles deserve a prominent callout; it drove our whole resolver-per-invoice design. The resolver has no `text()` getter, so every read goes through resolve plus multicall. And `renew` reviving an expired name's storage is useful, though undocumented.
+Four notes. Document the deploy tag — main has diverged. Call out key-scoped setter roles; that drove our whole design. The resolver has no `text()` getter, so reads go through resolve plus multicall. And `renew` reviving expired storage is useful, but undocumented.
 
-**If they ask:** Which of these would you want fixed first? Probably the deploy-tag documentation — it's the one that costs every new ENSv2 builder real debugging time.
+**If they ask:** which would you fix first? — the deploy tag. It costs every new ENSv2 builder real debugging time.
