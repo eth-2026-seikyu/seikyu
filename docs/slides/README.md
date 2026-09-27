@@ -5,7 +5,7 @@ network, so they work with no wifi. Each deck has a matching speaker script.
 
 | Deck | Use it for | Length | Script |
 |---|---|---|---|
-| [`main.html`](main.html) | Top 10 live judging | 13 slides · 3:20 | [`script-main.md`](script-main.md) |
+| [`main.html`](main.html) | Top 10 live judging | 13 slides · 3:30 | [`script-main.md`](script-main.md) · [ไทย](script-main-th.md) |
 | [`world.html`](world.html) | World booth | 10 slides · ~2 min | [`script-world.md`](script-world.md) |
 | [`ens.html`](ens.html) | ENS booth | 10 slides · ~2 min | [`script-ens.md`](script-ens.md) |
 | [`curvegrid.html`](curvegrid.html) | Curvegrid booth (RWA) | 9 slides · ~2 min | [`script-curvegrid.md`](script-curvegrid.md) |
